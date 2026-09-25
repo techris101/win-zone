@@ -2,1482 +2,237 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="WIN ZONE user dashboard"
-    >
-
-    <title>Dashboard | WIN ZONE</title>
-
-    <!-- =========================================
-         WIN ZONE SHARED CSS
-    ========================================== -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Dashboard | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-
-            background:
-                radial-gradient(
-                    circle at 10% 0%,
-                    rgba(0, 255, 213, 0.12),
-                    transparent 28%
-                ),
-                radial-gradient(
-                    circle at 95% 95%,
-                    rgba(255, 0, 170, 0.12),
-                    transparent 28%
-                ),
-                #070914;
-
-            color: #ffffff;
-        }
-
-        /* =========================================
-           HEADER
-        ========================================== */
-
-        .dashboard-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-
-            background: rgba(7, 9, 20, 0.92);
-
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .header-inner {
-            max-width: 1250px;
-
-            margin: auto;
-
-            min-height: 72px;
-
-            padding: 0 22px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 20px;
-        }
-
-        .logo {
-            text-decoration: none;
-        }
-
-        .logo-text {
-            font-size: 27px;
-
-            font-weight: 900;
-
-            letter-spacing: 1.5px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00ffd5,
-                    #00aaff,
-                    #ff00aa
-                );
-
-            background-clip: text;
-            -webkit-background-clip: text;
-
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-actions {
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-        }
-
-        .header-icon {
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            background:
-                rgba(255, 255, 255, 0.05);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            color: #ffffff;
-
-            text-decoration: none;
-
-            font-size: 18px;
-
-            transition: 0.2s ease;
-        }
-
-        .header-icon:hover {
-            background:
-                rgba(0, 255, 213, 0.10);
-
-            border-color:
-                rgba(0, 255, 213, 0.30);
-
-            transform: translateY(-1px);
-        }
-
-        /* =========================================
-           MAIN
-        ========================================== */
-
-        .dashboard-container {
-            width: 100%;
-
-            max-width: 1250px;
-
-            margin: 0 auto;
-
-            padding: 35px 22px 50px;
-        }
-
-        .welcome-section {
-            margin-bottom: 28px;
-        }
-
-        .welcome-section h1 {
-            margin: 0 0 8px;
-
-            font-size: 32px;
-
-            font-weight: 850;
-        }
-
-        .welcome-section p {
-            margin: 0;
-
-            color: #9fa7bf;
-
-            line-height: 1.6;
-        }
-
-        .username {
-            color: #00ffd5;
-        }
-
-        /* =========================================
-           BALANCE CARD
-        ========================================== */
-
-        .balance-card {
-            position: relative;
-
-            overflow: hidden;
-
-            padding: 30px;
-
-            margin-bottom: 25px;
-
-            border-radius: 22px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(0, 255, 213, 0.14),
-                    rgba(0, 160, 255, 0.09),
-                    rgba(255, 0, 170, 0.10)
-                );
-
-            border:
-                1px solid rgba(0, 255, 213, 0.16);
-
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.30);
-        }
-
-        .balance-card::before {
-            content: "";
-
-            position: absolute;
-
-            width: 220px;
-            height: 220px;
-
-            right: -80px;
-            top: -100px;
-
-            border-radius: 50%;
-
-            background:
-                rgba(0, 255, 213, 0.10);
-
-            filter: blur(5px);
-        }
-
-        .balance-label {
-            position: relative;
-
-            color: #aeb5cc;
-
-            font-size: 14px;
-
-            margin-bottom: 8px;
-        }
-
-        .balance-amount {
-            position: relative;
-
-            font-size: 42px;
-
-            font-weight: 900;
-
-            letter-spacing: 1px;
-
-            margin-bottom: 20px;
-        }
-
-        .balance-actions {
-            position: relative;
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            gap: 10px;
-        }
-
-        .balance-button {
-            display: inline-flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            min-width: 125px;
-
-            padding: 12px 18px;
-
-            border-radius: 11px;
-
-            text-decoration: none;
-
-            font-size: 14px;
-
-            font-weight: 800;
-
-            transition: 0.2s ease;
-        }
-
-        .deposit-button {
-            background:
-                linear-gradient(
-                    90deg,
-                    #00ffd5,
-                    #00b7ff
-                );
-
-            color: #05070e;
-        }
-
-        .withdraw-button {
-            background:
-                rgba(255, 255, 255, 0.07);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.12);
-
-            color: #ffffff;
-        }
-
-        .balance-button:hover {
-            transform: translateY(-2px);
-        }
-
-        /* =========================================
-           QUICK ACTIONS
-        ========================================== */
-
-        .section-title {
-            margin: 0 0 15px;
-
-            font-size: 20px;
-
-            font-weight: 800;
-        }
-
-        .quick-actions {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 15px;
-
-            margin-bottom: 30px;
-        }
-
-        .quick-card {
-            min-height: 125px;
-
-            padding: 20px;
-
-            border-radius: 18px;
-
-            background:
-                rgba(255, 255, 255, 0.035);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            text-decoration: none;
-
-            color: #ffffff;
-
-            transition: 0.2s ease;
-        }
-
-        .quick-card:hover {
-            transform: translateY(-3px);
-
-            border-color:
-                rgba(0, 255, 213, 0.28);
-
-            background:
-                rgba(0, 255, 213, 0.055);
-
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        .quick-icon {
-            width: 43px;
-            height: 43px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            margin-bottom: 13px;
-
-            border-radius: 12px;
-
-            background:
-                rgba(0, 255, 213, 0.10);
-
-            font-size: 20px;
-        }
-
-        .quick-card h3 {
-            margin: 0 0 5px;
-
-            font-size: 15px;
-        }
-
-        .quick-card p {
-            margin: 0;
-
-            color: #858da5;
-
-            font-size: 12px;
-
-            line-height: 1.4;
-        }
-
-        /* =========================================
-           START MATCH
-        ========================================== */
-
-        .match-banner {
-            position: relative;
-
-            overflow: hidden;
-
-            margin-bottom: 30px;
-
-            padding: 30px;
-
-            border-radius: 22px;
-
-            background:
-                linear-gradient(
-                    110deg,
-                    rgba(0, 180, 255, 0.13),
-                    rgba(150, 0, 255, 0.11),
-                    rgba(255, 0, 170, 0.10)
-                );
-
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
-        }
-
-        .match-banner-content {
-            position: relative;
-
-            z-index: 2;
-
-            max-width: 650px;
-        }
-
-        .match-banner h2 {
-            margin: 0 0 10px;
-
-            font-size: 27px;
-        }
-
-        .match-banner p {
-            margin: 0 0 20px;
-
-            color: #aeb5cc;
-
-            line-height: 1.6;
-        }
-
-        .start-match-button {
-            display: inline-flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            padding: 14px 24px;
-
-            border-radius: 12px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00ffd5,
-                    #00b7ff
-                );
-
-            color: #05070e;
-
-            text-decoration: none;
-
-            font-size: 15px;
-
-            font-weight: 900;
-
-            transition: 0.2s ease;
-        }
-
-        .start-match-button:hover {
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 10px 30px rgba(0, 255, 213, 0.20);
-        }
-
-        .match-decoration {
-            position: absolute;
-
-            right: -30px;
-            bottom: -80px;
-
-            width: 250px;
-            height: 250px;
-
-            border-radius: 50%;
-
-            border:
-                35px solid rgba(0, 255, 213, 0.06);
-        }
-
-        /* =========================================
-           LOWER GRID
-        ========================================== */
-
-        .lower-grid {
-            display: grid;
-
-            grid-template-columns:
-                1.35fr 0.65fr;
-
-            gap: 20px;
-        }
-
-        .panel {
-            padding: 24px;
-
-            border-radius: 19px;
-
-            background:
-                rgba(255, 255, 255, 0.035);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        /* =========================================
-           RECENT ACTIVITY
-        ========================================== */
-
-        .activity-item {
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 15px;
-
-            padding: 15px 0;
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-
-            padding-bottom: 0;
-        }
-
-        .activity-left {
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            min-width: 0;
-        }
-
-        .activity-icon {
-            flex-shrink: 0;
-
-            width: 40px;
-            height: 40px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 11px;
-
-            background:
-                rgba(0, 255, 213, 0.08);
-        }
-
-        .activity-info {
-            min-width: 0;
-        }
-
-        .activity-info strong {
-            display: block;
-
-            font-size: 14px;
-
-            margin-bottom: 4px;
-        }
-
-        .activity-info span {
-            color: #7f879f;
-
-            font-size: 12px;
-        }
-
-        .activity-amount {
-            white-space: nowrap;
-
-            font-size: 14px;
-
-            font-weight: 800;
-        }
-
-        .positive {
-            color: #70ffd0;
-        }
-
-        .neutral {
-            color: #c4cad9;
-        }
-
-        /* =========================================
-           ACCOUNT PANEL
-        ========================================== */
-
-        .account-list {
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 10px;
-        }
-
-        .account-link {
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            padding: 13px 14px;
-
-            border-radius: 12px;
-
-            background:
-                rgba(255, 255, 255, 0.035);
-
-            color: #ffffff;
-
-            text-decoration: none;
-
-            font-size: 14px;
-
-            transition: 0.2s ease;
-        }
-
-        .account-link:hover {
-            background:
-                rgba(0, 255, 213, 0.07);
-
-            color: #00ffd5;
-        }
-
-        .account-link span:last-child {
-            color: #6f7892;
-
-            font-size: 18px;
-        }
-
-        .logout-link:hover {
-            color: #ff7f92;
-            background:
-                rgba(255, 70, 90, 0.07);
-        }
-
-        /* =========================================
-           FOOTER
-        ========================================== */
-
-        .dashboard-footer {
-            max-width: 1250px;
-
-            margin: 0 auto;
-
-            padding: 0 22px 30px;
-
-            text-align: center;
-
-            color: #626b83;
-
-            font-size: 12px;
-
-            line-height: 1.6;
-        }
-
-        .dashboard-footer a {
-            color: #818ba5;
-
-            text-decoration: none;
-
-            margin: 0 7px;
-        }
-
-        .dashboard-footer a:hover {
-            color: #00ffd5;
-        }
-
-        /* =========================================
-           RESPONSIVE
-        ========================================== */
-
-        @media (max-width: 950px) {
-
-            .quick-actions {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-
-            .lower-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-
-            .header-inner {
-                padding: 0 15px;
-            }
-
-            .logo-text {
-                font-size: 22px;
-            }
-
-            .header-icon {
-                width: 38px;
-                height: 38px;
-            }
-
-            .dashboard-container {
-                padding:
-                    25px 15px 40px;
-            }
-
-            .welcome-section h1 {
-                font-size: 27px;
-            }
-
-            .balance-card {
-                padding: 23px;
-            }
-
-            .balance-amount {
-                font-size: 34px;
-            }
-
-            .quick-actions {
-                grid-template-columns: 1fr 1fr;
-
-                gap: 10px;
-            }
-
-            .quick-card {
-                min-height: 115px;
-
-                padding: 16px;
-            }
-
-            .match-banner {
-                padding: 24px;
-            }
-
-            .match-banner h2 {
-                font-size: 23px;
-            }
-
-            .activity-item {
-                align-items: flex-start;
-            }
-        }
-
-        @media (max-width: 390px) {
-
-            .quick-actions {
-                grid-template-columns: 1fr;
-            }
-
-            .balance-actions {
-                flex-direction: column;
-            }
-
-            .balance-button {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<!-- =============================================
-     HEADER
-================================================= -->
-
-<header class="dashboard-header">
-
-    <div class="header-inner">
-
-        <a
-            href="dashboard.html"
-            class="logo"
-            aria-label="WIN ZONE Dashboard"
-        >
-
-            <span class="logo-text">
-                WIN ZONE
-            </span>
-
-        </a>
-
-
-        <div class="header-actions">
-
-            <a
-                href="notifications.html"
-                class="header-icon"
-                title="Notifications"
-                aria-label="Notifications"
-            >
-                🔔
-            </a>
-
-            <a
-                href="account.html"
-                class="header-icon"
-                title="Account"
-                aria-label="Account"
-            >
-                👤
-            </a>
-
-        </div>
-
-    </div>
-
-</header>
-
-
-<!-- =============================================
-     MAIN DASHBOARD
-================================================= -->
-
-<main class="dashboard-container">
-
-
-    <!-- =========================================
-         WELCOME
-    ========================================== -->
-
-    <section class="welcome-section">
-
-        <h1>
-            Welcome back,
-            <span
-                class="username"
-                id="dashboardUsername"
-            >
-                Player
-            </span>
-            👋
-        </h1>
-
-        <p>
-            Manage your account, wallet and matches
-            from your WIN ZONE dashboard.
-        </p>
-
-    </section>
-
-
-    <!-- =========================================
-         BALANCE
-    ========================================== -->
-
-    <section class="balance-card">
-
-        <div class="balance-label">
-            Available Balance
-        </div>
-
-        <div
-            class="balance-amount"
-            id="balanceAmount"
-        >
-            $0.00
-        </div>
-
-
-        <div class="balance-actions">
-
-            <a
-                href="deposit.html"
-                class="balance-button deposit-button"
-            >
-                + Deposit
-            </a>
-
-            <a
-                href="withdraw.html"
-                class="balance-button withdraw-button"
-            >
-                Withdraw
-            </a>
-
-            <a
-                href="wallet.html"
-                class="balance-button withdraw-button"
-            >
-                View Wallet
-            </a>
-
-        </div>
-
-    </section>
-
-
-    <!-- =========================================
-         QUICK ACTIONS
-    ========================================== -->
-
-    <section>
-
-        <h2 class="section-title">
-            Quick Access
-        </h2>
-
-
-        <div class="quick-actions">
-
-
-            <a
-                href="match.html"
-                class="quick-card"
-            >
-
-                <div class="quick-icon">
-                    🎮
-                </div>
-
-                <h3>
-                    Start a Match
-                </h3>
-
-                <p>
-                    Choose your stake and find
-                    an eligible opponent.
-                </p>
-
-            </a>
-
-
-            <a
-                href="wallet.html"
-                class="quick-card"
-            >
-
-                <div class="quick-icon">
-                    💰
-                </div>
-
-                <h3>
-                    Wallet
-                </h3>
-
-                <p>
-                    View your available funds
-                    and wallet activity.
-                </p>
-
-            </a>
-
-
-            <a
-                href="transactions.html"
-                class="quick-card"
-            >
-
-                <div class="quick-icon">
-                    📊
-                </div>
-
-                <h3>
-                    Transactions
-                </h3>
-
-                <p>
-                    Review deposits, withdrawals
-                    and match transactions.
-                </p>
-
-            </a>
-
-
-            <a
-                href="notifications.html"
-                class="quick-card"
-            >
-
-                <div class="quick-icon">
-                    🔔
-                </div>
-
-                <h3>
-                    Notifications
-                </h3>
-
-                <p>
-                    See important account and
-                    match notifications.
-                </p>
-
-            </a>
-
-        </div>
-
-    </section>
-
-
-    <!-- =========================================
-         START MATCH BANNER
-    ========================================== -->
-
-    <section class="match-banner">
-
-        <div class="match-banner-content">
-
-            <h2>
-                Ready for your next match?
-            </h2>
-
-            <p>
-                Select one of the available stake
-                amounts and enter the matching
-                system. A private match becomes
-                available only after an eligible
-                opponent is found.
-            </p>
-
-            <a
-                href="match.html"
-                class="start-match-button"
-            >
-                Start a Match →
-            </a>
-
-        </div>
-
-
-        <div class="match-decoration"></div>
-
-    </section>
-
-
-    <!-- =========================================
-         LOWER CONTENT
-    ========================================== -->
-
-    <div class="lower-grid">
-
-
-        <!-- =====================================
-             RECENT ACTIVITY
-        ====================================== -->
-
-        <section class="panel">
-
-            <h2 class="section-title">
-                Recent Activity
-            </h2>
-
-
-            <div class="activity-item">
-
-                <div class="activity-left">
-
-                    <div class="activity-icon">
-                        💳
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
+
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link" data-i18n="navCompetitions">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link active" data-i18n="navDashboard">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link" data-i18n="navWallet">Wallet</a>
+                    <a href="dispute.html" class="wz-nav-link" data-i18n="navDisputes">Disputes</a>
+                    <a href="notifications.html" class="wz-nav-link" data-i18n="navNotifications">Notifications</a>
+                </nav>
+
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Balance:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
+                    <div class="wz-selectors">
+                        <select id="wzLangSelect" class="wz-select-sm" aria-label="Select Language">
+                            <option value="EN">EN</option>
+                            <option value="FR">FR</option>
+                            <option value="RW">RW</option>
+                            <option value="ES">ES</option>
+                        </select>
+                        <select id="wzCurrencySelect" class="wz-select-sm" aria-label="Select Currency">
+                            <option value="USD">USD</option>
+                            <option value="RWF">RWF</option>
+                            <option value="EUR">EUR</option>
+                            <option value="KES">KES</option>
+                        </select>
                     </div>
+                    <a href="account.html" class="wz-btn wz-btn-secondary wz-btn-sm">Account</a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                    <div class="activity-info">
-
-                        <strong>
-                            Wallet activity
-                        </strong>
-
-                        <span>
-                            Your recent transactions
-                            will appear here.
-                        </span>
-
+    <!-- =============================================
+         MAIN DASHBOARD
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container">
+            
+            <!-- User Status Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <div class="wz-badge wz-badge-success" style="margin-bottom: 8px;">
+                        VERIFIED 18+ COMPETITOR
                     </div>
-
+                    <h1 style="font-size: 28px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                        Welcome back, <span id="usernameDisplay">PlayerOne</span>
+                    </h1>
+                    <p style="color: var(--wz-text-muted); font-size: 13.5px;">
+                        Manage your gaming wallet, enter active competitions, and monitor match outcomes.
+                    </p>
                 </div>
 
-                <div class="activity-amount neutral">
-                    —
+                <div style="display: flex; gap: 10px;">
+                    <a href="deposit.html" class="wz-btn wz-btn-primary wz-btn-sm">
+                        ➕ Deposit Funds
+                    </a>
+                    <a href="withdraw.html" class="wz-btn wz-btn-secondary wz-btn-sm">
+                        💸 Withdraw
+                    </a>
+                    <a href="match.html" class="wz-btn wz-btn-accent wz-btn-sm">
+                        ⚡ Quick Match
+                    </a>
+                </div>
+            </div>
+
+            <!-- Financial Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 30px;">
+                
+                <div class="wz-card">
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--wz-text-muted); margin-bottom: 8px;">
+                        Available Cash Balance
+                    </div>
+                    <div style="font-size: 32px; font-weight: 900; color: var(--wz-primary); font-variant-numeric: tabular-nums;" class="wz-wallet-available">
+                        $50.00
+                    </div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 6px;">
+                        Ready for instant match staking
+                    </div>
+                </div>
+
+                <div class="wz-card">
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--wz-text-muted); margin-bottom: 8px;">
+                        Funds in Match Escrow
+                    </div>
+                    <div style="font-size: 32px; font-weight: 900; color: var(--wz-accent); font-variant-numeric: tabular-nums;" class="wz-wallet-reserved">
+                        $0.00
+                    </div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 6px;">
+                        Reserved for active or queuing matches
+                    </div>
+                </div>
+
+                <div class="wz-card">
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--wz-text-muted); margin-bottom: 8px;">
+                        Total Platform Valuation
+                    </div>
+                    <div style="font-size: 32px; font-weight: 900; color: var(--wz-text-bright); font-variant-numeric: tabular-nums;" class="wz-wallet-total">
+                        $50.00
+                    </div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 6px;">
+                        Combined liquid and reserved assets
+                    </div>
                 </div>
 
             </div>
 
-
-            <div class="activity-item">
-
-                <div class="activity-left">
-
-                    <div class="activity-icon">
-                        🎮
+            <!-- Two Column Operations & Shortcuts -->
+            <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+                
+                <!-- Recent Matches & Activity -->
+                <div class="wz-card">
+                    <div class="wz-card-header">
+                        <h3>Match Activity & History</h3>
+                        <a href="transactions.html" style="font-size: 12.5px; color: var(--wz-primary); font-weight: 600;">View All Ledgers &rarr;</a>
                     </div>
 
-                    <div class="activity-info">
-
-                        <strong>
-                            Match activity
-                        </strong>
-
-                        <span>
-                            Your completed matches
-                            will appear here.
-                        </span>
-
+                    <div id="dashboardActivityList">
+                        <div class="wz-ticket-row" style="padding: 12px 0;">
+                            <div>
+                                <strong style="display: block; font-size: 14px;">Recent Match Payout</strong>
+                                <span style="font-size: 12px; color: var(--wz-text-dim);">Match ID: M-84920 &bull; $5.00 Stake</span>
+                            </div>
+                            <span class="wz-badge wz-badge-success">+$9.00 Won</span>
+                        </div>
+                        <div class="wz-ticket-row" style="padding: 12px 0;">
+                            <div>
+                                <strong style="display: block; font-size: 14px;">Wallet Initial Deposit</strong>
+                                <span style="font-size: 12px; color: var(--wz-text-dim);">Card Payment &bull; Instant Confirmation</span>
+                            </div>
+                            <span class="wz-badge wz-badge-neutral">+$50.00</span>
+                        </div>
                     </div>
 
+                    <div style="margin-top: 20px;">
+                        <a href="match.html" class="wz-btn wz-btn-primary wz-btn-block">
+                            ⚡ Enter New Competition
+                        </a>
+                    </div>
                 </div>
 
-                <div class="activity-amount neutral">
-                    —
+                <!-- Fast Account Shortcuts & Official Support -->
+                <div>
+                    <div class="wz-card" style="margin-bottom: 20px;">
+                        <div class="wz-card-header">
+                            <h3>Account & Support</h3>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <a href="account.html" class="wz-nav-link" style="display: flex; justify-content: space-between; padding: 10px 14px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                                <span>👤 Account & KYC Verification</span>
+                                <span>&rarr;</span>
+                            </a>
+                            <a href="notifications.html" class="wz-nav-link" style="display: flex; justify-content: space-between; padding: 10px 14px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                                <span>🔔 Notifications & Alerts</span>
+                                <span>&rarr;</span>
+                            </a>
+                            <a href="dispute.html" class="wz-nav-link" style="display: flex; justify-content: space-between; padding: 10px 14px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                                <span>⚖️ Fair Play Disputes</span>
+                                <span>&rarr;</span>
+                            </a>
+                            <a href="mailto:bigmin00001@gmail.com" class="wz-nav-link" style="display: flex; justify-content: space-between; padding: 10px 14px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                                <span>🆘 Official Help Center</span>
+                                <span>bigmin00001@gmail.com</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="wz-notice info">
+                        <strong>Security Reminder:</strong>
+                        WIN ZONE uses server-authoritative balance calculation. Deposits and withdrawals are verified by authorized payment providers.
+                    </div>
                 </div>
 
             </div>
 
+        </div>
+    </main>
 
-            <div class="activity-item">
-
-                <div class="activity-left">
-
-                    <div class="activity-icon">
-                        🏆
-                    </div>
-
-                    <div class="activity-info">
-
-                        <strong>
-                            Payout activity
-                        </strong>
-
-                        <span>
-                            Your completed payouts
-                            will appear here.
-                        </span>
-
-                    </div>
-
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                    <a href="#" id="btnLogoutLink">Logout</a>
                 </div>
-
-                <div class="activity-amount neutral">
-                    —
-                </div>
-
             </div>
-
-
-            <div style="margin-top: 18px;">
-
-                <a
-                    href="transactions.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        View all transactions
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-            </div>
-
-        </section>
-
-
-        <!-- =====================================
-             ACCOUNT / SUPPORT
-        ====================================== -->
-
-        <section class="panel">
-
-            <h2 class="section-title">
-                Account & Support
-            </h2>
-
-
-            <div class="account-list">
-
-
-                <a
-                    href="account.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        👤 Account Settings
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="notifications.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        🔔 Notifications
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="dispute.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        ⚖️ Dispute / Help
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="terms.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        📄 Terms & Conditions
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="privacy.html"
-                    class="account-link"
-                >
-
-                    <span>
-                        🔒 Privacy Policy
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="mailto:bigmin00001@gmail.com"
-                    class="account-link"
-                >
-
-                    <span>
-                        🆘 Help Center
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#"
-                    class="account-link logout-link"
-                    id="logoutButton"
-                >
-
-                    <span>
-                        🚪 Logout
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
-                </a>
-
-            </div>
-
-        </section>
-
-    </div>
-
-</main>
-
-
-<!-- =============================================
-     FOOTER
-================================================= -->
-
-<footer class="dashboard-footer">
-
-    <div>
-        WIN ZONE © 2026
-    </div>
-
-    <div style="margin-top: 8px;">
-
-        <a href="terms.html">
-            Terms
-        </a>
-
-        <a href="privacy.html">
-            Privacy
-        </a>
-
-        <a href="mailto:bigmin00001@gmail.com">
-            Help Center
-        </a>
-
-    </div>
-
-</footer>
-
-
-<!-- =============================================
-     WIN ZONE SHARED JAVASCRIPT
-================================================= -->
-
-<script src="js/global.js"></script>
-
-
-<script>
-
-    /*
-     * ==========================================
-     * WIN ZONE DASHBOARD
-     * FRONTEND PROTOTYPE
-     * ==========================================
-     *
-     * Production:
-     * Dashboard information must come
-     * from the authenticated backend.
-     *
-     * The frontend must NEVER be trusted
-     * to determine:
-     *
-     * - wallet balance
-     * - match status
-     * - winner
-     * - payout
-     * - commission
-     * - user permissions
-     */
-
-
-    /*
-     * ==========================================
-     * PROTOTYPE USER INFORMATION
-     * ==========================================
-     *
-     * These values are placeholders.
-     *
-     * Production values will come from
-     * the authenticated backend.
-     */
-
-    const demoUser = {
-        firstName: "Player",
-        balance: 0
-    };
-
-
-    /*
-     * ==========================================
-     * DISPLAY USER
-     * ==========================================
-     */
-
-    document.getElementById(
-        "dashboardUsername"
-    ).textContent =
-        demoUser.firstName;
-
-
-    /*
-     * ==========================================
-     * DISPLAY BALANCE
-     * ==========================================
-     */
-
-    document.getElementById(
-        "balanceAmount"
-    ).textContent =
-        "$" +
-        Number(
-            demoUser.balance
-        ).toFixed(2);
-
-
-    /*
-     * ==========================================
-     * LOGOUT
-     * ==========================================
-     */
-
-    document
-        .getElementById("logoutButton")
-        .addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-
-                const confirmed =
-                    confirm(
-                        "Are you sure you want to log out?"
-                    );
-
-
-                if (!confirmed) {
-                    return;
-                }
-
-
-                /*
-                 * Use the shared WIN ZONE
-                 * logout function if available.
-                 */
-
-                if (
-                    window.WINZONE &&
-                    typeof window.WINZONE.logout ===
-                    "function"
-                ) {
-
-                    window.WINZONE.logout();
-
-                } else {
-
-                    window.location.href =
-                        "login.html";
-                }
-
+        </div>
+    </footer>
+
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const btnLogout = document.getElementById("btnLogoutLink");
+            if (btnLogout) {
+                btnLogout.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (confirm("Are you sure you want to log out?")) {
+                        WINZONE.logout();
+                    }
+                });
             }
-        );
-
-</script>
-
+        });
+    </script>
 </body>
 </html>

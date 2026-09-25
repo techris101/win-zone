@@ -3,188 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Notifications | WIN ZONE</title>
-
+    <title>Notification Center | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:#030914;
-            color:white;
-        }
-
-        .notifications-page {
-            max-width:850px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .heading {
-            text-align:center;
-            margin-bottom:28px;
-        }
-
-        .heading h1 {
-            font-size:40px;
-            margin:10px 0;
-        }
-
-        .heading p {
-            color:#9eafc4;
-        }
-
-        .permission-card {
-            padding:20px;
-            border-radius:18px;
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.09);
-            margin-bottom:18px;
-        }
-
-        .permission-card h2 {
-            margin-top:0;
-        }
-
-        .permission-card p {
-            color:#9eafc4;
-            line-height:1.6;
-            font-size:13px;
-        }
-
-        .notify-button {
-            padding:13px 18px;
-            border:0;
-            border-radius:11px;
-            background:linear-gradient(90deg,#00e5ff,#7c4dff);
-            color:#03101c;
-            font-weight:900;
-            cursor:pointer;
-        }
-
-        .notification {
-            padding:20px;
-            border-radius:17px;
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.08);
-            margin-bottom:11px;
-        }
-
-        .notification strong {
-            display:block;
-            margin-bottom:6px;
-        }
-
-        .notification p {
-            color:#9eafc4;
-            margin:0;
-            line-height:1.6;
-            font-size:13px;
-        }
-
-        .empty {
-            text-align:center;
-            padding:45px 20px;
-            color:#91a2b7;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <a href="dashboard.html" class="wz-logo">
-            WIN ZONE
-        </a>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="notifications.html" class="wz-nav-link active">Notifications</a>
+                </nav>
 
-        <a href="account.html" style="color:white;text-decoration:none;">
-            Account
-        </a>
-
-    </div>
-</header>
-
-<main class="notifications-page">
-
-    <section class="heading">
-
-        <div class="wz-badge">
-            ALERT CENTER
+                <div class="wz-header-right">
+                    <button id="btnEnablePush" class="wz-btn wz-btn-secondary wz-btn-sm">
+                        🔔 Enable Push Notifications
+                    </button>
+                    <a href="dashboard.html" class="wz-btn wz-btn-secondary wz-btn-sm">Dashboard</a>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <h1>Notifications</h1>
+    <!-- =============================================
+         NOTIFICATIONS MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-md">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h1 style="font-size: 30px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                        Notification Feed
+                    </h1>
+                    <p style="color: var(--wz-text-muted); font-size: 13.5px;">
+                        Real-time alerts for match found, result verification, payouts, and security events.
+                    </p>
+                </div>
+                <button class="wz-btn wz-btn-secondary wz-btn-sm" onclick="alert('All notifications marked as read.')">
+                    Mark All as Read
+                </button>
+            </div>
 
-        <p>
-            Important account, match, wallet and security updates.
-        </p>
+            <!-- Notification Items -->
+            <div class="wz-card" style="display: flex; flex-direction: column; gap: 12px;">
+                
+                <div class="wz-ticket-row" style="padding: 16px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm); border: 1px solid var(--wz-primary-border);">
+                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                        <span style="font-size: 20px;">🏆</span>
+                        <div>
+                            <strong style="color: var(--wz-text-bright); font-size: 14.5px; display: block;">Match Victory Payout Credited</strong>
+                            <p style="font-size: 13px; color: var(--wz-text-secondary); margin: 3px 0 6px;">
+                                Your winning result for Match M-84920 has been verified. Net payout of $9.00 was added to your available balance.
+                            </p>
+                            <span style="font-size: 11.5px; color: var(--wz-text-dim);">15 minutes ago</span>
+                        </div>
+                    </div>
+                    <span class="wz-badge wz-badge-success">PAYOUT</span>
+                </div>
 
-    </section>
+                <div class="wz-ticket-row" style="padding: 16px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                        <span style="font-size: 20px;">🎮</span>
+                        <div>
+                            <strong style="color: var(--wz-text-bright); font-size: 14.5px; display: block;">Opponent Matched: $5.00 Stake</strong>
+                            <p style="font-size: 13px; color: var(--wz-text-secondary); margin: 3px 0 6px;">
+                                Verified player PlayerTwo_Apex joined your session. Match code A7K2 generated.
+                            </p>
+                            <span style="font-size: 11.5px; color: var(--wz-text-dim);">1 hour ago</span>
+                        </div>
+                    </div>
+                    <span class="wz-badge wz-badge-neutral">MATCHING</span>
+                </div>
 
-    <section class="permission-card">
+                <div class="wz-ticket-row" style="padding: 16px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                        <span style="font-size: 20px;">💳</span>
+                        <div>
+                            <strong style="color: var(--wz-text-bright); font-size: 14.5px; display: block;">Wallet Deposit Confirmed</strong>
+                            <p style="font-size: 13px; color: var(--wz-text-secondary); margin: 3px 0 6px;">
+                                $50.00 deposit via Credit Card was verified and credited successfully.
+                            </p>
+                            <span style="font-size: 11.5px; color: var(--wz-text-dim);">Yesterday</span>
+                        </div>
+                    </div>
+                    <span class="wz-badge wz-badge-success">WALLET</span>
+                </div>
 
-        <h2>Enable Browser Notifications</h2>
+                <div class="wz-ticket-row" style="padding: 16px; background: var(--wz-surface-elevated); border-radius: var(--wz-radius-sm);">
+                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                        <span style="font-size: 20px;">🛡️</span>
+                        <div>
+                            <strong style="color: var(--wz-text-bright); font-size: 14.5px; display: block;">Account 18+ Verification Approved</strong>
+                            <p style="font-size: 13px; color: var(--wz-text-secondary); margin: 3px 0 6px;">
+                                Your age and identity verification were reviewed and approved for full real-money competitions.
+                            </p>
+                            <span style="font-size: 11.5px; color: var(--wz-text-dim);">3 days ago</span>
+                        </div>
+                    </div>
+                    <span class="wz-badge wz-badge-neutral">SECURITY</span>
+                </div>
 
-        <p>
-            Allow WIN ZONE to request permission to show browser
-            notifications when supported by your device and browser.
-        </p>
-
-        <button id="enableNotifications" class="notify-button">
-            Enable Notifications
-        </button>
-
-        <div id="permissionStatus" style="margin-top:12px;color:#91a2b7;font-size:12px;"></div>
-
-    </section>
-
-    <section>
-
-        <div class="notification">
-
-            <strong>Welcome to WIN ZONE</strong>
-
-            <p>
-                Your notification center is ready. New account,
-                wallet and match events will appear here.
-            </p>
+            </div>
 
         </div>
+    </main>
 
-        <div class="empty">
-            No additional notifications yet.
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
+    </footer>
 
-    </section>
-
-</main>
-
-<script src="js/global.js"></script>
-
-<script>
-document.getElementById("enableNotifications")
-    .addEventListener("click", async function() {
-
-        const output =
-            document.getElementById("permissionStatus");
-
-        if (!("Notification" in window)) {
-
-            output.textContent =
-                "This browser does not support notifications.";
-
-            return;
-        }
-
-        const result =
-            await Notification.requestPermission();
-
-        output.textContent =
-            "Notification permission: " + result;
-
-    });
-</script>
-
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const btnPush = document.getElementById("btnEnablePush");
+            btnPush.addEventListener("click", async function () {
+                const res = await WINZONE.requestNotifications();
+                if (res === "granted") {
+                    btnPush.textContent = "✓ Notifications Active";
+                    btnPush.disabled = true;
+                } else if (res === "denied") {
+                    alert("Notification permission was denied in your browser settings.");
+                } else {
+                    alert("Push notifications not supported in this browser.");
+                }
+            });
+        });
+    </script>
 </body>
 </html>

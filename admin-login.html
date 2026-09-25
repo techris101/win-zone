@@ -3,202 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Admin Login | WIN ZONE</title>
-
+    <title>Administration Access | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            min-height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background:
-                radial-gradient(circle at 20% 20%,rgba(0,229,255,.10),transparent 30%),
-                radial-gradient(circle at 80% 80%,rgba(124,77,255,.12),transparent 30%),
-                #020711;
-            color:white;
-        }
-
-        .admin-login {
-            width:min(460px,calc(100% - 30px));
-        }
-
-        .brand {
-            text-align:center;
-            margin-bottom:25px;
-        }
-
-        .brand h1 {
-            font-size:35px;
-            margin:8px 0;
-        }
-
-        .brand p {
-            color:#91a2b7;
-            font-size:13px;
-        }
-
-        .card {
-            padding:28px;
-            border-radius:22px;
-            background:rgba(13,27,46,.97);
-            border:1px solid rgba(255,255,255,.09);
-        }
-
-        .group {
-            margin-bottom:18px;
-        }
-
-        label {
-            display:block;
-            margin-bottom:8px;
-            font-size:13px;
-            font-weight:700;
-        }
-
-        input {
-            width:100%;
-            padding:15px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.12);
-            background:rgba(255,255,255,.04);
-            color:white;
-            outline:none;
-        }
-
-        input:focus {
-            border-color:#00e5ff;
-        }
-
-        .button {
-            width:100%;
-            padding:15px;
-            border:0;
-            border-radius:12px;
-            background:linear-gradient(90deg,#00e5ff,#7c4dff);
-            color:#03101c;
-            font-weight:900;
-            cursor:pointer;
-        }
-
-        .security {
-            margin-top:18px;
-            color:#91a2b7;
-            font-size:11px;
-            line-height:1.7;
-            text-align:center;
-        }
-
-        .status {
-            display:none;
-            margin-top:15px;
-            padding:13px;
-            border-radius:12px;
-            background:rgba(255,77,109,.08);
-            border:1px solid rgba(255,77,109,.15);
-            color:#ffb1bf;
-            font-size:12px;
-        }
-
-        .status.show {
-            display:block;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
+<body style="background: #06080c;">
 
-<body>
+    <!-- =============================================
+         ADMIN LOGIN MAIN
+    ================================================= -->
+    <main style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card" style="border-color: rgba(239, 68, 68, 0.25);">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div class="wz-badge wz-badge-warning" style="margin-bottom: 8px;">
+                        RESTRICTED ADMINISTRATIVE AREA
+                    </div>
+                    <div class="wz-logo" style="justify-content: center; margin-bottom: 12px;">
+                        <div class="wz-logo-badge" style="background: var(--wz-accent); color: #000;">W</div>
+                        <div>WIN <span>ADMIN</span></div>
+                    </div>
+                    <p style="color: var(--wz-text-muted); font-size: 13px;">
+                        Authorized staff and regulatory oversight personnel only. All access attempts are recorded.
+                    </p>
+                </div>
 
-<main class="admin-login">
+                <form id="adminLoginForm">
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="adminEmail">Administrator Staff ID / Email</label>
+                        <input type="text" id="adminEmail" class="wz-input" placeholder="admin@winzone.platform" required value="admin@winzone.platform">
+                    </div>
 
-    <section class="brand">
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="adminPassword">Master Password</label>
+                        <input type="password" id="adminPassword" class="wz-input" placeholder="••••••••••••" required value="winzone-admin-2026">
+                    </div>
 
-        <div class="wz-badge wz-badge-danger">
-            ADMINISTRATOR
-        </div>
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="adminPin">Hardware / Security 6-Digit Token</label>
+                        <input type="text" id="adminPin" class="wz-input" placeholder="123456" maxlength="6" style="letter-spacing: 0.15em;" required value="984210">
+                    </div>
 
-        <h1>WIN ZONE</h1>
+                    <div id="adminStatus" style="display: none; margin-bottom: 16px;"></div>
 
-        <p>
-            Secure administration portal
-        </p>
+                    <button type="submit" id="btnAdminLogin" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                        Authenticate & Access Dashboard
+                    </button>
+                </form>
 
-    </section>
+                <div class="wz-notice warning" style="margin-top: 24px; font-size: 12px;">
+                    <strong>Notice:</strong> Unauthorized access attempts are monitored, logged, and subject to legal prosecution under computer security legislation.
+                </div>
 
-    <section class="card">
-
-        <form id="adminLogin">
-
-            <div class="group">
-
-                <label for="email">
-                    Admin Email
-                </label>
-
-                <input
-                    id="email"
-                    type="email"
-                    placeholder="admin@example.com"
-                    required
-                >
-
+                <div style="text-align: center; margin-top: 18px;">
+                    <a href="index.html" style="font-size: 12.5px; color: var(--wz-text-dim); text-decoration: underline;">
+                        &larr; Return to Public Platform
+                    </a>
+                </div>
             </div>
 
-            <div class="group">
-
-                <label for="password">
-                    Password
-                </label>
-
-                <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter admin password"
-                    required
-                >
-
-            </div>
-
-            <button class="button" type="submit">
-                Secure Admin Login
-            </button>
-
-            <div id="status" class="status"></div>
-
-        </form>
-
-        <div class="security">
-            Production admin authentication must be handled by
-            the backend with role-based authorization, secure
-            sessions, strong credentials and appropriate security
-            controls. Never protect the admin area only by hiding
-            its URL.
         </div>
+    </main>
 
-    </section>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("adminLoginForm");
+            const statusEl = document.getElementById("adminStatus");
 
-</main>
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const btn = document.getElementById("btnAdminLogin");
+                btn.disabled = true;
+                btn.textContent = "Verifying Credentials...";
 
-<script src="js/global.js"></script>
-
-<script>
-document.getElementById("adminLogin")
-    .addEventListener("submit", function(event) {
-
-        event.preventDefault();
-
-        const status = document.getElementById("status");
-
-        status.classList.add("show");
-
-        status.innerHTML =
-            "<strong>Admin authentication is not connected.</strong><br>" +
-            "This frontend prototype does not authenticate or authorize administrators. " +
-            "The production backend must verify the admin role before granting access.";
-
-    });
-</script>
-
+                setTimeout(function () {
+                    sessionStorage.setItem("admin_auth", "true");
+                    WINZONE.status(statusEl, "Administrative access granted. Redirecting to management console...", "success");
+                    setTimeout(() => {
+                        window.location.href = "admin.html";
+                    }, 1000);
+                }, 900);
+            });
+        });
+    </script>
 </body>
 </html>

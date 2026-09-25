@@ -1,0 +1,74 @@
+name: WIN ZONE Frontend CI Build & Package
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate Files & Syntax Integrity
+        run: |
+          echo "Validating WIN ZONE HTML, CSS, and JS file presence..."
+          test -f index.html || exit 1
+          test -f match.html || exit 1
+          test -f match-room.html || exit 1
+          test -f payout.html || exit 1
+          test -f loss.html || exit 1
+          test -f wallet.html || exit 1
+          test -f deposit.html || exit 1
+          test -f withdraw.html || exit 1
+          test -f transactions.html || exit 1
+          test -f login.html || exit 1
+          test -f register.html || exit 1
+          test -f forgot-password.html || exit 1
+          test -f reset-password.html || exit 1
+          test -f custom.html || exit 1
+          test -f dispute.html || exit 1
+          test -f account.html || exit 1
+          test -f notifications.html || exit 1
+          test -f admin-login.html || exit 1
+          test -f admin.html || exit 1
+          test -f terms.html || exit 1
+          test -f privacy.html || exit 1
+          test -f css/style.css || exit 1
+          test -f js/global.js || exit 1
+          test -f js/i18n.js || exit 1
+          test -f js/api.js || exit 1
+          echo "All 25 core files validated successfully."
+
+      - name: Check for Disallowed Game Mentions (DLS)
+        run: |
+          echo "Checking for prohibited terms (DLS or Dream League Soccer)..."
+          if grep -rnwi . -e "Dream League Soccer" -e "dls-label" --exclude-dir=".git" --exclude-dir=".github"; then
+            echo "Error: Prohibited game terms found in codebase!"
+            exit 1
+          else
+            echo "Clean: Zero prohibited game references found."
+          fi
+
+      - name: Prepare Production Bundle
+        run: |
+          mkdir -p dist
+          cp -r *.html css js README.md dist/
+          echo "Production frontend package generated in dist/ directory."
+
+      - name: Upload WIN ZONE Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-zone-production-build
+          path: dist/
+          retention-days: 14

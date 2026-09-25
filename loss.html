@@ -3,167 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Match Result | WIN ZONE</title>
-
+    <title>Match Outcome | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 50% 0%,rgba(124,77,255,.12),transparent 30%),
-                #030914;
-            color:white;
-        }
-
-        .loss-page {
-            min-height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:40px 20px;
-        }
-
-        .loss-card {
-            max-width:600px;
-            width:100%;
-            text-align:center;
-            padding:40px 28px;
-            border-radius:26px;
-            background:rgba(13,27,46,.96);
-            border:1px solid rgba(255,255,255,.09);
-        }
-
-        .icon {
-            font-size:60px;
-        }
-
-        h1 {
-            font-size:42px;
-            margin:12px 0;
-        }
-
-        .muted {
-            color:#9eafc4;
-            line-height:1.7;
-        }
-
-        .result {
-            margin:25px 0;
-            padding:20px;
-            border-radius:16px;
-            background:rgba(255,255,255,.035);
-        }
-
-        .row {
-            display:flex;
-            justify-content:space-between;
-            padding:10px 0;
-            color:#9eafc4;
-        }
-
-        .row + .row {
-            border-top:1px solid rgba(255,255,255,.05);
-        }
-
-        .row strong {
-            color:white;
-        }
-
-        .actions {
-            display:grid;
-            gap:10px;
-            margin-top:20px;
-        }
-
-        .actions a {
-            text-decoration:none;
-            color:white;
-            padding:14px;
-            border-radius:12px;
-            background:rgba(255,255,255,.05);
-        }
-
-        .actions a.primary {
-            background:linear-gradient(90deg,#00e5ff,#7c4dff);
-            color:#03101c;
-            font-weight:900;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<main class="loss-page">
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="dashboard.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-    <section class="loss-card">
-
-        <div class="icon">🎮</div>
-
-        <div class="wz-badge wz-badge-danger">
-            MATCH RESULT
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Wallet:</span>
+                        <span class="pill-val wz-wallet-available">$45.00</span>
+                    </a>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <h1>Match Lost</h1>
+    <!-- =============================================
+         LOSS REPORT MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card" style="text-align: center; padding: 36px 28px;">
+                
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--wz-surface-elevated); border: 2px solid var(--wz-border-strong); color: var(--wz-text-muted); font-size: 26px; margin-bottom: 18px;">
+                    ⚔️
+                </div>
 
-        <p class="muted">
-            The recorded result indicates that you did not win this match.
-        </p>
+                <div class="wz-badge wz-badge-neutral" style="margin-bottom: 10px;">
+                    MATCH RESULT RECORDED
+                </div>
 
-        <div class="result">
+                <h1 style="font-size: 28px; font-weight: 800; color: var(--wz-text-bright); margin-bottom: 8px;">
+                    Match Defeat
+                </h1>
 
-            <div class="row">
-                <span>Match Code</span>
-                <strong>A7K2</strong>
-            </div>
+                <p style="font-size: 14px; color: var(--wz-text-muted); margin-bottom: 24px;">
+                    The match has concluded with an opponent victory. Better luck on your next competition!
+                </p>
 
-            <div class="row">
-                <span>Your Stake</span>
-                <strong>$5.00</strong>
-            </div>
+                <!-- Detailed Breakdown -->
+                <div class="wz-bet-ticket" style="text-align: left; margin-bottom: 24px;">
+                    <div class="wz-ticket-row">
+                        <span>Match Reference:</span>
+                        <strong id="lossMatchId">M-84920</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Staked Amount:</span>
+                        <strong id="lossStake" style="color: var(--wz-danger); font-variant-numeric: tabular-nums;">-$5.00</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Winner Payout for this Match:</span>
+                        <strong data-usd="0.00">$0.00</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Reserved Funds Status:</span>
+                        <strong style="color: var(--wz-text-muted);">Released to Winner</strong>
+                    </div>
+                </div>
 
-            <div class="row">
-                <span>Prize Pool</span>
-                <strong>$10.00</strong>
-            </div>
+                <div class="wz-notice warning" style="text-align: left;">
+                    <strong>Contesting a Result?</strong>
+                    If you believe your opponent violated competition rules, disconnected intentionally, or submitted false score evidence, you can file an official dispute for administrative review.
+                </div>
 
-            <div class="row">
-                <span>Payout</span>
-                <strong>$0.00</strong>
+                <div style="display: grid; gap: 12px; margin-top: 24px;">
+                    <a href="match.html" class="wz-btn wz-btn-primary wz-btn-lg wz-btn-block">
+                        🎮 Play Another Match
+                    </a>
+                    <a href="dispute.html" class="wz-btn wz-btn-danger wz-btn-block">
+                        ⚖️ File an Official Dispute
+                    </a>
+                    <a href="dashboard.html" class="wz-btn wz-btn-secondary wz-btn-block">
+                        Return to Dashboard
+                    </a>
+                </div>
+
             </div>
 
         </div>
+    </main>
 
-        <p class="muted" style="font-size:12px;">
-            If you believe the result is incorrect or there was a problem
-            during the match, you can submit a dispute.
-        </p>
-
-        <div class="actions">
-
-            <a href="dispute.html" class="primary">
-                Report a Dispute
-            </a>
-
-            <a href="wallet.html">
-                View Wallet
-            </a>
-
-            <a href="transactions.html">
-                View Transactions
-            </a>
-
-            <a href="dashboard.html">
-                Dashboard
-            </a>
-
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
+    </footer>
 
-    </section>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let match = null;
+            try {
+                const stored = sessionStorage.getItem("active_match");
+                if (stored) match = JSON.parse(stored);
+            } catch (e) {}
 
-</main>
+            const stake = match ? match.stake : 5.0;
+            const matchId = match ? match.matchId : "M-84920";
 
-<script src="js/global.js"></script>
-
+            document.getElementById("lossMatchId").textContent = matchId;
+            document.getElementById("lossStake").textContent = "-" + WINZONE.formatMoney(stake);
+        });
+    </script>
 </body>
 </html>

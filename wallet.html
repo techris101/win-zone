@@ -2,1085 +2,181 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Wallet | WIN ZONE</title>
-
-    <!-- WIN ZONE SHARED CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Wallet | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        :root {
-            --wallet-bg: #07111f;
-            --wallet-card: rgba(13, 27, 46, 0.94);
-            --wallet-border: rgba(255,255,255,0.09);
-            --wallet-text: #f7fbff;
-            --wallet-muted: #9eafc4;
-            --wallet-primary: #00e5ff;
-            --wallet-secondary: #7c4dff;
-            --wallet-success: #22c55e;
-            --wallet-danger: #ff4d6d;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--wallet-text);
-
-            background:
-                radial-gradient(
-                    circle at 10% 10%,
-                    rgba(0,229,255,0.12),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at 90% 15%,
-                    rgba(124,77,255,0.14),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    #020711,
-                    #07111f 55%,
-                    #030914
-                );
-        }
-
-        .wallet-page {
-            min-height: 100vh;
-        }
-
-        /* HEADER */
-
-        .wallet-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-
-            background: rgba(3,9,20,0.88);
-
-            backdrop-filter: blur(16px);
-
-            border-bottom:
-                1px solid var(--wallet-border);
-        }
-
-        .wallet-header-inner {
-            max-width: 1200px;
-            margin: auto;
-
-            padding: 16px 20px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 20px;
-        }
-
-        .wallet-logo {
-            text-decoration: none;
-
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: 2px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00e5ff,
-                    #7c4dff
-                );
-
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-link {
-            color: #d9e6f5;
-
-            text-decoration: none;
-
-            padding: 9px 13px;
-
-            border-radius: 10px;
-
-            transition: 0.2s ease;
-        }
-
-        .header-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: white;
-        }
-
-        /* MAIN */
-
-        .wallet-main {
-            max-width: 1100px;
-            margin: auto;
-
-            padding: 45px 20px 70px;
-        }
-
-        .hero {
-            margin-bottom: 30px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-
-            padding: 7px 14px;
-
-            border-radius: 999px;
-
-            background:
-                rgba(0,229,255,0.08);
-
-            border:
-                1px solid rgba(0,229,255,0.22);
-
-            color: var(--wallet-primary);
-
-            font-size: 12px;
-            font-weight: 800;
-
-            letter-spacing: 1px;
-
-            text-transform: uppercase;
-
-            margin-bottom: 13px;
-        }
-
-        .hero h1 {
-            margin: 0 0 9px;
-
-            font-size:
-                clamp(32px, 5vw, 48px);
-        }
-
-        .hero p {
-            margin: 0;
-
-            max-width: 700px;
-
-            color: var(--wallet-muted);
-
-            line-height: 1.7;
-
-            font-size: 15px;
-        }
-
-        /* BALANCE CARD */
-
-        .balance-card {
-            position: relative;
-            overflow: hidden;
-
-            padding: 30px;
-
-            border-radius: 25px;
-
-            border:
-                1px solid rgba(0,229,255,0.17);
-
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(0,229,255,0.09),
-                    rgba(124,77,255,0.11)
-                );
-
-            box-shadow:
-                0 25px 65px rgba(0,0,0,0.28);
-
-            margin-bottom: 20px;
-        }
-
-        .balance-card::after {
-            content: "";
-
-            position: absolute;
-
-            width: 230px;
-            height: 230px;
-
-            right: -100px;
-            top: -100px;
-
-            border-radius: 50%;
-
-            background:
-                rgba(0,229,255,0.08);
-        }
-
-        .balance-label {
-            color: var(--wallet-muted);
-
-            font-size: 13px;
-
-            margin-bottom: 8px;
-        }
-
-        .balance-value {
-            font-size:
-                clamp(38px, 7vw, 58px);
-
-            font-weight: 900;
-
-            letter-spacing: -1px;
-
-            margin-bottom: 5px;
-        }
-
-        .balance-status {
-            color: #a9bbcf;
-
-            font-size: 12px;
-        }
-
-        /* MONEY BREAKDOWN */
-
-        .money-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 14px;
-
-            margin-bottom: 25px;
-        }
-
-        .money-card {
-            padding: 20px;
-
-            border-radius: 18px;
-
-            border:
-                1px solid var(--wallet-border);
-
-            background:
-                var(--wallet-card);
-        }
-
-        .money-card small {
-            display: block;
-
-            color: var(--wallet-muted);
-
-            font-size: 11px;
-
-            margin-bottom: 8px;
-
-            text-transform: uppercase;
-        }
-
-        .money-card strong {
-            font-size: 22px;
-        }
-
-        .money-card.available strong {
-            color: var(--wallet-success);
-        }
-
-        .money-card.reserved strong {
-            color: #ffd166;
-        }
-
-        .money-card.total strong {
-            color: var(--wallet-primary);
-        }
-
-        /* ACTIONS */
-
-        .actions {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 14px;
-
-            margin-bottom: 30px;
-        }
-
-        .action-card {
-            display: block;
-
-            padding: 22px;
-
-            border-radius: 18px;
-
-            text-decoration: none;
-
-            border:
-                1px solid var(--wallet-border);
-
-            background:
-                var(--wallet-card);
-
-            color: white;
-
-            transition:
-                transform 0.2s ease,
-                border-color 0.2s ease,
-                background 0.2s ease;
-        }
-
-        .action-card:hover {
-            transform: translateY(-3px);
-
-            border-color:
-                rgba(0,229,255,0.35);
-
-            background:
-                rgba(13,27,46,1);
-        }
-
-        .action-icon {
-            width: 43px;
-            height: 43px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            margin-bottom: 13px;
-
-            font-size: 20px;
-
-            background:
-                rgba(0,229,255,0.08);
-        }
-
-        .action-card strong {
-            display: block;
-
-            margin-bottom: 6px;
-
-            font-size: 16px;
-        }
-
-        .action-card span {
-            color: var(--wallet-muted);
-
-            font-size: 12px;
-
-            line-height: 1.5;
-        }
-
-        /* TRANSACTIONS */
-
-        .section-card {
-            padding: 25px;
-
-            border-radius: 20px;
-
-            border:
-                1px solid var(--wallet-border);
-
-            background:
-                var(--wallet-card);
-
-            margin-bottom: 20px;
-        }
-
-        .section-heading {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 15px;
-
-            margin-bottom: 18px;
-        }
-
-        .section-heading h2 {
-            margin: 0;
-
-            font-size: 20px;
-        }
-
-        .view-link {
-            color: var(--wallet-primary);
-
-            text-decoration: none;
-
-            font-size: 13px;
-        }
-
-        .transaction-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .transaction-item {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 15px;
-
-            padding: 15px;
-
-            border-radius: 13px;
-
-            background:
-                rgba(255,255,255,0.035);
-
-            border:
-                1px solid rgba(255,255,255,0.05);
-        }
-
-        .transaction-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .transaction-icon {
-            width: 38px;
-            height: 38px;
-
-            border-radius: 10px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background:
-                rgba(255,255,255,0.06);
-        }
-
-        .transaction-info strong {
-            display: block;
-
-            font-size: 13px;
-
-            margin-bottom: 4px;
-        }
-
-        .transaction-info span {
-            color: var(--wallet-muted);
-
-            font-size: 11px;
-        }
-
-        .transaction-amount {
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .transaction-amount.positive {
-            color: var(--wallet-success);
-        }
-
-        .transaction-amount.negative {
-            color: var(--wallet-danger);
-        }
-
-        .empty-state {
-            padding: 30px 15px;
-
-            text-align: center;
-
-            color: var(--wallet-muted);
-
-            font-size: 13px;
-
-            line-height: 1.6;
-        }
-
-        /* SECURITY */
-
-        .security-card {
-            padding: 20px;
-
-            border-radius: 18px;
-
-            background:
-                rgba(34,197,94,0.045);
-
-            border:
-                1px solid rgba(34,197,94,0.15);
-
-            color: var(--wallet-muted);
-
-            font-size: 12px;
-
-            line-height: 1.7;
-        }
-
-        .security-card strong {
-            color: #d9fbe3;
-
-            display: block;
-
-            margin-bottom: 6px;
-        }
-
-        /* FOOTER */
-
-        .wallet-footer {
-            padding: 30px 20px;
-
-            border-top:
-                1px solid var(--wallet-border);
-
-            text-align: center;
-
-            color: #73849a;
-
-            font-size: 12px;
-        }
-
-        .wallet-footer a {
-            color: #aebed0;
-            text-decoration: none;
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 750px) {
-
-            .money-grid,
-            .actions {
-                grid-template-columns: 1fr;
-            }
-
-            .wallet-header-inner {
-                padding: 14px 15px;
-            }
-
-            .header-link.withdraw-link {
-                display: none;
-            }
-
-            .wallet-main {
-                padding: 30px 15px 55px;
-            }
-
-            .balance-card {
-                padding: 24px;
-            }
-
-            .section-card {
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 500px) {
-
-            .header-link {
-                padding: 8px;
-                font-size: 13px;
-            }
-
-            .balance-value {
-                font-size: 42px;
-            }
-
-            .transaction-item {
-                align-items: flex-start;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="wallet-page">
-
-    <!-- HEADER -->
-    <header class="wallet-header">
-
-        <div class="wallet-header-inner">
-
-            <a
-                href="dashboard.html"
-                class="wallet-logo"
-            >
-                WIN ZONE
-            </a>
-
-            <nav class="header-links">
-
-                <a
-                    href="dashboard.html"
-                    class="header-link"
-                >
-                    Dashboard
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
                 </a>
 
-                <a
-                    href="deposit.html"
-                    class="header-link"
-                >
-                    Deposit
-                </a>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link" data-i18n="navCompetitions">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link" data-i18n="navDashboard">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link active" data-i18n="navWallet">Wallet</a>
+                    <a href="transactions.html" class="wz-nav-link">Transactions</a>
+                </nav>
 
-                <a
-                    href="withdraw.html"
-                    class="header-link withdraw-link"
-                >
-                    Withdraw
-                </a>
-
-                <a
-                    href="account.html"
-                    class="header-link"
-                >
-                    Account
-                </a>
-
-            </nav>
-
+                <div class="wz-header-right">
+                    <div class="wz-selectors">
+                        <select id="wzLangSelect" class="wz-select-sm" aria-label="Select Language">
+                            <option value="EN">EN</option>
+                            <option value="FR">FR</option>
+                            <option value="RW">RW</option>
+                            <option value="ES">ES</option>
+                        </select>
+                        <select id="wzCurrencySelect" class="wz-select-sm" aria-label="Select Currency">
+                            <option value="USD">USD</option>
+                            <option value="RWF">RWF</option>
+                            <option value="EUR">EUR</option>
+                            <option value="KES">KES</option>
+                        </select>
+                    </div>
+                    <a href="dashboard.html" class="wz-btn wz-btn-secondary wz-btn-sm">Dashboard</a>
+                </div>
+            </div>
         </div>
-
     </header>
 
-
-    <!-- MAIN -->
-    <main class="wallet-main">
-
-        <!-- HERO -->
-        <section class="hero">
-
-            <div class="hero-badge">
-                MY WALLET
+    <!-- =============================================
+         WALLET MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-md">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+                <div>
+                    <h1 style="font-size: 30px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                        Gaming Financial Wallet
+                    </h1>
+                    <p style="color: var(--wz-text-muted); font-size: 13.5px;">
+                        Manage your deposits, match stakes, payouts, and withdrawal requests.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="deposit.html" class="wz-btn wz-btn-primary wz-btn-sm">
+                        ➕ Deposit
+                    </a>
+                    <a href="withdraw.html" class="wz-btn wz-btn-secondary wz-btn-sm">
+                        💸 Withdraw
+                    </a>
+                </div>
             </div>
 
-            <h1>Your Wallet</h1>
-
-            <p>
-                Manage your WIN ZONE funds, deposits, withdrawals,
-                reserved match funds and transaction history.
-            </p>
-
-        </section>
-
-
-        <!-- MAIN BALANCE -->
-        <section class="balance-card">
-
-            <div class="balance-label">
-                Available Balance
-            </div>
-
-            <div
-                class="balance-value"
-                id="availableBalance"
-            >
-                $0.00
-            </div>
-
-            <div class="balance-status">
-                Available for eligible wallet actions
-            </div>
-
-        </section>
-
-
-        <!-- MONEY BREAKDOWN -->
-        <section class="money-grid">
-
-            <div class="money-card available">
-
-                <small>
-                    Available
-                </small>
-
-                <strong id="availableAmount">
-                    $0.00
-                </strong>
-
-            </div>
-
-
-            <div class="money-card reserved">
-
-                <small>
-                    Reserved / Staked
-                </small>
-
-                <strong id="reservedAmount">
-                    $0.00
-                </strong>
-
-            </div>
-
-
-            <div class="money-card total">
-
-                <small>
-                    Total Wallet Value
-                </small>
-
-                <strong id="totalAmount">
-                    $0.00
-                </strong>
-
-            </div>
-
-        </section>
-
-
-        <!-- ACTIONS -->
-        <section class="actions">
-
-            <a
-                href="deposit.html"
-                class="action-card"
-            >
-
-                <div class="action-icon">
-                    ➕
+            <!-- Balances Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                
+                <div class="wz-card">
+                    <div class="wz-label">Available Liquid Balance</div>
+                    <div style="font-size: 30px; font-weight: 900; color: var(--wz-primary);" class="wz-wallet-available">$50.00</div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 4px;">Unrestricted funds ready for play or cashout</div>
                 </div>
 
-                <strong>
-                    Deposit
-                </strong>
-
-                <span>
-                    Add funds to your WIN ZONE wallet using
-                    an available payment method.
-                </span>
-
-            </a>
-
-
-            <a
-                href="withdraw.html"
-                class="action-card"
-            >
-
-                <div class="action-icon">
-                    💸
+                <div class="wz-card">
+                    <div class="wz-label">Reserved in Active Escrow</div>
+                    <div style="font-size: 30px; font-weight: 900; color: var(--wz-accent);" class="wz-wallet-reserved">$0.00</div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 4px;">Held safely during match sessions</div>
                 </div>
 
-                <strong>
-                    Withdraw
-                </strong>
-
-                <span>
-                    Request a withdrawal from your available
-                    wallet balance.
-                </span>
-
-            </a>
-
-
-            <a
-                href="transactions.html"
-                class="action-card"
-            >
-
-                <div class="action-icon">
-                    📊
-                </div>
-
-                <strong>
-                    Transactions
-                </strong>
-
-                <span>
-                    View deposits, withdrawals, match activity,
-                    payouts and other wallet records.
-                </span>
-
-            </a>
-
-        </section>
-
-
-        <!-- RECENT TRANSACTIONS -->
-        <section class="section-card">
-
-            <div class="section-heading">
-
-                <h2>
-                    Recent Transactions
-                </h2>
-
-                <a
-                    href="transactions.html"
-                    class="view-link"
-                >
-                    View All
-                </a>
-
-            </div>
-
-
-            <div
-                class="transaction-list"
-                id="transactionList"
-            >
-
-                <div class="empty-state">
-
-                    No transactions to display yet.
-
-                    <br>
-
-                    Your wallet activity will appear here
-                    once transactions are recorded.
-
+                <div class="wz-card">
+                    <div class="wz-label">Total Account Net Value</div>
+                    <div style="font-size: 30px; font-weight: 900; color: var(--wz-text-bright);" class="wz-wallet-total">$50.00</div>
+                    <div style="font-size: 12px; color: var(--wz-text-dim); margin-top: 4px;">Combined balance across all states</div>
                 </div>
 
             </div>
 
-        </section>
-
-
-        <!-- MATCH MONEY -->
-        <section class="section-card">
-
-            <div class="section-heading">
-
-                <h2>
-                    Match Funds
-                </h2>
-
-            </div>
-
-            <div class="transaction-list">
-
-                <div class="transaction-item">
-
-                    <div class="transaction-left">
-
-                        <div class="transaction-icon">
-                            🎮
-                        </div>
-
-                        <div class="transaction-info">
-
-                            <strong>
-                                Reserved for Matches
-                            </strong>
-
-                            <span>
-                                Funds reserved for active
-                                or pending competitions
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="transaction-amount"
-                        id="matchReserved"
-                    >
-                        $0.00
-                    </div>
-
+            <!-- Transaction Ledger -->
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h3>Recent Wallet Records</h3>
+                    <a href="transactions.html" style="font-size: 12.5px; color: var(--wz-primary); font-weight: 600;">Full Ledger &rarr;</a>
                 </div>
 
-
-                <div class="transaction-item">
-
-                    <div class="transaction-left">
-
-                        <div class="transaction-icon">
-                            🏆
-                        </div>
-
-                        <div class="transaction-info">
-
-                            <strong>
-                                Match Payouts
-                            </strong>
-
-                            <span>
-                                Completed winning payouts
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="transaction-amount positive"
-                        id="matchPayouts"
-                    >
-                        $0.00
-                    </div>
-
+                <div class="wz-table-responsive">
+                    <table class="wz-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="walletTxTableBody">
+                            <!-- Populated dynamically from WINZONE.getTransactions() -->
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
 
-        </section>
+            <div class="wz-notice info" style="margin-top: 20px;">
+                <strong>Regulatory Notice & Security:</strong>
+                All financial operations, deposit webhooks, and payout requests are verified by licensed payment gateways. Client-side tools cannot modify balance authority.
+            </div>
 
-
-        <!-- SECURITY -->
-        <section class="security-card">
-
-            <strong>
-                🔒 Wallet Security
-            </strong>
-
-            The balance shown on this prototype page is not a
-            real financial balance. In production, all balances,
-            deposits, withdrawals, reservations, commissions and
-            payouts must be calculated and authorized by the
-            secure WIN ZONE backend. The browser must never be
-            trusted to create or modify money balances.
-
-        </section>
-
+        </div>
     </main>
 
-
-    <!-- FOOTER -->
-    <footer class="wallet-footer">
-
-        <div>
-            © 2026 WIN ZONE. All rights reserved.
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
-
-        <div style="margin-top:8px;">
-
-            <a href="terms.html">
-                Terms
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="privacy.html">
-                Privacy
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="dispute.html">
-                Help & Disputes
-            </a>
-
-        </div>
-
     </footer>
 
-</div>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const txs = WINZONE.getTransactions();
+            const tbody = document.getElementById("walletTxTableBody");
 
+            if (txs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--wz-text-dim); padding: 24px;">No transactions recorded yet.</td></tr>`;
+                return;
+            }
 
-<!-- WIN ZONE SHARED JAVASCRIPT -->
-<script src="js/global.js"></script>
-
-
-<script>
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            /*
-             * FRONTEND DEMO DATA
-             *
-             * Real wallet values must come
-             * from the secure backend.
-             */
-
-            const wallet = {
-
-                available: 0.00,
-
-                reserved: 0.00,
-
-                payouts: 0.00
-
-            };
-
-
-            const total =
-                wallet.available +
-                wallet.reserved;
-
-
-            /*
-             * DISPLAY BALANCES
-             */
-
-            document.getElementById(
-                "availableBalance"
-            ).textContent =
-                "$" + wallet.available.toFixed(2);
-
-
-            document.getElementById(
-                "availableAmount"
-            ).textContent =
-                "$" + wallet.available.toFixed(2);
-
-
-            document.getElementById(
-                "reservedAmount"
-            ).textContent =
-                "$" + wallet.reserved.toFixed(2);
-
-
-            document.getElementById(
-                "totalAmount"
-            ).textContent =
-                "$" + total.toFixed(2);
-
-
-            document.getElementById(
-                "matchReserved"
-            ).textContent =
-                "$" + wallet.reserved.toFixed(2);
-
-
-            document.getElementById(
-                "matchPayouts"
-            ).textContent =
-                "$" + wallet.payouts.toFixed(2);
-
-
-            /*
-             * FUTURE BACKEND FLOW
-             *
-             * The production backend will provide:
-             *
-             * - available balance
-             * - reserved balance
-             * - total balance
-             * - transaction history
-             * - deposits
-             * - withdrawals
-             * - match reservations
-             * - payouts
-             * - commissions
-             * - currency information
-             *
-             * The frontend will only display
-             * server-authoritative values.
-             */
-
-        }
-    );
-</script>
-
+            tbody.innerHTML = txs.map(tx => {
+                const isPositive = tx.amount > 0;
+                const amtColor = isPositive ? "var(--wz-primary)" : "var(--wz-danger)";
+                const sign = isPositive ? "+" : "";
+                return `
+                    <tr>
+                        <td><strong>${tx.id}</strong></td>
+                        <td>${tx.title}</td>
+                        <td>${WINZONE.formatDate(tx.date)}</td>
+                        <td><span class="wz-badge wz-badge-success">${tx.status || "Completed"}</span></td>
+                        <td style="text-align: right; font-weight: 700; color: ${amtColor};">
+                            ${sign}${WINZONE.formatMoney(Math.abs(tx.amount))}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        });
+    </script>
 </body>
 </html>

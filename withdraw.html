@@ -4,532 +4,185 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Withdraw Funds | WIN ZONE</title>
-
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 10% 10%, rgba(0,229,255,.10), transparent 30%),
-                radial-gradient(circle at 90% 20%, rgba(124,77,255,.12), transparent 30%),
-                #030914;
-            color:#f5f9ff;
-        }
-
-        .withdraw-wrap {
-            max-width:850px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .withdraw-hero {
-            text-align:center;
-            margin-bottom:28px;
-        }
-
-        .withdraw-hero h1 {
-            font-size:42px;
-            margin:10px 0;
-        }
-
-        .withdraw-hero p {
-            color:#9eafc4;
-            line-height:1.7;
-        }
-
-        .balance-box,
-        .withdraw-card {
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.09);
-            border-radius:22px;
-            padding:25px;
-            margin-bottom:18px;
-        }
-
-        .balance-box {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        }
-
-        .balance-box small {
-            color:#9eafc4;
-        }
-
-        .balance-box strong {
-            display:block;
-            font-size:28px;
-            margin-top:5px;
-        }
-
-        .balance-box a {
-            color:#00e5ff;
-            text-decoration:none;
-        }
-
-        .form-group {
-            margin-bottom:21px;
-        }
-
-        label {
-            display:block;
-            margin-bottom:8px;
-            font-weight:700;
-            font-size:13px;
-        }
-
-        input,
-        select {
-            width:100%;
-            padding:15px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.12);
-            background:rgba(255,255,255,.045);
-            color:white;
-            outline:none;
-        }
-
-        select option {
-            color:#111;
-        }
-
-        input:focus,
-        select:focus {
-            border-color:#00e5ff;
-        }
-
-        .help {
-            margin-top:7px;
-            color:#91a2b7;
-            font-size:12px;
-            line-height:1.5;
-        }
-
-        .methods {
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:12px;
-        }
-
-        .method {
-            border:1px solid rgba(255,255,255,.10);
-            background:rgba(255,255,255,.035);
-            border-radius:14px;
-            padding:17px;
-            color:white;
-            text-align:left;
-            cursor:pointer;
-        }
-
-        .method.selected {
-            border-color:#00e5ff;
-            background:rgba(0,229,255,.08);
-        }
-
-        .method strong {
-            display:block;
-            margin-bottom:5px;
-        }
-
-        .method span {
-            color:#91a2b7;
-            font-size:11px;
-        }
-
-        .details {
-            display:none;
-        }
-
-        .details.show {
-            display:block;
-        }
-
-        .summary {
-            display:none;
-            margin-top:20px;
-            padding:17px;
-            border-radius:15px;
-            background:rgba(0,229,255,.045);
-            border:1px solid rgba(0,229,255,.12);
-        }
-
-        .summary.show {
-            display:block;
-        }
-
-        .row {
-            display:flex;
-            justify-content:space-between;
-            gap:15px;
-            padding:9px 0;
-            color:#9eafc4;
-            font-size:13px;
-        }
-
-        .row + .row {
-            border-top:1px solid rgba(255,255,255,.05);
-        }
-
-        .row strong {
-            color:white;
-        }
-
-        .security {
-            margin-top:20px;
-            padding:16px;
-            border-radius:14px;
-            background:rgba(34,197,94,.05);
-            border:1px solid rgba(34,197,94,.15);
-            color:#9eafc4;
-            font-size:12px;
-            line-height:1.7;
-        }
-
-        .security strong {
-            display:block;
-            color:#c8f8d6;
-            margin-bottom:5px;
-        }
-
-        .primary {
-            width:100%;
-            margin-top:20px;
-            padding:16px;
-            border:0;
-            border-radius:13px;
-            background:linear-gradient(90deg,#00e5ff,#7c4dff);
-            color:#03101c;
-            font-weight:900;
-            font-size:15px;
-            cursor:pointer;
-        }
-
-        .primary:disabled {
-            opacity:.4;
-            cursor:not-allowed;
-        }
-
-        .back {
-            display:block;
-            text-align:center;
-            padding:13px;
-            margin-top:10px;
-            border-radius:12px;
-            background:rgba(255,255,255,.04);
-            color:white;
-            text-decoration:none;
-        }
-
-        .status {
-            display:none;
-            margin-top:17px;
-            padding:15px;
-            border-radius:13px;
-            line-height:1.6;
-            font-size:13px;
-        }
-
-        .status.show {
-            display:block;
-        }
-
-        @media(max-width:600px) {
-            .methods {
-                grid-template-columns:1fr;
-            }
-
-            .balance-box {
-                flex-direction:column;
-                align-items:flex-start;
-                gap:12px;
-            }
-
-            .withdraw-hero h1 {
-                font-size:34px;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
-        <a href="dashboard.html" class="wz-logo">WIN ZONE</a>
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <div>
-            <a href="wallet.html" style="color:white;text-decoration:none;margin-right:15px;">
-                Wallet
-            </a>
+                <nav class="wz-nav-links">
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link active">Wallet</a>
+                    <a href="transactions.html" class="wz-nav-link">Transactions</a>
+                </nav>
 
-            <a href="account.html" style="color:white;text-decoration:none;">
-                Account
-            </a>
-        </div>
-    </div>
-</header>
-
-<main class="withdraw-wrap">
-
-    <section class="withdraw-hero">
-        <div class="wz-badge wz-badge-success">WITHDRAWAL</div>
-        <h1>Withdraw Funds</h1>
-        <p>
-            Request a withdrawal from your available WIN ZONE wallet balance.
-        </p>
-    </section>
-
-    <section class="balance-box">
-        <div>
-            <small>Available Balance</small>
-            <strong id="balance">$0.00</strong>
-        </div>
-
-        <a href="transactions.html">View Transactions →</a>
-    </section>
-
-    <section class="withdraw-card">
-
-        <form id="withdrawForm">
-
-            <div class="form-group">
-                <label for="amount">Withdrawal Amount</label>
-
-                <input
-                    id="amount"
-                    type="number"
-                    min="1"
-                    max="10000"
-                    step="0.01"
-                    placeholder="Enter amount"
-                >
-
-                <div class="help">
-                    The amount must not exceed your available balance.
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Available:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <div class="form-group">
-                <label for="currency">Currency</label>
-
-                <select id="currency">
-                    <option value="">Select currency</option>
-                    <option value="USD">USD — US Dollar</option>
-                    <option value="RWF">RWF — Rwandan Franc</option>
-                    <option value="KES">KES — Kenyan Shilling</option>
-                    <option value="UGX">UGX — Ugandan Shilling</option>
-                    <option value="TZS">TZS — Tanzanian Shilling</option>
-                    <option value="BIF">BIF — Burundian Franc</option>
-                    <option value="EUR">EUR — Euro</option>
-                    <option value="GBP">GBP — British Pound</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-
-                <label>Withdrawal Method</label>
-
-                <div class="methods">
-
-                    <button type="button" class="method" data-method="mobile">
-                        <strong>📱 Mobile Money</strong>
-                        <span>Receive funds through a supported mobile-money provider.</span>
-                    </button>
-
-                    <button type="button" class="method" data-method="bank">
-                        <strong>🏦 Bank Account</strong>
-                        <span>Receive funds through a supported bank account.</span>
-                    </button>
-
-                    <button type="button" class="method" data-method="card">
-                        <strong>💳 Card</strong>
-                        <span>Use a supported card withdrawal destination.</span>
-                    </button>
-
-                    <button type="button" class="method" data-method="other">
-                        <strong>🔐 Other Provider</strong>
-                        <span>Use another supported withdrawal provider.</span>
-                    </button>
-
+    <!-- =============================================
+         WITHDRAW MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h2>Withdraw Available Funds</h2>
+                    <span class="wz-badge wz-badge-neutral">KYC VERIFIED ACCOUNTS</span>
                 </div>
 
-            </div>
+                <div class="wz-ticket-row" style="margin-bottom: 20px; background: var(--wz-surface-elevated); padding: 12px 16px; border-radius: var(--wz-radius-sm);">
+                    <span>Your Maximum Liquid Withdrawal Limit:</span>
+                    <strong class="wz-wallet-available" style="color: var(--wz-primary); font-size: 16px;">$50.00</strong>
+                </div>
 
-            <div id="details" class="details">
-
-                <div class="form-group">
-                    <label for="destination">Destination / Account Details</label>
-
-                    <input
-                        id="destination"
-                        type="text"
-                        placeholder="Enter destination details"
-                        autocomplete="off"
-                    >
-
-                    <div class="help">
-                        Never enter your password or WIN ZONE PIN here.
+                <form id="withdrawForm">
+                    <div class="wz-form-group">
+                        <label class="wz-label">Withdrawal Destination</label>
+                        <select id="withdrawMethod" class="wz-select" required>
+                            <option value="mobile_money">Mobile Money Account (Airtel / MTN / M-Pesa)</option>
+                            <option value="bank">Domestic / International Bank Wire</option>
+                            <option value="crypto">USDT TRC20 / ERC20 Wallet Address</option>
+                        </select>
                     </div>
-                </div>
 
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="withdrawDetails">Account Details / Phone Number / Address</label>
+                        <input type="text" id="withdrawDetails" class="wz-input" placeholder="e.g. +250 78X XXX XXX or Bank IBAN" required>
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="withdrawAmountInput">Withdrawal Amount ($)</label>
+                        <input type="number" id="withdrawAmountInput" class="wz-input" placeholder="Min. 10.00" min="10" max="5000" step="1" value="20" required>
+                        <div class="wz-input-help">Minimum withdrawal: $10.00 &bull; Standard review time: 15–60 minutes</div>
+                    </div>
+
+                    <div class="wz-bet-ticket">
+                        <div class="wz-ticket-row">
+                            <span>Requested Amount:</span>
+                            <strong id="wthSummaryAmt">$20.00</strong>
+                        </div>
+                        <div class="wz-ticket-row">
+                            <span>Platform Withdrawal Processing Fee:</span>
+                            <strong>$0.00 (Free)</strong>
+                        </div>
+                        <div class="wz-ticket-row highlight">
+                            <span>Total Net Payout Delivered:</span>
+                            <strong id="wthFinalAmt" style="color: var(--wz-primary);">$20.00</strong>
+                        </div>
+                    </div>
+
+                    <div id="withdrawStatus" style="display: none; margin-bottom: 16px;"></div>
+
+                    <button type="submit" id="btnSubmitWithdraw" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                        Submit Withdrawal Request
+                    </button>
+                </form>
+
+                <div class="wz-notice warning" style="margin-top: 20px;">
+                    <strong>Security & KYC Compliance:</strong>
+                    Withdrawals are strictly paid to accounts matching the registered 18+ user's identity to prevent fraud and maintain regulatory compliance.
+                </div>
             </div>
 
-            <div id="summary" class="summary">
+        </div>
+    </main>
 
-                <div class="row">
-                    <span>Withdrawal amount</span>
-                    <strong id="summaryAmount">$0.00</strong>
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
                 </div>
-
-                <div class="row">
-                    <span>Currency</span>
-                    <strong id="summaryCurrency">—</strong>
-                </div>
-
-                <div class="row">
-                    <span>Method</span>
-                    <strong id="summaryMethod">—</strong>
-                </div>
-
             </div>
+        </div>
+    </footer>
 
-            <div class="security">
-                <strong>🔒 Secure withdrawal</strong>
-                This frontend cannot transfer or remove money from your
-                wallet. In production, withdrawals will be authorized,
-                verified and processed by the secure backend and payment
-                provider.
-            </div>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const amtInput = document.getElementById("withdrawAmountInput");
+            const sumAmt = document.getElementById("wthSummaryAmt");
+            const finAmt = document.getElementById("wthFinalAmt");
+            const form = document.getElementById("withdrawForm");
+            const statusEl = document.getElementById("withdrawStatus");
 
-            <button id="submitButton" class="primary" type="submit" disabled>
-                Request Withdrawal
-            </button>
+            function updateDisplay() {
+                const val = parseFloat(amtInput.value) || 0;
+                sumAmt.textContent = WINZONE.formatMoney(val);
+                finAmt.textContent = WINZONE.formatMoney(val);
+            }
 
-            <a href="wallet.html" class="back">
-                Back to Wallet
-            </a>
+            amtInput.addEventListener("input", updateDisplay);
 
-            <div id="status" class="status"></div>
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const amount = parseFloat(amtInput.value);
+                const wallet = WINZONE.getWallet();
 
-        </form>
+                if (isNaN(amount) || amount < 10) {
+                    WINZONE.status(statusEl, "Minimum withdrawal amount is $10.00", "warning");
+                    return;
+                }
 
-    </section>
+                if (amount > wallet.available) {
+                    WINZONE.status(statusEl, `Insufficient liquid balance (${WINZONE.formatMoney(wallet.available)}). Funds locked in match escrow cannot be withdrawn.`, "danger");
+                    return;
+                }
 
-</main>
+                const btn = document.getElementById("btnSubmitWithdraw");
+                btn.disabled = true;
+                btn.textContent = "Processing Request...";
 
-<script src="js/global.js"></script>
+                setTimeout(function () {
+                    wallet.available -= amount;
+                    WINZONE.setWallet(wallet);
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+                    WINZONE.addTransaction({
+                        id: "WTH-" + Math.floor(1000 + Math.random() * 9000),
+                        type: "withdraw",
+                        title: "Withdrawal (" + document.getElementById("withdrawMethod").selectedOptions[0].text.split("(")[0].trim() + ")",
+                        amount: -amount,
+                        status: "Processing"
+                    });
 
-    const balance = 0;
+                    WINZONE.status(statusEl, `Withdrawal request for ${WINZONE.formatMoney(amount)} submitted! Redirecting to wallet...`, "success");
 
-    const amount = document.getElementById("amount");
-    const currency = document.getElementById("currency");
-    const methods = document.querySelectorAll(".method");
-    const details = document.getElementById("details");
-    const destination = document.getElementById("destination");
-    const summary = document.getElementById("summary");
-    const button = document.getElementById("submitButton");
-    const status = document.getElementById("status");
-
-    const summaryAmount = document.getElementById("summaryAmount");
-    const summaryCurrency = document.getElementById("summaryCurrency");
-    const summaryMethod = document.getElementById("summaryMethod");
-
-    document.getElementById("balance").textContent =
-        "$" + balance.toFixed(2);
-
-    let selectedMethod = "";
-
-    const names = {
-        mobile: "Mobile Money",
-        bank: "Bank Account",
-        card: "Card",
-        other: "Other Provider"
-    };
-
-    function validate() {
-
-        const value = Number(amount.value);
-
-        const valid =
-            value > 0 &&
-            value <= balance &&
-            currency.value !== "" &&
-            selectedMethod !== "" &&
-            destination.value.trim() !== "";
-
-        if (value > balance && value > 0) {
-            amount.style.borderColor = "#ff4d6d";
-        } else {
-            amount.style.borderColor = "";
-        }
-
-        button.disabled = !valid;
-
-        if (
-            value > 0 &&
-            value <= balance &&
-            currency.value &&
-            selectedMethod
-        ) {
-            summary.classList.add("show");
-
-            summaryAmount.textContent =
-                "$" + value.toFixed(2);
-
-            summaryCurrency.textContent =
-                currency.value;
-
-            summaryMethod.textContent =
-                names[selectedMethod];
-        } else {
-            summary.classList.remove("show");
-        }
-    }
-
-    amount.addEventListener("input", validate);
-    currency.addEventListener("change", validate);
-    destination.addEventListener("input", validate);
-
-    methods.forEach(function (method) {
-
-        method.addEventListener("click", function () {
-
-            methods.forEach(function (item) {
-                item.classList.remove("selected");
+                    setTimeout(() => {
+                        window.location.href = "wallet.html";
+                    }, 1500);
+                }, 1200);
             });
 
-            method.classList.add("selected");
-
-            selectedMethod = method.dataset.method;
-
-            details.classList.add("show");
-
-            validate();
+            updateDisplay();
         });
-
-    });
-
-    document.getElementById("withdrawForm")
-        .addEventListener("submit", function (event) {
-
-            event.preventDefault();
-
-            status.className = "status show";
-            status.style.background = "rgba(0,229,255,.07)";
-            status.style.border = "1px solid rgba(0,229,255,.15)";
-            status.style.color = "#aeefff";
-
-            status.innerHTML =
-                "<strong>Withdrawal request ready.</strong><br>" +
-                "This prototype has not transferred or removed any money. " +
-                "The production backend will create and verify the withdrawal request.";
-        });
-
-});
-</script>
-
+    </script>
 </body>
 </html>

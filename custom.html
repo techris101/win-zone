@@ -3,1262 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Custom Amount | WIN ZONE</title>
-
-    <!-- WIN ZONE SHARED CSS -->
+    <title>Custom Stake Matchmaking | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        :root {
-            --custom-bg: #07111f;
-            --custom-card: rgba(13, 27, 46, 0.94);
-            --custom-border: rgba(255,255,255,0.09);
-            --custom-text: #f7fbff;
-            --custom-muted: #9eafc4;
-            --custom-primary: #00e5ff;
-            --custom-secondary: #7c4dff;
-            --custom-danger: #ff4d6d;
-            --custom-success: #22c55e;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--custom-text);
-            background:
-                radial-gradient(
-                    circle at 10% 10%,
-                    rgba(0,229,255,0.12),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at 90% 15%,
-                    rgba(124,77,255,0.14),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    #020711,
-                    #07111f 55%,
-                    #030914
-                );
-        }
-
-        .custom-page {
-            min-height: 100vh;
-        }
-
-        /* HEADER */
-
-        .custom-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(3,9,20,0.88);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--custom-border);
-        }
-
-        .custom-header-inner {
-            max-width: 1150px;
-            margin: auto;
-            padding: 16px 20px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .custom-logo {
-            text-decoration: none;
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: 2px;
-
-            background: linear-gradient(
-                90deg,
-                #00e5ff,
-                #7c4dff
-            );
-
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-link {
-            color: #d9e6f5;
-            text-decoration: none;
-            padding: 9px 13px;
-            border-radius: 10px;
-            transition: 0.2s ease;
-        }
-
-        .header-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: white;
-        }
-
-        /* MAIN */
-
-        .custom-main {
-            max-width: 950px;
-            margin: auto;
-            padding: 45px 20px 70px;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            padding: 7px 14px;
-            border-radius: 999px;
-
-            background: rgba(124,77,255,0.10);
-            border: 1px solid rgba(124,77,255,0.28);
-
-            color: #bdaeff;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-
-            margin-bottom: 15px;
-        }
-
-        .hero h1 {
-            margin: 0 0 12px;
-            font-size: clamp(32px, 5vw, 50px);
-        }
-
-        .hero p {
-            max-width: 650px;
-            margin: auto;
-            color: var(--custom-muted);
-            line-height: 1.7;
-            font-size: 15px;
-        }
-
-        /* INFO */
-
-        .info-card {
-            margin-bottom: 22px;
-            padding: 20px;
-
-            border-radius: 18px;
-            border: 1px solid rgba(0,229,255,0.18);
-
-            background: rgba(0,229,255,0.055);
-        }
-
-        .info-card strong {
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .info-card p {
-            margin: 0;
-            color: var(--custom-muted);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        /* FORM CARD */
-
-        .custom-card {
-            max-width: 680px;
-            margin: auto;
-
-            padding: 28px;
-
-            border-radius: 24px;
-
-            border: 1px solid var(--custom-border);
-
-            background: var(--custom-card);
-
-            box-shadow:
-                0 20px 60px rgba(0,0,0,0.30);
-        }
-
-        .field-label {
-            display: block;
-            margin-bottom: 9px;
-
-            color: #e6eef8;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .amount-wrapper {
-            position: relative;
-        }
-
-        .currency-symbol {
-            position: absolute;
-            left: 17px;
-            top: 50%;
-            transform: translateY(-50%);
-
-            color: var(--custom-primary);
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .amount-input {
-            width: 100%;
-
-            padding: 17px 17px 17px 42px;
-
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12);
-
-            outline: none;
-
-            background: rgba(255,255,255,0.045);
-
-            color: white;
-
-            font-size: 21px;
-            font-weight: 800;
-
-            transition: 0.2s ease;
-        }
-
-        .amount-input:focus {
-            border-color: var(--custom-primary);
-
-            box-shadow:
-                0 0 0 3px rgba(0,229,255,0.10);
-        }
-
-        .amount-help {
-            margin-top: 8px;
-
-            color: var(--custom-muted);
-
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .error-message {
-            display: none;
-
-            margin-top: 8px;
-
-            color: var(--custom-danger);
-
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        /* SUMMARY */
-
-        .summary {
-            display: none;
-
-            margin-top: 25px;
-        }
-
-        .summary.show {
-            display: block;
-        }
-
-        .summary-title {
-            margin-bottom: 13px;
-
-            font-size: 15px;
-            font-weight: 800;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .summary-item {
-            padding: 15px;
-
-            border-radius: 14px;
-
-            background: rgba(255,255,255,0.04);
-
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .summary-item small {
-            display: block;
-
-            margin-bottom: 7px;
-
-            color: var(--custom-muted);
-
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        .summary-item strong {
-            font-size: 17px;
-        }
-
-        /* OFFER OPTIONS */
-
-        .offer-section {
-            margin-top: 25px;
-        }
-
-        .offer-section h3 {
-            margin: 0 0 7px;
-            font-size: 16px;
-        }
-
-        .offer-section p {
-            margin: 0 0 14px;
-
-            color: var(--custom-muted);
-
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .offer-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .offer-option {
-            position: relative;
-
-            padding: 16px;
-
-            border-radius: 15px;
-
-            border: 1px solid rgba(255,255,255,0.09);
-
-            background: rgba(255,255,255,0.035);
-
-            color: white;
-
-            cursor: pointer;
-
-            text-align: left;
-
-            transition: 0.2s ease;
-        }
-
-        .offer-option:hover {
-            border-color: rgba(0,229,255,0.35);
-        }
-
-        .offer-option.selected {
-            border-color: var(--custom-primary);
-
-            background: rgba(0,229,255,0.08);
-        }
-
-        .offer-option strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .offer-option span {
-            color: var(--custom-muted);
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        /* COMMISSION */
-
-        .commission-note {
-            margin-top: 22px;
-
-            padding: 15px;
-
-            border-radius: 13px;
-
-            background: rgba(124,77,255,0.07);
-
-            border: 1px solid rgba(124,77,255,0.18);
-
-            color: var(--custom-muted);
-
-            font-size: 12px;
-
-            line-height: 1.65;
-        }
-
-        .commission-note strong {
-            color: white;
-        }
-
-        /* BUTTONS */
-
-        .submit-button {
-            width: 100%;
-
-            margin-top: 22px;
-
-            padding: 16px 20px;
-
-            border: 0;
-            border-radius: 14px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00e5ff,
-                    #7c4dff
-                );
-
-            color: #03101c;
-
-            font-size: 16px;
-            font-weight: 900;
-
-            cursor: pointer;
-
-            transition: 0.2s ease;
-        }
-
-        .submit-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 12px 35px rgba(0,229,255,0.18);
-        }
-
-        .submit-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .back-button {
-            width: 100%;
-
-            margin-top: 11px;
-
-            padding: 13px;
-
-            border-radius: 13px;
-
-            border: 1px solid rgba(255,255,255,0.10);
-
-            background: rgba(255,255,255,0.035);
-
-            color: white;
-
-            cursor: pointer;
-
-            text-decoration: none;
-
-            display: block;
-
-            text-align: center;
-
-            font-size: 14px;
-        }
-
-        .back-button:hover {
-            background: rgba(255,255,255,0.07);
-        }
-
-        /* STATUS */
-
-        .status-message {
-            display: none;
-
-            margin-top: 18px;
-
-            padding: 15px;
-
-            border-radius: 13px;
-
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .status-message.show {
-            display: block;
-        }
-
-        .status-message.success {
-            background: rgba(34,197,94,0.08);
-            border: 1px solid rgba(34,197,94,0.20);
-            color: #a8f5c0;
-        }
-
-        .status-message.error {
-            background: rgba(255,77,109,0.08);
-            border: 1px solid rgba(255,77,109,0.20);
-            color: #ffb2c0;
-        }
-
-        /* IMPORTANT FLOW */
-
-        .flow-card {
-            max-width: 680px;
-            margin: 25px auto 0;
-
-            padding: 21px;
-
-            border-radius: 18px;
-
-            border: 1px solid var(--custom-border);
-
-            background: rgba(255,255,255,0.025);
-        }
-
-        .flow-card h3 {
-            margin: 0 0 12px;
-            font-size: 16px;
-        }
-
-        .flow-list {
-            margin: 0;
-            padding-left: 20px;
-
-            color: var(--custom-muted);
-
-            font-size: 13px;
-            line-height: 1.9;
-        }
-
-        .flow-list strong {
-            color: #e9f4ff;
-        }
-
-        /* FOOTER */
-
-        .custom-footer {
-            padding: 30px 20px;
-
-            border-top: 1px solid var(--custom-border);
-
-            text-align: center;
-
-            color: #73849a;
-
-            font-size: 12px;
-        }
-
-        .custom-footer a {
-            color: #aebed0;
-            text-decoration: none;
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 650px) {
-
-            .custom-header-inner {
-                padding: 14px 15px;
-            }
-
-            .header-link.wallet-link {
-                display: none;
-            }
-
-            .custom-main {
-                padding: 30px 15px 55px;
-            }
-
-            .custom-card {
-                padding: 21px;
-            }
-
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .offer-options {
-                grid-template-columns: 1fr;
-            }
-
-            .hero h1 {
-                font-size: 34px;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="custom-page">
-
-    <!-- HEADER -->
-    <header class="custom-header">
-
-        <div class="custom-header-inner">
-
-            <a
-                href="dashboard.html"
-                class="custom-logo"
-            >
-                WIN ZONE
-            </a>
-
-            <nav class="header-links">
-
-                <a
-                    href="match.html"
-                    class="header-link"
-                >
-                    Match
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
                 </a>
 
-                <a
-                    href="wallet.html"
-                    class="header-link wallet-link"
-                >
-                    Wallet
-                </a>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link active">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link">Wallet</a>
+                </nav>
 
-                <a
-                    href="account.html"
-                    class="header-link"
-                >
-                    Account
-                </a>
-
-            </nav>
-
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Balance:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
+                </div>
+            </div>
         </div>
-
     </header>
 
+    <!-- =============================================
+         CUSTOM STAKE MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h2>Propose Custom Stake Amount</h2>
+                    <span class="wz-badge wz-badge-warning">CUSTOM MATCH OFFER</span>
+                </div>
 
-    <!-- MAIN -->
-    <main class="custom-main">
+                <p style="color: var(--wz-text-muted); font-size: 13.5px; margin-bottom: 20px;">
+                    Set an exact stake value for your 1v1 match. Your offer will be published to the custom matchmaking queue until another player accepts.
+                </p>
 
-        <!-- HERO -->
-        <section class="hero">
+                <form id="customStakeForm">
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="customStakeInput">Your Custom Stake (USD)</label>
+                        <input type="number" id="customStakeInput" class="wz-input" placeholder="e.g. 12.50" min="5" max="500" step="1" value="25" required>
+                        <div class="wz-input-help">Minimum custom stake: $5.00 &bull; Maximum custom stake: $500.00</div>
+                    </div>
 
-            <div class="hero-badge">
-                CUSTOM MATCH
+                    <div class="wz-bet-ticket">
+                        <div class="wz-ticket-row">
+                            <span>Your Stake:</span>
+                            <strong id="custDisplayStake">$25.00</strong>
+                        </div>
+                        <div class="wz-ticket-row">
+                            <span>Opponent's Matched Stake:</span>
+                            <strong id="custDisplayOpponent">$25.00</strong>
+                        </div>
+                        <div class="wz-ticket-row">
+                            <span>Total Custom Prize Pool:</span>
+                            <strong id="custDisplayPool">$50.00</strong>
+                        </div>
+                        <div class="wz-ticket-row commission">
+                            <span>WIN ZONE Platform Commission (10%):</span>
+                            <strong id="custDisplayCommission">$5.00</strong>
+                        </div>
+                        <div class="wz-ticket-row highlight">
+                            <span>Guaranteed Winner Payout (90%):</span>
+                            <strong id="custDisplayPayout" style="color: var(--wz-primary);">$45.00</strong>
+                        </div>
+                    </div>
+
+                    <div id="customStatus" style="display: none; margin-bottom: 16px;"></div>
+
+                    <button type="submit" id="btnPublishCustom" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                        Publish Custom Match Offer
+                    </button>
+                </form>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="match.html" style="font-size: 13px; color: var(--wz-text-muted); text-decoration: underline;">
+                        &larr; Or return to Standard Predefined Stakes ($1 - $50)
+                    </a>
+                </div>
             </div>
 
-            <h1>Choose a Custom Amount</h1>
-
-            <p>
-                Enter the amount you want to use for your competition.
-                Custom amounts use an offer-based matching process.
-            </p>
-
-        </section>
-
-
-        <!-- INFORMATION -->
-        <div class="info-card">
-
-            <strong>
-                🤝 How Custom Amount Matching Works
-            </strong>
-
-            <p>
-                You choose your desired stake amount and submit your
-                request. Another eligible player can accept or respond
-                to the offer. A private match room is created only
-                after the required players are successfully matched.
-            </p>
-
         </div>
-
-
-        <!-- FORM CARD -->
-        <section class="custom-card">
-
-            <form id="customAmountForm">
-
-                <!-- AMOUNT -->
-                <label
-                    class="field-label"
-                    for="customAmount"
-                >
-                    Custom Stake Amount
-                </label>
-
-                <div class="amount-wrapper">
-
-                    <span class="currency-symbol">
-                        $
-                    </span>
-
-                    <input
-                        type="number"
-                        id="customAmount"
-                        class="amount-input"
-                        min="1"
-                        max="10000"
-                        step="0.01"
-                        placeholder="Enter amount"
-                        autocomplete="off"
-                    >
-
-                </div>
-
-                <div class="amount-help">
-                    Enter an amount between $1.00 and $10,000.00.
-                    Final limits will be controlled by the production
-                    WIN ZONE backend.
-                </div>
-
-                <div
-                    id="amountError"
-                    class="error-message"
-                ></div>
-
-
-                <!-- SUMMARY -->
-                <div
-                    id="summary"
-                    class="summary"
-                >
-
-                    <div class="summary-title">
-                        Match Estimate
-                    </div>
-
-                    <div class="summary-grid">
-
-                        <div class="summary-item">
-
-                            <small>
-                                Your Stake
-                            </small>
-
-                            <strong id="yourStake">
-                                $0.00
-                            </strong>
-
-                        </div>
-
-                        <div class="summary-item">
-
-                            <small>
-                                Potential Prize Pool
-                            </small>
-
-                            <strong id="potentialPool">
-                                $0.00
-                            </strong>
-
-                        </div>
-
-                        <div class="summary-item">
-
-                            <small>
-                                Commission
-                            </small>
-
-                            <strong>
-                                10%
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- OFFER TYPE -->
-                <div class="offer-section">
-
-                    <h3>
-                        How do you want to use your custom amount?
-                    </h3>
-
-                    <p>
-                        Choose whether you want to create an offer
-                        or respond to an available custom-amount
-                        opportunity.
-                    </p>
-
-
-                    <div class="offer-options">
-
-                        <button
-                            type="button"
-                            class="offer-option"
-                            data-offer="create"
-                        >
-
-                            <strong>
-                                Create an Offer
-                            </strong>
-
-                            <span>
-                                Publish your requested stake so an
-                                eligible player can respond.
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="offer-option"
-                            data-offer="respond"
-                        >
-
-                            <strong>
-                                Find an Offer
-                            </strong>
-
-                            <span>
-                                Look for an available custom amount
-                                request that you can accept.
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- COMMISSION -->
-                <div class="commission-note">
-
-                    <strong>
-                        WIN ZONE Commission:
-                    </strong>
-
-                    The platform commission is 10% of the final
-                    prize pool. There is no separate platform entry
-                    fee. The final prize and payout are determined
-                    after both players are matched and the result
-                    is officially recorded.
-
-                </div>
-
-
-                <!-- SUBMIT -->
-                <button
-                    type="submit"
-                    id="submitButton"
-                    class="submit-button"
-                    disabled
-                >
-                    Continue
-                </button>
-
-
-                <a
-                    href="match.html"
-                    class="back-button"
-                >
-                    Back to Fixed Stakes
-                </a>
-
-
-                <!-- STATUS -->
-                <div
-                    id="statusMessage"
-                    class="status-message"
-                ></div>
-
-            </form>
-
-        </section>
-
-
-        <!-- FLOW -->
-        <section class="flow-card">
-
-            <h3>
-                🔐 Custom Match Security Flow
-            </h3>
-
-            <ol class="flow-list">
-
-                <li>
-                    <strong>Choose your amount.</strong>
-                </li>
-
-                <li>
-                    <strong>Create or find an offer.</strong>
-                </li>
-
-                <li>
-                    WIN ZONE checks player eligibility and available
-                    balance.
-                </li>
-
-                <li>
-                    Both players agree to the same final stake.
-                </li>
-
-                <li>
-                    The backend reserves the required funds.
-                </li>
-
-                <li>
-                    Only then is the private match room created.
-                </li>
-
-                <li>
-                    The match code is generated by the secure backend.
-                </li>
-
-            </ol>
-
-        </section>
-
     </main>
 
-
-    <!-- FOOTER -->
-    <footer class="custom-footer">
-
-        <div>
-            © 2026 WIN ZONE. All rights reserved.
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
-
-        <div style="margin-top:8px;">
-
-            <a href="terms.html">
-                Terms
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="privacy.html">
-                Privacy
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="dispute.html">
-                Help & Disputes
-            </a>
-
-        </div>
-
     </footer>
 
-</div>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const input = document.getElementById("customStakeInput");
+            const dStake = document.getElementById("custDisplayStake");
+            const dOpp = document.getElementById("custDisplayOpponent");
+            const dPool = document.getElementById("custDisplayPool");
+            const dComm = document.getElementById("custDisplayCommission");
+            const dPay = document.getElementById("custDisplayPayout");
+            const form = document.getElementById("customStakeForm");
+            const statusEl = document.getElementById("customStatus");
 
+            function update() {
+                const val = parseFloat(input.value) || 0;
+                const pool = val * 2;
+                const comm = pool * 0.10;
+                const pay = pool * 0.90;
 
-<!-- WIN ZONE SHARED JAVASCRIPT -->
-<script src="js/global.js"></script>
-
-
-<script>
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            const form =
-                document.getElementById(
-                    "customAmountForm"
-                );
-
-            const amountInput =
-                document.getElementById(
-                    "customAmount"
-                );
-
-            const amountError =
-                document.getElementById(
-                    "amountError"
-                );
-
-            const summary =
-                document.getElementById(
-                    "summary"
-                );
-
-            const yourStake =
-                document.getElementById(
-                    "yourStake"
-                );
-
-            const potentialPool =
-                document.getElementById(
-                    "potentialPool"
-                );
-
-            const submitButton =
-                document.getElementById(
-                    "submitButton"
-                );
-
-            const statusMessage =
-                document.getElementById(
-                    "statusMessage"
-                );
-
-            const offerOptions =
-                document.querySelectorAll(
-                    ".offer-option"
-                );
-
-
-            let selectedOffer = null;
-
-
-            /*
-             * CLEAR ERROR
-             */
-            function clearAmountError() {
-
-                amountError.textContent = "";
-
-                amountError.classList.remove(
-                    "show"
-                );
-
+                dStake.textContent = WINZONE.formatMoney(val);
+                dOpp.textContent = WINZONE.formatMoney(val);
+                dPool.textContent = WINZONE.formatMoney(pool);
+                dComm.textContent = WINZONE.formatMoney(comm);
+                dPay.textContent = WINZONE.formatMoney(pay);
             }
 
+            input.addEventListener("input", update);
 
-            /*
-             * SHOW ERROR
-             */
-            function showAmountError(message) {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const stake = parseFloat(input.value);
+                const wallet = WINZONE.getWallet();
 
-                amountError.textContent =
-                    message;
-
-                amountError.classList.add(
-                    "show"
-                );
-
-            }
-
-
-            /*
-             * VALIDATE AMOUNT
-             */
-            function validateAmount() {
-
-                clearAmountError();
-
-                const amount =
-                    Number(amountInput.value);
-
-                if (
-                    !amountInput.value ||
-                    Number.isNaN(amount)
-                ) {
-
-                    summary.classList.remove(
-                        "show"
-                    );
-
-                    submitButton.disabled = true;
-
-                    return false;
+                if (isNaN(stake) || stake < 5) {
+                    WINZONE.status(statusEl, "Minimum stake amount is $5.00", "warning");
+                    return;
                 }
 
-
-                if (amount < 1) {
-
-                    showAmountError(
-                        "The minimum custom stake is $1.00."
-                    );
-
-                    summary.classList.remove(
-                        "show"
-                    );
-
-                    submitButton.disabled = true;
-
-                    return false;
+                if (stake > wallet.available) {
+                    WINZONE.status(statusEl, `Insufficient funds in available wallet (${WINZONE.formatMoney(wallet.available)}).`, "danger");
+                    return;
                 }
 
+                const btn = document.getElementById("btnPublishCustom");
+                btn.disabled = true;
+                btn.textContent = "Publishing Offer to Queue...";
 
-                if (amount > 10000) {
+                setTimeout(function () {
+                    wallet.available -= stake;
+                    wallet.reserved += stake;
+                    WINZONE.setWallet(wallet);
 
-                    showAmountError(
-                        "The maximum custom stake for this prototype is $10,000.00."
-                    );
+                    const matchCode = WINZONE.generateMatchCode();
+                    const matchData = {
+                        matchId: "M-CUST-" + Math.floor(1000 + Math.random() * 9000),
+                        stake: stake,
+                        prizePool: stake * 2,
+                        commission: (stake * 2) * 0.10,
+                        winnerPayout: (stake * 2) * 0.90,
+                        code: matchCode,
+                        opponent: "Player_Challenger",
+                        status: "Active"
+                    };
+                    sessionStorage.setItem("active_match", JSON.stringify(matchData));
+                    window.location.href = "match-room.html";
+                }, 1200);
+            });
 
-                    summary.classList.remove(
-                        "show"
-                    );
-
-                    submitButton.disabled = true;
-
-                    return false;
-                }
-
-
-                const pool =
-                    amount * 2;
-
-
-                yourStake.textContent =
-                    "$" + amount.toFixed(2);
-
-                potentialPool.textContent =
-                    "$" + pool.toFixed(2);
-
-
-                summary.classList.add(
-                    "show"
-                );
-
-
-                submitButton.disabled =
-                    selectedOffer === null;
-
-
-                return true;
-            }
-
-
-            /*
-             * AMOUNT INPUT
-             */
-            amountInput.addEventListener(
-                "input",
-                function () {
-
-                    validateAmount();
-
-                }
-            );
-
-
-            /*
-             * OFFER SELECTION
-             */
-            offerOptions.forEach(
-                function (option) {
-
-                    option.addEventListener(
-                        "click",
-                        function () {
-
-                            offerOptions.forEach(
-                                function (item) {
-
-                                    item.classList.remove(
-                                        "selected"
-                                    );
-
-                                }
-                            );
-
-
-                            option.classList.add(
-                                "selected"
-                            );
-
-
-                            selectedOffer =
-                                option.dataset.offer;
-
-
-                            validateAmount();
-
-                        }
-                    );
-
-                }
-            );
-
-
-            /*
-             * SUBMIT
-             *
-             * This is intentionally only
-             * frontend prototype behavior.
-             *
-             * No real offer is created here.
-             */
-            form.addEventListener(
-                "submit",
-                function (event) {
-
-                    event.preventDefault();
-
-
-                    if (!validateAmount()) {
-                        return;
-                    }
-
-
-                    if (!selectedOffer) {
-
-                        return;
-
-                    }
-
-
-                    const amount =
-                        Number(
-                            amountInput.value
-                        );
-
-
-                    statusMessage.className =
-                        "status-message show success";
-
-
-                    if (
-                        selectedOffer === "create"
-                    ) {
-
-                        statusMessage.innerHTML =
-                            "<strong>Offer Ready</strong><br>" +
-                            "Your $" +
-                            amount.toFixed(2) +
-                            " custom offer is ready for backend connection. " +
-                            "No opponent or match code has been created yet.";
-
-                    } else {
-
-                        statusMessage.innerHTML =
-                            "<strong>Offer Search Ready</strong><br>" +
-                            "The system is ready to search for eligible custom offers at your requested amount. " +
-                            "No match code has been created yet.";
-
-                    }
-
-
-                    /*
-                     * Production backend will later:
-                     *
-                     * 1. Authenticate the user.
-                     * 2. Verify the wallet balance.
-                     * 3. Verify eligibility.
-                     * 4. Create/search the custom offer.
-                     * 5. Match both users.
-                     * 6. Reserve funds.
-                     * 7. Create the private match room.
-                     * 8. Generate the secure match code.
-                     */
-
-                }
-            );
-
-        }
-    );
-</script>
-
+            update();
+        });
+    </script>
 </body>
 </html>

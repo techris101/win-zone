@@ -3,870 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Start a Match | WIN ZONE</title>
-
-    <!-- WIN ZONE SHARED CSS -->
+    <title>Matchmaking Lobby — Predefined Stakes | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --match-bg: #07111f;
-            --match-card: rgba(13, 27, 46, 0.92);
-            --match-border: rgba(255,255,255,0.09);
-            --match-text: #f7fbff;
-            --match-muted: #9eafc4;
-            --match-primary: #00e5ff;
-            --match-secondary: #7c4dff;
-            --match-success: #22c55e;
-            --match-danger: #ff4d6d;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background:
-                radial-gradient(circle at 10% 10%, rgba(0,229,255,0.12), transparent 30%),
-                radial-gradient(circle at 90% 20%, rgba(124,77,255,0.14), transparent 30%),
-                linear-gradient(135deg, #020711, #07111f 55%, #030914);
-            color: var(--match-text);
-        }
-
-        .match-page {
-            min-height: 100vh;
-        }
-
-        .match-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(3, 9, 20, 0.88);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--match-border);
-        }
-
-        .match-header-inner {
-            max-width: 1200px;
-            margin: auto;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .match-logo {
-            text-decoration: none;
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #00e5ff, #7c4dff);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-link {
-            color: #d9e6f5;
-            text-decoration: none;
-            padding: 9px 13px;
-            border-radius: 10px;
-            transition: 0.2s ease;
-        }
-
-        .header-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: white;
-        }
-
-        .match-main {
-            max-width: 1100px;
-            margin: auto;
-            padding: 42px 20px 70px;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            padding: 7px 14px;
-            border-radius: 999px;
-            background: rgba(0,229,255,0.1);
-            border: 1px solid rgba(0,229,255,0.25);
-            color: var(--match-primary);
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-
-        .hero h1 {
-            margin: 0 0 12px;
-            font-size: clamp(32px, 5vw, 52px);
-            line-height: 1.05;
-        }
-
-        .hero p {
-            max-width: 680px;
-            margin: auto;
-            color: var(--match-muted);
-            font-size: 16px;
-            line-height: 1.7;
-        }
-
-        .notice {
-            max-width: 850px;
-            margin: 0 auto 28px;
-            padding: 18px 20px;
-            border: 1px solid rgba(0,229,255,0.18);
-            background: rgba(0,229,255,0.06);
-            border-radius: 16px;
-        }
-
-        .notice strong {
-            display: block;
-            margin-bottom: 7px;
-            color: white;
-        }
-
-        .notice span {
-            color: var(--match-muted);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .stake-section {
-            max-width: 950px;
-            margin: auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .section-title h2 {
-            margin: 0 0 7px;
-            font-size: 24px;
-        }
-
-        .section-title p {
-            margin: 0;
-            color: var(--match-muted);
-            font-size: 14px;
-        }
-
-        .stake-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .stake-option {
-            position: relative;
-            min-height: 105px;
-            padding: 20px;
-            border-radius: 18px;
-            border: 1px solid var(--match-border);
-            background: var(--match-card);
-            cursor: pointer;
-            transition: transform 0.2s ease,
-                        border-color 0.2s ease,
-                        box-shadow 0.2s ease,
-                        background 0.2s ease;
-            color: white;
-            text-align: left;
-        }
-
-        .stake-option:hover {
-            transform: translateY(-3px);
-            border-color: rgba(0,229,255,0.45);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.28);
-        }
-
-        .stake-option.selected {
-            border-color: var(--match-primary);
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(0,229,255,0.13),
-                    rgba(124,77,255,0.11)
-                );
-            box-shadow:
-                0 0 0 1px rgba(0,229,255,0.18),
-                0 15px 40px rgba(0,0,0,0.25);
-        }
-
-        .stake-option .amount {
-            display: block;
-            font-size: 30px;
-            font-weight: 900;
-            margin-bottom: 7px;
-        }
-
-        .stake-option .description {
-            color: var(--match-muted);
-            font-size: 12px;
-        }
-
-        .selected-mark {
-            position: absolute;
-            top: 13px;
-            right: 13px;
-            width: 22px;
-            height: 22px;
+        .radar-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--wz-border-strong);
+            border-top-color: var(--wz-primary);
             border-radius: 50%;
+            animation: wz-spin 0.9s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes wz-spin {
+            to { transform: rotate(360deg); }
+        }
+        .match-searching {
             display: none;
-            align-items: center;
-            justify-content: center;
-            background: var(--match-primary);
-            color: #001018;
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .stake-option.selected .selected-mark {
-            display: flex;
-        }
-
-        .custom-card {
-            display: block;
-            margin-top: 15px;
-            padding: 20px;
-            border-radius: 18px;
-            text-decoration: none;
-            border: 1px dashed rgba(124,77,255,0.5);
-            background: rgba(124,77,255,0.07);
-            color: white;
-            transition: 0.2s ease;
-        }
-
-        .custom-card:hover {
-            transform: translateY(-2px);
-            background: rgba(124,77,255,0.12);
-        }
-
-        .custom-card strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .custom-card span {
-            color: var(--match-muted);
-            font-size: 13px;
-        }
-
-        .match-panel {
-            max-width: 700px;
-            margin: 35px auto 0;
-            padding: 24px;
-            border-radius: 22px;
-            border: 1px solid var(--match-border);
-            background: rgba(7, 17, 31, 0.9);
-            box-shadow: 0 20px 55px rgba(0,0,0,0.28);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 22px;
-        }
-
-        .summary-box {
-            padding: 15px;
-            border-radius: 14px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .summary-box small {
-            display: block;
-            color: var(--match-muted);
-            font-size: 11px;
-            margin-bottom: 7px;
-        }
-
-        .summary-box strong {
-            font-size: 18px;
-        }
-
-        .commission-note {
-            color: var(--match-muted);
-            font-size: 12px;
-            line-height: 1.6;
-            margin-bottom: 18px;
-        }
-
-        .find-button {
-            width: 100%;
-            border: 0;
-            padding: 16px 20px;
-            border-radius: 14px;
-            background: linear-gradient(90deg, #00e5ff, #7c4dff);
-            color: #03101c;
-            font-size: 16px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        .find-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0,229,255,0.18);
-        }
-
-        .find-button:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
-        .matching-panel {
-            display: none;
-            text-align: center;
-            padding: 28px 15px 8px;
-        }
-
-        .matching-panel.active {
-            display: block;
-        }
-
-        .loader {
-            width: 55px;
-            height: 55px;
-            margin: 0 auto 18px;
-            border: 4px solid rgba(255,255,255,0.12);
-            border-top-color: var(--match-primary);
-            border-right-color: var(--match-secondary);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .matching-panel h3 {
-            margin: 0 0 8px;
-            font-size: 22px;
-        }
-
-        .matching-panel p {
-            color: var(--match-muted);
-            margin: 0 auto 18px;
-            max-width: 480px;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        .cancel-button {
-            border: 1px solid rgba(255,255,255,0.13);
-            background: rgba(255,255,255,0.04);
-            color: white;
-            padding: 11px 18px;
-            border-radius: 11px;
-            cursor: pointer;
-        }
-
-        .cancel-button:hover {
-            background: rgba(255,255,255,0.08);
-        }
-
-        .security-note {
-            max-width: 700px;
-            margin: 22px auto 0;
-            color: #8192a8;
-            font-size: 12px;
-            text-align: center;
-            line-height: 1.7;
-        }
-
-        .match-footer {
             text-align: center;
             padding: 30px 20px;
-            border-top: 1px solid var(--match-border);
-            color: #73849a;
-            font-size: 12px;
-        }
-
-        .match-footer a {
-            color: #aebed0;
-            text-decoration: none;
-        }
-
-        @media (max-width: 750px) {
-            .stake-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header-link.wallet-link {
-                display: none;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .match-header-inner {
-                padding: 14px 15px;
-            }
-
-            .match-main {
-                padding: 30px 15px 55px;
-            }
-
-            .stake-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stake-option {
-                min-height: 90px;
-            }
-
-            .hero h1 {
-                font-size: 34px;
-            }
-
-            .header-link {
-                padding: 8px;
-                font-size: 13px;
-            }
+            background: var(--wz-surface-elevated);
+            border: 1px solid var(--wz-border-strong);
+            border-radius: var(--wz-radius-md);
+            margin-top: 20px;
         }
     </style>
 </head>
-
 <body>
 
-<div class="match-page">
-
-    <!-- HEADER -->
-    <header class="match-header">
-        <div class="match-header-inner">
-
-            <a href="dashboard.html" class="match-logo">
-                WIN ZONE
-            </a>
-
-            <div class="header-actions">
-                <a href="dashboard.html" class="header-link">
-                    Dashboard
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
                 </a>
 
-                <a href="wallet.html" class="header-link wallet-link">
-                    Wallet
-                </a>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link active" data-i18n="navCompetitions">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link" data-i18n="navDashboard">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link" data-i18n="navWallet">Wallet</a>
+                    <a href="dispute.html" class="wz-nav-link" data-i18n="navDisputes">Disputes</a>
+                </nav>
 
-                <a href="account.html" class="header-link">
-                    Account
-                </a>
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Balance:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
+                    <div class="wz-selectors">
+                        <select id="wzLangSelect" class="wz-select-sm" aria-label="Select Language">
+                            <option value="EN">EN</option>
+                            <option value="FR">FR</option>
+                            <option value="RW">RW</option>
+                            <option value="ES">ES</option>
+                        </select>
+                        <select id="wzCurrencySelect" class="wz-select-sm" aria-label="Select Currency">
+                            <option value="USD">USD</option>
+                            <option value="RWF">RWF</option>
+                            <option value="EUR">EUR</option>
+                            <option value="KES">KES</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-
         </div>
     </header>
 
-
-    <!-- MAIN -->
-    <main class="match-main">
-
-        <section class="hero">
-
-            <div class="hero-badge">
-                MATCH CENTER
-            </div>
-
-            <h1>Start a Match</h1>
-
-            <p>
-                Choose the amount you want to stake.
-                WIN ZONE will search for another eligible player
-                using the same stake amount.
-            </p>
-
-        </section>
-
-
-        <!-- IMPORTANT FLOW NOTICE -->
-        <div class="notice">
-
-            <strong>
-                🔐 A private match is created only after two players are matched.
-            </strong>
-
-            <span>
-                Selecting a stake does not immediately create a match code.
-                WIN ZONE must first find another eligible player at the same
-                amount. Once both players are successfully matched, the
-                private match room becomes available.
-            </span>
-
-        </div>
-
-
-        <section class="stake-section">
-
-            <div class="section-title">
-
-                <h2>Choose Your Stake</h2>
-
-                <p>
-                    Select one of the available fixed amounts.
+    <!-- =============================================
+         MAIN MATCHMAKING LOBBY
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-md">
+            
+            <div style="margin-bottom: 24px;">
+                <div class="wz-badge wz-badge-warning" style="margin-bottom: 8px;">
+                    1v1 COMPETITIVE STAKE SELECTION
+                </div>
+                <h1 style="font-size: 32px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                    Select Your Match Stake
+                </h1>
+                <p style="color: var(--wz-text-muted); font-size: 14px;">
+                    Choose an official fixed stake to enter matchmaking. Two equal stakes create the match prize pool. WIN ZONE applies a standard 10% commission, and the remaining 90% is awarded to the winner.
                 </p>
-
             </div>
 
-
-            <!-- STAKE OPTIONS -->
-            <div class="stake-grid">
-
-                <button class="stake-option" data-amount="1">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$1</span>
-                    <span class="description">
-                        $2 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="3">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$3</span>
-                    <span class="description">
-                        $6 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="5">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$5</span>
-                    <span class="description">
-                        $10 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="7">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$7</span>
-                    <span class="description">
-                        $14 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="9">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$9</span>
-                    <span class="description">
-                        $18 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="15">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$15</span>
-                    <span class="description">
-                        $30 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="20">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$20</span>
-                    <span class="description">
-                        $40 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="30">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$30</span>
-                    <span class="description">
-                        $60 total prize pool
-                    </span>
-                </button>
-
-                <button class="stake-option" data-amount="50">
-                    <span class="selected-mark">✓</span>
-                    <span class="amount">$50</span>
-                    <span class="description">
-                        $100 total prize pool
-                    </span>
-                </button>
-
+            <!-- Predefined Stake Grid (All 9 official tiers) -->
+            <div class="wz-stake-grid" id="stakeContainer">
+                <div class="wz-stake-chip" data-stake="1">
+                    <span class="stake-val" data-usd="1">$1</span>
+                    <span class="stake-pool">Pool: <span data-usd="2">$2</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="3">
+                    <span class="stake-val" data-usd="3">$3</span>
+                    <span class="stake-pool">Pool: <span data-usd="6">$6</span></span>
+                </div>
+                <div class="wz-stake-chip selected" data-stake="5">
+                    <span class="stake-val" data-usd="5">$5</span>
+                    <span class="stake-pool">Pool: <span data-usd="10">$10</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="7">
+                    <span class="stake-val" data-usd="7">$7</span>
+                    <span class="stake-pool">Pool: <span data-usd="14">$14</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="9">
+                    <span class="stake-val" data-usd="9">$9</span>
+                    <span class="stake-pool">Pool: <span data-usd="18">$18</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="15">
+                    <span class="stake-val" data-usd="15">$15</span>
+                    <span class="stake-pool">Pool: <span data-usd="30">$30</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="20">
+                    <span class="stake-val" data-usd="20">$20</span>
+                    <span class="stake-pool">Pool: <span data-usd="40">$40</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="30">
+                    <span class="stake-val" data-usd="30">$30</span>
+                    <span class="stake-pool">Pool: <span data-usd="60">$60</span></span>
+                </div>
+                <div class="wz-stake-chip" data-stake="50">
+                    <span class="stake-val" data-usd="50">$50</span>
+                    <span class="stake-pool">Pool: <span data-usd="100">$100</span></span>
+                </div>
             </div>
 
-
-            <!-- CUSTOM AMOUNT -->
-            <a href="custom.html" class="custom-card">
-
-                <strong>
-                    Custom Amount
-                </strong>
-
-                <span>
-                    Use the custom amount flow to make or respond to
-                    a stake offer.
-                </span>
-
-            </a>
-
-
-            <!-- MATCH PANEL -->
-            <div class="match-panel">
-
-                <div class="summary-grid">
-
-                    <div class="summary-box">
-                        <small>YOUR STAKE</small>
-                        <strong id="selectedStake">
-                            —
-                        </strong>
+            <!-- Custom Stake Shortcut Card -->
+            <div style="margin-bottom: 24px;">
+                <a href="custom.html" class="wz-card wz-card-elevated" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; padding: 18px 24px; border: 1px dashed var(--wz-border-strong);">
+                    <div>
+                        <strong style="color: var(--wz-accent); font-size: 15px; display: block; margin-bottom: 4px;">🎯 Custom Stake Offer</strong>
+                        <span style="font-size: 13px; color: var(--wz-text-muted);">Propose or respond to customized stake amounts outside predefined tiers.</span>
                     </div>
+                    <span class="wz-btn wz-btn-secondary wz-btn-sm">Configure Custom &rarr;</span>
+                </a>
+            </div>
 
-                    <div class="summary-box">
-                        <small>EXPECTED PRIZE POOL</small>
-                        <strong id="prizePool">
-                            —
-                        </strong>
-                    </div>
-
-                    <div class="summary-box">
-                        <small>WIN ZONE COMMISSION</small>
-                        <strong>
-                            10%
-                        </strong>
-                    </div>
-
+            <!-- Live Betting Slip Breakdown Ticket -->
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h3>Match Slip Breakdown</h3>
+                    <div class="wz-badge wz-badge-success">COMMISSION: 10%</div>
                 </div>
 
-
-                <div class="commission-note">
-
-                    There is no separate platform entry fee.
-                    When two players are matched, the prize pool is
-                    calculated from both agreed stakes. WIN ZONE's
-                    commission is 10% of the prize pool, with the
-                    remaining amount going to the winner according to
-                    the final match result.
-
+                <div class="wz-bet-ticket">
+                    <div class="wz-ticket-row">
+                        <span>Your Wallet Stake:</span>
+                        <strong id="displayStake">$5.00</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Opponent's Matched Stake:</span>
+                        <strong id="displayOpponentStake">$5.00</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Combined Prize Pool:</span>
+                        <strong id="displayPool">$10.00</strong>
+                    </div>
+                    <div class="wz-ticket-row commission">
+                        <span>WIN ZONE Platform Rake (10%):</span>
+                        <strong id="displayCommission">$1.00</strong>
+                    </div>
+                    <div class="wz-ticket-row highlight">
+                        <span>Winner Guaranteed Payout (90%):</span>
+                        <strong id="displayPayout">$9.00</strong>
+                    </div>
                 </div>
 
+                <div class="wz-notice info">
+                    <strong>Backend Queue Guarantee:</strong>
+                    When you click "Find Opponent", WIN ZONE does not create a fake match room immediately. The system searches for an eligible and verified opponent with the identical stake. Once matched, the stake is safely reserved in your wallet.
+                </div>
 
-                <button
-                    id="findOpponentButton"
-                    class="find-button"
-                    disabled
-                    type="button"
-                >
-                    Select a Stake First
+                <button id="btnFindOpponent" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                    Find Opponent at $5.00
                 </button>
 
-
-                <!-- MATCHING STATE -->
-                <div
-                    id="matchingPanel"
-                    class="matching-panel"
-                >
-
-                    <div class="loader"></div>
-
-                    <h3>
-                        Searching for an Opponent
-                    </h3>
-
-                    <p id="matchingText">
-                        Searching for another eligible player
-                        at your selected stake...
+                <!-- Searching Simulation Box -->
+                <div id="searchingState" class="match-searching">
+                    <div class="radar-spinner"></div>
+                    <h3 style="color: var(--wz-text-bright); font-size: 18px; margin-bottom: 6px;">Matching with an Opponent...</h3>
+                    <p style="color: var(--wz-text-muted); font-size: 13.5px; margin-bottom: 16px;">
+                        Locating an available verified player at your chosen stake tier.
                     </p>
-
-                    <button
-                        id="cancelSearch"
-                        class="cancel-button"
-                        type="button"
-                    >
+                    <button id="btnCancelSearch" class="wz-btn wz-btn-danger wz-btn-sm">
                         Cancel Search
                     </button>
-
                 </div>
-
             </div>
 
-
-            <div class="security-note">
-
-                🔒 In the production system, eligibility,
-                wallet reservation, matching, match-room creation,
-                match codes, results and payouts will be controlled
-                by the secure WIN ZONE backend.
-
-            </div>
-
-        </section>
-
+        </div>
     </main>
 
-
-    <!-- FOOTER -->
-    <footer class="match-footer">
-
-        <div>
-            © 2026 WIN ZONE. All rights reserved.
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
-
-        <div style="margin-top:8px;">
-            <a href="terms.html">Terms</a>
-            &nbsp;•&nbsp;
-            <a href="privacy.html">Privacy</a>
-            &nbsp;•&nbsp;
-            <a href="dispute.html">Help & Disputes</a>
-        </div>
-
     </footer>
 
-</div>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let currentStake = 5;
+            const chips = document.querySelectorAll(".wz-stake-chip");
+            const btnFind = document.getElementById("btnFindOpponent");
+            const searchingBox = document.getElementById("searchingState");
+            const btnCancel = document.getElementById("btnCancelSearch");
 
+            function updateTicket(stake) {
+                currentStake = Number(stake);
+                const pool = currentStake * 2;
+                const commission = pool * 0.10;
+                const payout = pool * 0.90;
 
-<!-- WIN ZONE SHARED JAVASCRIPT -->
-<script src="js/global.js"></script>
+                document.getElementById("displayStake").textContent = WINZONE.formatMoney(currentStake);
+                document.getElementById("displayOpponentStake").textContent = WINZONE.formatMoney(currentStake);
+                document.getElementById("displayPool").textContent = WINZONE.formatMoney(pool);
+                document.getElementById("displayCommission").textContent = WINZONE.formatMoney(commission);
+                document.getElementById("displayPayout").textContent = WINZONE.formatMoney(payout);
 
+                btnFind.textContent = `Find Opponent at ${WINZONE.formatMoney(currentStake)}`;
+            }
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+            chips.forEach(chip => {
+                chip.addEventListener("click", function () {
+                    chips.forEach(c => c.classList.remove("selected"));
+                    this.classList.add("selected");
+                    updateTicket(this.getAttribute("data-stake"));
+                });
+            });
 
-        const stakeOptions =
-            document.querySelectorAll(".stake-option");
+            // Listen for global currency changes
+            document.addEventListener("winzone:currency_changed", function () {
+                updateTicket(currentStake);
+            });
 
-        const selectedStake =
-            document.getElementById("selectedStake");
-
-        const prizePool =
-            document.getElementById("prizePool");
-
-        const findOpponentButton =
-            document.getElementById("findOpponentButton");
-
-        const matchingPanel =
-            document.getElementById("matchingPanel");
-
-        const matchingText =
-            document.getElementById("matchingText");
-
-        const cancelSearch =
-            document.getElementById("cancelSearch");
-
-        let selectedAmount = null;
-
-
-        /*
-         * SELECT STAKE
-         */
-        stakeOptions.forEach(function (option) {
-
-            option.addEventListener("click", function () {
-
-                if (matchingPanel.classList.contains("active")) {
+            // Find Opponent Matchmaking Flow
+            let matchTimer = null;
+            btnFind.addEventListener("click", function () {
+                const wallet = WINZONE.getWallet();
+                if (wallet.available < currentStake) {
+                    alert(`Insufficient available funds (${WINZONE.formatMoney(wallet.available)}). Please deposit funds to stake ${WINZONE.formatMoney(currentStake)}.`);
+                    window.location.href = "deposit.html";
                     return;
                 }
 
-                stakeOptions.forEach(function (item) {
-                    item.classList.remove("selected");
-                });
+                btnFind.style.display = "none";
+                searchingBox.style.display = "block";
 
-                option.classList.add("selected");
+                // Simulate realistic backend matchmaking (2.5 seconds)
+                matchTimer = setTimeout(function () {
+                    // Reserve funds in wallet
+                    wallet.available -= currentStake;
+                    wallet.reserved += currentStake;
+                    WINZONE.setWallet(wallet);
 
-                selectedAmount =
-                    Number(option.dataset.amount);
-
-                const totalPrizePool =
-                    selectedAmount * 2;
-
-                selectedStake.textContent =
-                    "$" + selectedAmount.toFixed(2);
-
-                prizePool.textContent =
-                    "$" + totalPrizePool.toFixed(2);
-
-                findOpponentButton.disabled = false;
-
-                findOpponentButton.textContent =
-                    "Find Opponent at $" +
-                    selectedAmount.toFixed(2);
-
+                    const matchCode = WINZONE.generateMatchCode();
+                    const matchData = {
+                        matchId: "M-" + Math.floor(10000 + Math.random() * 90000),
+                        stake: currentStake,
+                        prizePool: currentStake * 2,
+                        commission: (currentStake * 2) * 0.10,
+                        winnerPayout: (currentStake * 2) * 0.90,
+                        code: matchCode,
+                        opponent: "PlayerTwo_Apex",
+                        status: "Active"
+                    };
+                    sessionStorage.setItem("active_match", JSON.stringify(matchData));
+                    window.location.href = "match-room.html";
+                }, 2400);
             });
 
-        });
-
-
-        /*
-         * START MATCH SEARCH
-         *
-         * IMPORTANT:
-         * This is frontend prototype behavior.
-         *
-         * It does NOT create a fake opponent.
-         * It does NOT create a fake match code.
-         *
-         * The real backend will perform the actual matching.
-         */
-        findOpponentButton.addEventListener("click", function () {
-
-            if (!selectedAmount) {
-                return;
-            }
-
-            stakeOptions.forEach(function (item) {
-                item.style.pointerEvents = "none";
+            btnCancel.addEventListener("click", function () {
+                if (matchTimer) clearTimeout(matchTimer);
+                searchingBox.style.display = "none";
+                btnFind.style.display = "block";
             });
 
-            findOpponentButton.style.display = "none";
-
-            matchingPanel.classList.add("active");
-
-            matchingText.textContent =
-                "Searching for another eligible player at $" +
-                selectedAmount.toFixed(2) +
-                ". A private match room will appear only after a successful match.";
-
+            updateTicket(5);
         });
-
-
-        /*
-         * CANCEL MATCH SEARCH
-         */
-        cancelSearch.addEventListener("click", function () {
-
-            matchingPanel.classList.remove("active");
-
-            findOpponentButton.style.display = "block";
-
-            findOpponentButton.textContent =
-                "Find Opponent at $" +
-                selectedAmount.toFixed(2);
-
-            stakeOptions.forEach(function (item) {
-                item.style.pointerEvents = "auto";
-            });
-
-        });
-
-    });
-</script>
-
+    </script>
 </body>
 </html>

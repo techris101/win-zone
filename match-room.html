@@ -3,311 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Private Match Room | WIN ZONE</title>
-
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 50% 0%,rgba(0,229,255,.10),transparent 35%),
-                #030914;
-            color:white;
-        }
-
-        .room {
-            max-width:950px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .room-title {
-            text-align:center;
-            margin-bottom:30px;
-        }
-
-        .room-title h1 {
-            font-size:40px;
-            margin:10px 0;
-        }
-
-        .room-title p {
-            color:#9eafc4;
-        }
-
-        .code-card {
-            text-align:center;
-            padding:35px 20px;
-            border-radius:25px;
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(0,229,255,.08),
-                    rgba(124,77,255,.10)
-                );
-            border:1px solid rgba(255,255,255,.10);
-            margin-bottom:20px;
-        }
-
-        .code-label {
-            color:#9eafc4;
-            font-size:12px;
-            letter-spacing:1px;
-            text-transform:uppercase;
-        }
-
-        .match-code {
-            margin:15px 0;
-            font-size:54px;
-            font-weight:1000;
-            letter-spacing:10px;
-            color:#00e5ff;
-        }
-
-        .copy {
-            padding:11px 18px;
-            border:0;
-            border-radius:10px;
-            cursor:pointer;
-            font-weight:800;
-        }
-
-        .players {
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-            margin-bottom:20px;
-        }
-
-        .player {
-            padding:22px;
-            border-radius:18px;
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.08);
-        }
-
-        .player small {
-            color:#91a2b7;
-        }
-
-        .player h2 {
-            margin:8px 0 0;
-        }
-
-        .match-info {
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.08);
-            border-radius:18px;
-            padding:22px;
-        }
-
-        .info-row {
-            display:flex;
-            justify-content:space-between;
-            padding:12px 0;
-            color:#9eafc4;
-        }
-
-        .info-row + .info-row {
-            border-top:1px solid rgba(255,255,255,.05);
-        }
-
-        .info-row strong {
-            color:white;
-        }
-
-        .notice {
-            margin-top:20px;
-            padding:17px;
-            border-radius:15px;
-            background:rgba(255,193,7,.06);
-            border:1px solid rgba(255,193,7,.14);
-            color:#d8d0ae;
-            line-height:1.7;
-            font-size:13px;
-        }
-
-        .actions {
-            display:flex;
-            gap:10px;
-            margin-top:20px;
-            flex-wrap:wrap;
-        }
-
-        .actions a {
-            flex:1;
-            min-width:180px;
-            text-align:center;
-            text-decoration:none;
-            padding:14px;
-            border-radius:12px;
-            background:rgba(255,255,255,.05);
-            color:white;
-        }
-
-        @media(max-width:650px) {
-            .players {
-                grid-template-columns:1fr;
-            }
-
-            .match-code {
-                font-size:39px;
-                letter-spacing:6px;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="dashboard.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <a href="dashboard.html" class="wz-logo">
-            WIN ZONE
-        </a>
-
-        <a href="dashboard.html" style="color:white;text-decoration:none;">
-            Dashboard
-        </a>
-
-    </div>
-</header>
-
-<main class="room">
-
-    <section class="room-title">
-
-        <div class="wz-badge wz-badge-success">
-            PRIVATE MATCH
+                <div class="wz-header-right">
+                    <span class="wz-badge wz-badge-live">
+                        <span class="wz-badge-dot"></span>
+                        MATCH IN PROGRESS
+                    </span>
+                    <a href="dispute.html" class="wz-btn wz-btn-secondary wz-btn-sm" style="color: var(--wz-accent);">
+                        ⚖️ Dispute / Help
+                    </a>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <h1>Match Room</h1>
+    <!-- =============================================
+         MATCH ROOM CONTENT
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-md">
+            
+            <div style="text-align: center; margin-bottom: 28px;">
+                <div class="wz-badge wz-badge-success" style="margin-bottom: 8px;">
+                    CONFIRMED PRIVATE SESSION
+                </div>
+                <h1 style="font-size: 32px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                    Private Match Room
+                </h1>
+                <p style="color: var(--wz-text-muted); font-size: 14px;">
+                    Both players have been verified and their stakes reserved in escrow. Use the private match code below to join each other in-game.
+                </p>
+            </div>
 
-        <p>
-            This private room becomes available only after two eligible
-            users have been successfully matched.
-        </p>
+            <!-- Match Code Monospace Display -->
+            <div class="wz-code-banner">
+                <div class="code-label" data-i18n="matchCode">PRIVATE MATCH CODE</div>
+                <div id="matchCodeDisplay" class="wz-code-val">A7K2</div>
+                <button id="btnCopyCode" class="wz-btn wz-btn-secondary wz-btn-sm">
+                    📋 Copy Match Code
+                </button>
+            </div>
 
-    </section>
+            <!-- Versus Match Card -->
+            <div class="wz-vs-box">
+                <div class="wz-player-card">
+                    <div class="wz-player-avatar">YOU</div>
+                    <div class="wz-player-name">Player (You)</div>
+                    <div class="wz-player-badge">Verified Account</div>
+                </div>
 
-    <section class="code-card">
+                <div class="wz-vs-badge">VS</div>
 
-        <div class="code-label">
-            Match Code
+                <div class="wz-player-card">
+                    <div class="wz-player-avatar" id="opponentAvatar">P2</div>
+                    <div class="wz-player-name" id="opponentName">PlayerTwo_Apex</div>
+                    <div class="wz-player-badge">Verified Opponent</div>
+                </div>
+            </div>
+
+            <!-- Financial Breakdown Ticket -->
+            <div class="wz-card" style="margin-bottom: 24px;">
+                <div class="wz-card-header">
+                    <h3>Match Financial Specifications</h3>
+                    <div class="wz-badge wz-badge-neutral" id="matchIdLabel">MATCH ID: M-84920</div>
+                </div>
+
+                <div class="wz-bet-ticket">
+                    <div class="wz-ticket-row">
+                        <span>Reserved Stake per Player:</span>
+                        <strong id="roomStake">$5.00</strong>
+                    </div>
+                    <div class="wz-ticket-row">
+                        <span>Total Escrow Prize Pool:</span>
+                        <strong id="roomPool">$10.00</strong>
+                    </div>
+                    <div class="wz-ticket-row commission">
+                        <span>WIN ZONE Platform Commission (10%):</span>
+                        <strong id="roomCommission">$1.00</strong>
+                    </div>
+                    <div class="wz-ticket-row highlight">
+                        <span>Guaranteed Winner Payout (90%):</span>
+                        <strong id="roomPayout">$9.00</strong>
+                    </div>
+                </div>
+
+                <div class="wz-notice warning">
+                    <strong>Match Reporting Protocol:</strong>
+                    Once the game concludes, both players must accurately report the final outcome. In production, outcomes are validated server-side. In case of disconnection, disagreement, or rule violations, file an immediate dispute with screenshot evidence.
+                </div>
+
+                <!-- Match Outcome Actions -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 20px;">
+                    <button id="btnWonMatch" class="wz-btn wz-btn-primary wz-btn-lg">
+                        🏆 I Won the Match
+                    </button>
+                    <button id="btnLostMatch" class="wz-btn wz-btn-danger wz-btn-lg">
+                        I Lost the Match
+                    </button>
+                    <a href="dispute.html" class="wz-btn wz-btn-secondary wz-btn-lg">
+                        Report Dispute
+                    </a>
+                </div>
+            </div>
+
         </div>
+    </main>
 
-        <div id="matchCode" class="match-code">
-            A7K2
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
+    </footer>
 
-        <button id="copyCode" class="copy">
-            Copy Match Code
-        </button>
-
-    </section>
-
-    <section class="players">
-
-        <div class="player">
-            <small>PLAYER 1</small>
-            <h2>You</h2>
-        </div>
-
-        <div class="player">
-            <small>PLAYER 2</small>
-            <h2>Opponent</h2>
-        </div>
-
-    </section>
-
-    <section class="match-info">
-
-        <div class="info-row">
-            <span>Stake per player</span>
-            <strong>$5.00</strong>
-        </div>
-
-        <div class="info-row">
-            <span>Prize pool</span>
-            <strong>$10.00</strong>
-        </div>
-
-        <div class="info-row">
-            <span>WIN ZONE commission</span>
-            <strong>10%</strong>
-        </div>
-
-        <div class="info-row">
-            <span>Winner payout</span>
-            <strong>$9.00</strong>
-        </div>
-
-        <div class="info-row">
-            <span>Status</span>
-            <strong>Ready</strong>
-        </div>
-
-    </section>
-
-    <div class="notice">
-        <strong>Important:</strong>
-        The match result must be submitted through the approved
-        result flow. If the result is uncertain or players disagree,
-        use the dispute process. Production funds, match status and
-        results must always be controlled by the secure backend.
-    </div>
-
-    <div class="actions">
-
-        <a href="payout.html">
-            Winner Result
-        </a>
-
-        <a href="loss.html">
-            Loser Result
-        </a>
-
-        <a href="dispute.html">
-            Report a Dispute
-        </a>
-
-    </div>
-
-</main>
-
-<script src="js/global.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const code =
-        document.getElementById("matchCode").textContent.trim();
-
-    document.getElementById("copyCode")
-        .addEventListener("click", async function () {
-
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Load or initialize active match
+            let match = null;
             try {
+                const stored = sessionStorage.getItem("active_match");
+                if (stored) match = JSON.parse(stored);
+            } catch (e) {}
 
-                await navigator.clipboard.writeText(code);
-
-                this.textContent = "Copied!";
-
-                setTimeout(() => {
-                    this.textContent = "Copy Match Code";
-                }, 1500);
-
-            } catch (error) {
-
-                this.textContent = "Copy unavailable";
-
+            if (!match) {
+                const defaultStake = 5.0;
+                match = {
+                    matchId: "M-" + Math.floor(10000 + Math.random() * 90000),
+                    stake: defaultStake,
+                    prizePool: defaultStake * 2,
+                    commission: (defaultStake * 2) * 0.10,
+                    winnerPayout: (defaultStake * 2) * 0.90,
+                    code: WINZONE.generateMatchCode(),
+                    opponent: "PlayerTwo_Verified",
+                    status: "Active"
+                };
+                sessionStorage.setItem("active_match", JSON.stringify(match));
             }
 
+            // Update UI elements
+            document.getElementById("matchCodeDisplay").textContent = match.code;
+            document.getElementById("matchIdLabel").textContent = "MATCH ID: " + match.matchId;
+            document.getElementById("opponentName").textContent = match.opponent;
+            document.getElementById("roomStake").textContent = WINZONE.formatMoney(match.stake);
+            document.getElementById("roomPool").textContent = WINZONE.formatMoney(match.prizePool);
+            document.getElementById("roomCommission").textContent = WINZONE.formatMoney(match.commission);
+            document.getElementById("roomPayout").textContent = WINZONE.formatMoney(match.winnerPayout);
+
+            // Copy Code Handler
+            const btnCopy = document.getElementById("btnCopyCode");
+            btnCopy.addEventListener("click", async function () {
+                const success = await WINZONE.copyText(match.code);
+                if (success) {
+                    btnCopy.textContent = "✓ Copied!";
+                    setTimeout(() => { btnCopy.textContent = "📋 Copy Match Code"; }, 1600);
+                }
+            });
+
+            // Winner Outcome Flow
+            document.getElementById("btnWonMatch").addEventListener("click", function () {
+                // Update wallet: release reserved funds and credit winner payout
+                const wallet = WINZONE.getWallet();
+                wallet.reserved = Math.max(0, wallet.reserved - match.stake);
+                wallet.available += match.winnerPayout;
+                wallet.totalWinnings = (wallet.totalWinnings || 0) + match.winnerPayout;
+                WINZONE.setWallet(wallet);
+
+                WINZONE.addTransaction({
+                    id: "WIN-" + Math.floor(1000 + Math.random() * 9000),
+                    type: "payout",
+                    title: `Match Victory (${match.matchId})`,
+                    amount: match.winnerPayout,
+                    status: "Completed"
+                });
+
+                window.location.href = "payout.html";
+            });
+
+            // Loser Outcome Flow
+            document.getElementById("btnLostMatch").addEventListener("click", function () {
+                // Deduct reserved funds from wallet
+                const wallet = WINZONE.getWallet();
+                wallet.reserved = Math.max(0, wallet.reserved - match.stake);
+                WINZONE.setWallet(wallet);
+
+                WINZONE.addTransaction({
+                    id: "LOSS-" + Math.floor(1000 + Math.random() * 9000),
+                    type: "loss",
+                    title: `Match Defeat (${match.matchId})`,
+                    amount: -match.stake,
+                    status: "Completed"
+                });
+
+                window.location.href = "loss.html";
+            });
         });
-
-});
-</script>
-
+    </script>
 </body>
 </html>

@@ -3,1558 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Deposit Funds | WIN ZONE</title>
-
-    <!-- WIN ZONE SHARED CSS -->
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        :root {
-            --deposit-bg: #07111f;
-            --deposit-card: rgba(13, 27, 46, 0.94);
-            --deposit-border: rgba(255,255,255,0.09);
-            --deposit-text: #f7fbff;
-            --deposit-muted: #9eafc4;
-            --deposit-primary: #00e5ff;
-            --deposit-secondary: #7c4dff;
-            --deposit-success: #22c55e;
-            --deposit-danger: #ff4d6d;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--deposit-text);
-
-            background:
-                radial-gradient(
-                    circle at 10% 10%,
-                    rgba(0,229,255,0.12),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at 90% 15%,
-                    rgba(124,77,255,0.14),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    #020711,
-                    #07111f 55%,
-                    #030914
-                );
-        }
-
-        .deposit-page {
-            min-height: 100vh;
-        }
-
-        /* HEADER */
-
-        .deposit-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-
-            background: rgba(3,9,20,0.88);
-            backdrop-filter: blur(16px);
-
-            border-bottom:
-                1px solid var(--deposit-border);
-        }
-
-        .deposit-header-inner {
-            max-width: 1150px;
-            margin: auto;
-
-            padding: 16px 20px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 20px;
-        }
-
-        .deposit-logo {
-            text-decoration: none;
-
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: 2px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00e5ff,
-                    #7c4dff
-                );
-
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-link {
-            color: #d9e6f5;
-            text-decoration: none;
-
-            padding: 9px 13px;
-            border-radius: 10px;
-
-            transition: 0.2s ease;
-        }
-
-        .header-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: white;
-        }
-
-        /* MAIN */
-
-        .deposit-main {
-            max-width: 900px;
-            margin: auto;
-
-            padding: 45px 20px 70px;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-
-            padding: 7px 14px;
-            border-radius: 999px;
-
-            background:
-                rgba(0,229,255,0.08);
-
-            border:
-                1px solid rgba(0,229,255,0.22);
-
-            color: var(--deposit-primary);
-
-            font-size: 12px;
-            font-weight: 800;
-
-            letter-spacing: 1px;
-            text-transform: uppercase;
-
-            margin-bottom: 14px;
-        }
-
-        .hero h1 {
-            margin: 0 0 10px;
-
-            font-size:
-                clamp(32px, 5vw, 48px);
-        }
-
-        .hero p {
-            max-width: 650px;
-            margin: auto;
-
-            color: var(--deposit-muted);
-
-            font-size: 15px;
-            line-height: 1.7;
-        }
-
-        /* BALANCE */
-
-        .balance-card {
-            max-width: 700px;
-            margin: 0 auto 20px;
-
-            padding: 20px 22px;
-
-            border-radius: 18px;
-
-            background:
-                rgba(255,255,255,0.035);
-
-            border:
-                1px solid var(--deposit-border);
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 15px;
-        }
-
-        .balance-card small {
-            display: block;
-
-            color: var(--deposit-muted);
-
-            font-size: 11px;
-            margin-bottom: 5px;
-        }
-
-        .balance-card strong {
-            font-size: 24px;
-        }
-
-        .balance-link {
-            color: var(--deposit-primary);
-
-            text-decoration: none;
-
-            font-size: 13px;
-        }
-
-        /* FORM CARD */
-
-        .deposit-card {
-            max-width: 700px;
-            margin: auto;
-
-            padding: 28px;
-
-            border-radius: 24px;
-
-            background:
-                var(--deposit-card);
-
-            border:
-                1px solid var(--deposit-border);
-
-            box-shadow:
-                0 25px 65px rgba(0,0,0,0.30);
-        }
-
-        .form-group {
-            margin-bottom: 22px;
-        }
-
-        .form-label {
-            display: block;
-
-            margin-bottom: 9px;
-
-            color: #e8f1fb;
-
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .amount-wrapper {
-            position: relative;
-        }
-
-        .currency-symbol {
-            position: absolute;
-
-            left: 17px;
-            top: 50%;
-
-            transform: translateY(-50%);
-
-            color: var(--deposit-primary);
-
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .amount-input {
-            width: 100%;
-
-            padding: 17px 17px 17px 42px;
-
-            border-radius: 14px;
-
-            border:
-                1px solid rgba(255,255,255,0.12);
-
-            background:
-                rgba(255,255,255,0.045);
-
-            color: white;
-
-            font-size: 21px;
-            font-weight: 800;
-
-            outline: none;
-
-            transition: 0.2s ease;
-        }
-
-        .amount-input:focus {
-            border-color: var(--deposit-primary);
-
-            box-shadow:
-                0 0 0 3px rgba(0,229,255,0.10);
-        }
-
-        .field-help {
-            margin-top: 8px;
-
-            color: var(--deposit-muted);
-
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .field-error {
-            display: none;
-
-            margin-top: 7px;
-
-            color: var(--deposit-danger);
-
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .field-error.show {
-            display: block;
-        }
-
-        /* CURRENCY */
-
-        .currency-select {
-            width: 100%;
-
-            padding: 15px;
-
-            border-radius: 13px;
-
-            border:
-                1px solid rgba(255,255,255,0.11);
-
-            background:
-                rgba(255,255,255,0.045);
-
-            color: white;
-
-            outline: none;
-
-            font-size: 14px;
-        }
-
-        .currency-select option {
-            color: #111;
-            background: white;
-        }
-
-        /* PAYMENT METHODS */
-
-        .methods-title {
-            margin: 0 0 7px;
-
-            font-size: 16px;
-        }
-
-        .methods-description {
-            margin: 0 0 15px;
-
-            color: var(--deposit-muted);
-
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .payment-methods {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap: 12px;
-        }
-
-        .payment-method {
-            padding: 17px;
-
-            border-radius: 15px;
-
-            border:
-                1px solid rgba(255,255,255,0.09);
-
-            background:
-                rgba(255,255,255,0.035);
-
-            color: white;
-
-            cursor: pointer;
-
-            text-align: left;
-
-            transition: 0.2s ease;
-        }
-
-        .payment-method:hover {
-            border-color:
-                rgba(0,229,255,0.30);
-        }
-
-        .payment-method.selected {
-            border-color:
-                var(--deposit-primary);
-
-            background:
-                rgba(0,229,255,0.08);
-
-            box-shadow:
-                0 0 0 1px rgba(0,229,255,0.08);
-        }
-
-        .payment-icon {
-            width: 38px;
-            height: 38px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 10px;
-
-            background:
-                rgba(255,255,255,0.07);
-
-            margin-bottom: 10px;
-
-            font-size: 18px;
-        }
-
-        .payment-method strong {
-            display: block;
-
-            margin-bottom: 5px;
-
-            font-size: 14px;
-        }
-
-        .payment-method span {
-            display: block;
-
-            color: var(--deposit-muted);
-
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        /* SUMMARY */
-
-        .deposit-summary {
-            display: none;
-
-            margin-top: 24px;
-
-            padding: 18px;
-
-            border-radius: 16px;
-
-            background:
-                rgba(0,229,255,0.045);
-
-            border:
-                1px solid rgba(0,229,255,0.12);
-        }
-
-        .deposit-summary.show {
-            display: block;
-        }
-
-        .summary-row {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 15px;
-
-            padding: 9px 0;
-
-            color: var(--deposit-muted);
-
-            font-size: 13px;
-        }
-
-        .summary-row + .summary-row {
-            border-top:
-                1px solid rgba(255,255,255,0.05);
-        }
-
-        .summary-row strong {
-            color: white;
-        }
-
-        .summary-total strong {
-            color: var(--deposit-primary);
-
-            font-size: 17px;
-        }
-
-        /* SECURITY */
-
-        .security-note {
-            margin-top: 20px;
-
-            padding: 17px;
-
-            border-radius: 14px;
-
-            background:
-                rgba(34,197,94,0.045);
-
-            border:
-                1px solid rgba(34,197,94,0.14);
-
-            color: var(--deposit-muted);
-
-            font-size: 12px;
-
-            line-height: 1.7;
-        }
-
-        .security-note strong {
-            display: block;
-
-            color: #d8f9e2;
-
-            margin-bottom: 5px;
-        }
-
-        /* BUTTONS */
-
-        .deposit-button {
-            width: 100%;
-
-            margin-top: 22px;
-
-            padding: 16px 20px;
-
-            border: 0;
-
-            border-radius: 14px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #00e5ff,
-                    #7c4dff
-                );
-
-            color: #03101c;
-
-            font-size: 16px;
-            font-weight: 900;
-
-            cursor: pointer;
-
-            transition: 0.2s ease;
-        }
-
-        .deposit-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 12px 35px rgba(0,229,255,0.18);
-        }
-
-        .deposit-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .back-button {
-            display: block;
-
-            width: 100%;
-
-            margin-top: 11px;
-
-            padding: 13px;
-
-            border-radius: 13px;
-
-            border:
-                1px solid rgba(255,255,255,0.10);
-
-            background:
-                rgba(255,255,255,0.035);
-
-            color: white;
-
-            text-decoration: none;
-
-            text-align: center;
-
-            font-size: 14px;
-        }
-
-        .back-button:hover {
-            background:
-                rgba(255,255,255,0.07);
-        }
-
-        /* STATUS */
-
-        .status-message {
-            display: none;
-
-            margin-top: 18px;
-
-            padding: 15px;
-
-            border-radius: 13px;
-
-            font-size: 13px;
-
-            line-height: 1.6;
-        }
-
-        .status-message.show {
-            display: block;
-        }
-
-        .status-message.success {
-            background:
-                rgba(34,197,94,0.08);
-
-            border:
-                1px solid rgba(34,197,94,0.20);
-
-            color: #a8f5c0;
-        }
-
-        .status-message.info {
-            background:
-                rgba(0,229,255,0.07);
-
-            border:
-                1px solid rgba(0,229,255,0.17);
-
-            color: #aeefff;
-        }
-
-        .status-message.error {
-            background:
-                rgba(255,77,109,0.08);
-
-            border:
-                1px solid rgba(255,77,109,0.20);
-
-            color: #ffb2c0;
-        }
-
-        /* FOOTER */
-
-        .deposit-footer {
-            padding: 30px 20px;
-
-            border-top:
-                1px solid var(--deposit-border);
-
-            text-align: center;
-
-            color: #73849a;
-
-            font-size: 12px;
-        }
-
-        .deposit-footer a {
-            color: #aebed0;
-            text-decoration: none;
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 650px) {
-
-            .deposit-header-inner {
-                padding: 14px 15px;
-            }
-
-            .header-link.wallet-link {
-                display: none;
-            }
-
-            .deposit-main {
-                padding: 30px 15px 55px;
-            }
-
-            .deposit-card {
-                padding: 21px;
-            }
-
-            .payment-methods {
-                grid-template-columns: 1fr;
-            }
-
-            .balance-card {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .hero h1 {
-                font-size: 34px;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="deposit-page">
-
-    <!-- HEADER -->
-    <header class="deposit-header">
-
-        <div class="deposit-header-inner">
-
-            <a
-                href="dashboard.html"
-                class="deposit-logo"
-            >
-                WIN ZONE
-            </a>
-
-            <nav class="header-links">
-
-                <a
-                    href="wallet.html"
-                    class="header-link"
-                >
-                    Wallet
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
                 </a>
 
-                <a
-                    href="transactions.html"
-                    class="header-link wallet-link"
-                >
-                    Transactions
-                </a>
+                <nav class="wz-nav-links">
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link active">Wallet</a>
+                    <a href="transactions.html" class="wz-nav-link">Transactions</a>
+                </nav>
 
-                <a
-                    href="account.html"
-                    class="header-link"
-                >
-                    Account
-                </a>
-
-            </nav>
-
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Balance:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
+                </div>
+            </div>
         </div>
-
     </header>
 
+    <!-- =============================================
+         DEPOSIT MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h2>Deposit Funds to Wallet</h2>
+                    <span class="wz-badge wz-badge-success">INSTANT SECURE GATEWAY</span>
+                </div>
 
-    <!-- MAIN -->
-    <main class="deposit-main">
+                <form id="depositForm">
+                    <div class="wz-form-group">
+                        <label class="wz-label">Choose Payment Method</label>
+                        <select id="depositMethod" class="wz-select" required>
+                            <option value="card">Credit / Debit Card (Visa / Mastercard)</option>
+                            <option value="mobile_money">Mobile Money (MTN / Airtel / M-Pesa)</option>
+                            <option value="crypto">USDT / Crypto Payment Gateway</option>
+                            <option value="bank">Direct Bank Transfer</option>
+                        </select>
+                    </div>
 
-        <!-- HERO -->
-        <section class="hero">
+                    <div class="wz-form-group">
+                        <label class="wz-label">Select Predefined Amount (USD)</label>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+                            <button type="button" class="wz-btn wz-btn-secondary wz-btn-sm dep-preset" data-amount="10">$10</button>
+                            <button type="button" class="wz-btn wz-btn-secondary wz-btn-sm dep-preset" data-amount="25">$25</button>
+                            <button type="button" class="wz-btn wz-btn-secondary wz-btn-sm dep-preset" data-amount="50">$50</button>
+                            <button type="button" class="wz-btn wz-btn-secondary wz-btn-sm dep-preset" data-amount="100">$100</button>
+                        </div>
+                    </div>
 
-            <div class="hero-badge">
-                ADD FUNDS
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="depositAmountInput">Or Enter Exact Amount ($)</label>
+                        <input type="number" id="depositAmountInput" class="wz-input" placeholder="e.g. 20.00" min="5" max="5000" step="1" value="25" required>
+                        <div class="wz-input-help">Minimum deposit: $5.00 &bull; Maximum single deposit: $5,000.00</div>
+                    </div>
+
+                    <div class="wz-bet-ticket">
+                        <div class="wz-ticket-row">
+                            <span>Deposit Amount:</span>
+                            <strong id="depositSummaryAmt">$25.00</strong>
+                        </div>
+                        <div class="wz-ticket-row">
+                            <span>Processing Gateway Fee:</span>
+                            <strong>$0.00 (Free)</strong>
+                        </div>
+                        <div class="wz-ticket-row highlight">
+                            <span>Total Credited to Available Balance:</span>
+                            <strong id="depositFinalAmt" style="color: var(--wz-primary);">$25.00</strong>
+                        </div>
+                    </div>
+
+                    <div id="depositStatus" style="display: none; margin-bottom: 16px;"></div>
+
+                    <button type="submit" id="btnSubmitDeposit" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                        Confirm & Deposit Funds
+                    </button>
+                </form>
+
+                <div class="wz-notice info" style="margin-top: 20px;">
+                    <strong>Verification & Fraud Prevention:</strong>
+                    Deposits are securely recorded with automated anti-money-laundering (AML) checks. WIN ZONE does not store raw credit card credentials on frontend servers.
+                </div>
             </div>
-
-            <h1>Deposit Funds</h1>
-
-            <p>
-                Add money to your WIN ZONE wallet using an
-                available payment method.
-            </p>
-
-        </section>
-
-
-        <!-- CURRENT BALANCE -->
-        <div class="balance-card">
-
-            <div>
-
-                <small>
-                    Current Available Balance
-                </small>
-
-                <strong id="currentBalance">
-                    $0.00
-                </strong>
-
-            </div>
-
-            <a
-                href="wallet.html"
-                class="balance-link"
-            >
-                View Wallet →
-            </a>
 
         </div>
-
-
-        <!-- DEPOSIT FORM -->
-        <section class="deposit-card">
-
-            <form id="depositForm">
-
-                <!-- AMOUNT -->
-                <div class="form-group">
-
-                    <label
-                        for="depositAmount"
-                        class="form-label"
-                    >
-                        Deposit Amount
-                    </label>
-
-                    <div class="amount-wrapper">
-
-                        <span class="currency-symbol">
-                            $
-                        </span>
-
-                        <input
-                            type="number"
-                            id="depositAmount"
-                            class="amount-input"
-                            min="1"
-                            max="10000"
-                            step="0.01"
-                            placeholder="Enter amount"
-                            autocomplete="off"
-                        >
-
-                    </div>
-
-                    <div class="field-help">
-                        Enter an amount between $1.00 and
-                        $10,000.00 for this prototype.
-                    </div>
-
-                    <div
-                        id="amountError"
-                        class="field-error"
-                    ></div>
-
-                </div>
-
-
-                <!-- CURRENCY -->
-                <div class="form-group">
-
-                    <label
-                        for="currency"
-                        class="form-label"
-                    >
-                        Deposit Currency
-                    </label>
-
-                    <select
-                        id="currency"
-                        class="currency-select"
-                    >
-
-                        <option value="">
-                            Select currency
-                        </option>
-
-                        <option value="USD">
-                            USD — US Dollar
-                        </option>
-
-                        <option value="RWF">
-                            RWF — Rwandan Franc
-                        </option>
-
-                        <option value="KES">
-                            KES — Kenyan Shilling
-                        </option>
-
-                        <option value="UGX">
-                            UGX — Ugandan Shilling
-                        </option>
-
-                        <option value="TZS">
-                            TZS — Tanzanian Shilling
-                        </option>
-
-                        <option value="BIF">
-                            BIF — Burundian Franc
-                        </option>
-
-                        <option value="EUR">
-                            EUR — Euro
-                        </option>
-
-                        <option value="GBP">
-                            GBP — British Pound
-                        </option>
-
-                    </select>
-
-                    <div class="field-help">
-                        In production, the user's country,
-                        account settings and supported payment
-                        providers will determine available
-                        currencies and conversion rates.
-                    </div>
-
-                </div>
-
-
-                <!-- PAYMENT METHOD -->
-                <div class="form-group">
-
-                    <h2 class="methods-title">
-                        Payment Method
-                    </h2>
-
-                    <p class="methods-description">
-                        Select an available payment method.
-                        Actual payment processing will be
-                        connected to a secure provider later.
-                    </p>
-
-
-                    <div class="payment-methods">
-
-                        <button
-                            type="button"
-                            class="payment-method"
-                            data-method="mobile-money"
-                        >
-
-                            <div class="payment-icon">
-                                📱
-                            </div>
-
-                            <strong>
-                                Mobile Money
-                            </strong>
-
-                            <span>
-                                Use a supported mobile-money
-                                provider.
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="payment-method"
-                            data-method="card"
-                        >
-
-                            <div class="payment-icon">
-                                💳
-                            </div>
-
-                            <strong>
-                                Bank Card
-                            </strong>
-
-                            <span>
-                                Use a supported debit or
-                                credit card.
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="payment-method"
-                            data-method="bank"
-                        >
-
-                            <div class="payment-icon">
-                                🏦
-                            </div>
-
-                            <strong>
-                                Bank Transfer
-                            </strong>
-
-                            <span>
-                                Deposit through an available
-                                bank transfer option.
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="payment-method"
-                            data-method="provider"
-                        >
-
-                            <div class="payment-icon">
-                                🔐
-                            </div>
-
-                            <strong>
-                                Other Provider
-                            </strong>
-
-                            <span>
-                                Use another payment provider
-                                supported in your country.
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- SUMMARY -->
-                <div
-                    id="depositSummary"
-                    class="deposit-summary"
-                >
-
-                    <div class="summary-row">
-
-                        <span>
-                            Deposit amount
-                        </span>
-
-                        <strong id="summaryAmount">
-                            $0.00
-                        </strong>
-
-                    </div>
-
-
-                    <div class="summary-row">
-
-                        <span>
-                            Currency
-                        </span>
-
-                        <strong id="summaryCurrency">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div class="summary-row">
-
-                        <span>
-                            Payment method
-                        </span>
-
-                        <strong id="summaryMethod">
-                            —
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        class="summary-row summary-total"
-                    >
-
-                        <span>
-                            Amount requested
-                        </span>
-
-                        <strong id="summaryTotal">
-                            $0.00
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <!-- SECURITY -->
-                <div class="security-note">
-
-                    <strong>
-                        🔒 Secure Payment Flow
-                    </strong>
-
-                    This page is currently a frontend prototype.
-                    A real deposit will only be credited after
-                    the secure backend receives and verifies a
-                    payment-provider confirmation. The browser
-                    cannot directly increase the wallet balance.
-
-                </div>
-
-
-                <!-- SUBMIT -->
-                <button
-                    type="submit"
-                    id="depositButton"
-                    class="deposit-button"
-                    disabled
-                >
-                    Continue to Payment
-                </button>
-
-
-                <a
-                    href="wallet.html"
-                    class="back-button"
-                >
-                    Back to Wallet
-                </a>
-
-
-                <!-- STATUS -->
-                <div
-                    id="statusMessage"
-                    class="status-message"
-                ></div>
-
-            </form>
-
-        </section>
-
     </main>
 
-
-    <!-- FOOTER -->
-    <footer class="deposit-footer">
-
-        <div>
-            © 2026 WIN ZONE. All rights reserved.
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
         </div>
-
-        <div style="margin-top:8px;">
-
-            <a href="terms.html">
-                Terms
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="privacy.html">
-                Privacy
-            </a>
-
-            &nbsp;•&nbsp;
-
-            <a href="dispute.html">
-                Help & Disputes
-            </a>
-
-        </div>
-
     </footer>
 
-</div>
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const amtInput = document.getElementById("depositAmountInput");
+            const sumAmt = document.getElementById("depositSummaryAmt");
+            const finAmt = document.getElementById("depositFinalAmt");
+            const form = document.getElementById("depositForm");
+            const statusEl = document.getElementById("depositStatus");
+            const presets = document.querySelectorAll(".dep-preset");
 
-
-<!-- WIN ZONE SHARED JAVASCRIPT -->
-<script src="js/global.js"></script>
-
-
-<script>
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            const form =
-                document.getElementById(
-                    "depositForm"
-                );
-
-            const amountInput =
-                document.getElementById(
-                    "depositAmount"
-                );
-
-            const currency =
-                document.getElementById(
-                    "currency"
-                );
-
-            const paymentMethods =
-                document.querySelectorAll(
-                    ".payment-method"
-                );
-
-            const depositSummary =
-                document.getElementById(
-                    "depositSummary"
-                );
-
-            const depositButton =
-                document.getElementById(
-                    "depositButton"
-                );
-
-            const amountError =
-                document.getElementById(
-                    "amountError"
-                );
-
-            const statusMessage =
-                document.getElementById(
-                    "statusMessage"
-                );
-
-            const summaryAmount =
-                document.getElementById(
-                    "summaryAmount"
-                );
-
-            const summaryCurrency =
-                document.getElementById(
-                    "summaryCurrency"
-                );
-
-            const summaryMethod =
-                document.getElementById(
-                    "summaryMethod"
-                );
-
-            const summaryTotal =
-                document.getElementById(
-                    "summaryTotal"
-                );
-
-
-            let selectedMethod = null;
-
-
-            /*
-             * FRONTEND DEMO BALANCE
-             *
-             * The real value must come
-             * from the backend.
-             */
-
-            const currentBalance = 0.00;
-
-            document.getElementById(
-                "currentBalance"
-            ).textContent =
-                "$" + currentBalance.toFixed(2);
-
-
-            /*
-             * PAYMENT METHOD NAMES
-             */
-
-            const methodNames = {
-
-                "mobile-money":
-                    "Mobile Money",
-
-                "card":
-                    "Bank Card",
-
-                "bank":
-                    "Bank Transfer",
-
-                "provider":
-                    "Other Provider"
-
-            };
-
-
-            /*
-             * CLEAR ERROR
-             */
-
-            function clearError() {
-
-                amountError.textContent = "";
-
-                amountError.classList.remove(
-                    "show"
-                );
-
+            function updateDisplay() {
+                const val = parseFloat(amtInput.value) || 0;
+                sumAmt.textContent = WINZONE.formatMoney(val);
+                finAmt.textContent = WINZONE.formatMoney(val);
             }
 
+            presets.forEach(p => {
+                p.addEventListener("click", function () {
+                    amtInput.value = this.getAttribute("data-amount");
+                    updateDisplay();
+                });
+            });
 
-            /*
-             * VALIDATE FORM
-             */
+            amtInput.addEventListener("input", updateDisplay);
 
-            function validateForm() {
-
-                clearError();
-
-                const amount =
-                    Number(
-                        amountInput.value
-                    );
-
-
-                if (
-                    !amountInput.value ||
-                    Number.isNaN(amount)
-                ) {
-
-                    depositSummary.classList.remove(
-                        "show"
-                    );
-
-                    depositButton.disabled =
-                        true;
-
-                    return false;
-
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const amount = parseFloat(amtInput.value);
+                if (isNaN(amount) || amount < 5) {
+                    WINZONE.status(statusEl, "Minimum deposit amount is $5.00", "warning");
+                    return;
                 }
 
-
-                if (amount < 1) {
-
-                    amountError.textContent =
-                        "The minimum deposit is $1.00.";
-
-                    amountError.classList.add(
-                        "show"
-                    );
-
-                    depositSummary.classList.remove(
-                        "show"
-                    );
-
-                    depositButton.disabled =
-                        true;
-
-                    return false;
-
-                }
-
-
-                if (amount > 10000) {
-
-                    amountError.textContent =
-                        "The maximum deposit for this prototype is $10,000.00.";
-
-                    amountError.classList.add(
-                        "show"
-                    );
-
-                    depositSummary.classList.remove(
-                        "show"
-                    );
-
-                    depositButton.disabled =
-                        true;
-
-                    return false;
-
-                }
-
-
-                if (!currency.value) {
-
-                    depositSummary.classList.remove(
-                        "show"
-                    );
-
-                    depositButton.disabled =
-                        true;
-
-                    return false;
-
-                }
-
-
-                if (!selectedMethod) {
-
-                    depositSummary.classList.remove(
-                        "show"
-                    );
-
-                    depositButton.disabled =
-                        true;
-
-                    return false;
-
-                }
-
-
-                /*
-                 * UPDATE SUMMARY
-                 */
-
-                summaryAmount.textContent =
-                    "$" + amount.toFixed(2);
-
-                summaryCurrency.textContent =
-                    currency.value;
-
-                summaryMethod.textContent =
-                    methodNames[selectedMethod];
-
-                summaryTotal.textContent =
-                    "$" + amount.toFixed(2);
-
-
-                depositSummary.classList.add(
-                    "show"
-                );
-
-
-                depositButton.disabled =
-                    false;
-
-
-                return true;
-
-            }
-
-
-            /*
-             * AMOUNT
-             */
-
-            amountInput.addEventListener(
-                "input",
-                function () {
-
-                    validateForm();
-
-                }
-            );
-
-
-            /*
-             * CURRENCY
-             */
-
-            currency.addEventListener(
-                "change",
-                function () {
-
-                    validateForm();
-
-                }
-            );
-
-
-            /*
-             * PAYMENT METHOD
-             */
-
-            paymentMethods.forEach(
-                function (method) {
-
-                    method.addEventListener(
-                        "click",
-                        function () {
-
-                            paymentMethods.forEach(
-                                function (item) {
-
-                                    item.classList.remove(
-                                        "selected"
-                                    );
-
-                                }
-                            );
-
-
-                            method.classList.add(
-                                "selected"
-                            );
-
-
-                            selectedMethod =
-                                method.dataset.method;
-
-
-                            validateForm();
-
-                        }
-                    );
-
-                }
-            );
-
-
-            /*
-             * SUBMIT
-             *
-             * FRONTEND PROTOTYPE ONLY.
-             *
-             * No real payment is processed here.
-             */
-
-            form.addEventListener(
-                "submit",
-                function (event) {
-
-                    event.preventDefault();
-
-
-                    if (!validateForm()) {
-                        return;
-                    }
-
-
-                    const amount =
-                        Number(
-                            amountInput.value
-                        );
-
-
-                    statusMessage.className =
-                        "status-message show info";
-
-
-                    statusMessage.innerHTML =
-                        "<strong>Payment Flow Ready</strong><br>" +
-                        "Your $" +
-                        amount.toFixed(2) +
-                        " " +
-                        currency.value +
-                        " deposit using " +
-                        methodNames[selectedMethod] +
-                        " is ready for connection to the secure payment provider. " +
-                        "No money has been added to the wallet by this prototype.";
-
-
-                    /*
-                     * PRODUCTION BACKEND FLOW:
-                     *
-                     * 1. Authenticate user.
-                     * 2. Validate deposit amount.
-                     * 3. Validate currency.
-                     * 4. Create a server-side deposit record.
-                     * 5. Create a payment-provider transaction.
-                     * 6. Send the user to the provider if required.
-                     * 7. Receive provider webhook.
-                     * 8. Verify webhook signature.
-                     * 9. Verify transaction status.
-                     * 10. Credit wallet exactly once.
-                     * 11. Record transaction.
-                     * 12. Notify user.
-                     *
-                     * The browser must never directly
-                     * credit the wallet.
-                     */
-
-                }
-            );
-
-        }
-    );
-</script>
-
+                // Simulate deposit processing
+                const btn = document.getElementById("btnSubmitDeposit");
+                btn.disabled = true;
+                btn.textContent = "Connecting to Payment Gateway...";
+
+                setTimeout(function () {
+                    const wallet = WINZONE.getWallet();
+                    wallet.available += amount;
+                    WINZONE.setWallet(wallet);
+
+                    WINZONE.addTransaction({
+                        id: "DEP-" + Math.floor(1000 + Math.random() * 9000),
+                        type: "deposit",
+                        title: "Account Deposit (" + document.getElementById("depositMethod").selectedOptions[0].text + ")",
+                        amount: amount,
+                        status: "Completed"
+                    });
+
+                    WINZONE.status(statusEl, `Successfully deposited ${WINZONE.formatMoney(amount)}! Redirecting to wallet...`, "success");
+
+                    setTimeout(() => {
+                        window.location.href = "wallet.html";
+                    }, 1400);
+                }, 1200);
+            });
+
+            updateDisplay();
+        });
+    </script>
 </body>
 </html>

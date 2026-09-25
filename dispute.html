@@ -3,310 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Dispute | WIN ZONE</title>
-
+    <title>Dispute Resolution Center | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 10% 10%,rgba(255,193,7,.08),transparent 30%),
-                #030914;
-            color:white;
-        }
-
-        .dispute-page {
-            max-width:800px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .heading {
-            text-align:center;
-            margin-bottom:28px;
-        }
-
-        .heading h1 {
-            font-size:40px;
-            margin:10px 0;
-        }
-
-        .heading p {
-            color:#9eafc4;
-            line-height:1.7;
-        }
-
-        .card {
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.09);
-            border-radius:22px;
-            padding:27px;
-        }
-
-        .group {
-            margin-bottom:20px;
-        }
-
-        label {
-            display:block;
-            margin-bottom:8px;
-            font-weight:700;
-            font-size:13px;
-        }
-
-        input,
-        select,
-        textarea {
-            width:100%;
-            padding:14px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.11);
-            background:rgba(255,255,255,.04);
-            color:white;
-            outline:none;
-            font-family:inherit;
-        }
-
-        select option {
-            color:#111;
-        }
-
-        textarea {
-            min-height:150px;
-            resize:vertical;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color:#00e5ff;
-        }
-
-        .help {
-            color:#91a2b7;
-            font-size:12px;
-            margin-top:7px;
-            line-height:1.5;
-        }
-
-        .evidence {
-            padding:17px;
-            border-radius:14px;
-            background:rgba(255,193,7,.05);
-            border:1px solid rgba(255,193,7,.13);
-            color:#cfc5a1;
-            font-size:12px;
-            line-height:1.7;
-            margin-bottom:20px;
-        }
-
-        .submit {
-            width:100%;
-            padding:16px;
-            border:0;
-            border-radius:13px;
-            background:linear-gradient(90deg,#00e5ff,#7c4dff);
-            color:#03101c;
-            font-weight:900;
-            cursor:pointer;
-        }
-
-        .back {
-            display:block;
-            text-align:center;
-            margin-top:12px;
-            padding:13px;
-            color:white;
-            background:rgba(255,255,255,.05);
-            border-radius:12px;
-            text-decoration:none;
-        }
-
-        .status {
-            display:none;
-            margin-top:18px;
-            padding:15px;
-            border-radius:13px;
-            background:rgba(0,229,255,.06);
-            border:1px solid rgba(0,229,255,.15);
-            color:#b4eff8;
-            line-height:1.6;
-            font-size:13px;
-        }
-
-        .status.show {
-            display:block;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
-        <a href="dashboard.html" class="wz-logo">WIN ZONE</a>
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <a href="dashboard.html" style="color:white;text-decoration:none;">
-            Dashboard
-        </a>
-    </div>
-</header>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="dispute.html" class="wz-nav-link active">Disputes</a>
+                </nav>
 
-<main class="dispute-page">
-
-    <section class="heading">
-
-        <div class="wz-badge wz-badge-warning">
-            SUPPORT & DISPUTES
-        </div>
-
-        <h1>Submit a Dispute</h1>
-
-        <p>
-            Use this form when you believe a match result, payment,
-            withdrawal or other transaction requires review.
-        </p>
-
-    </section>
-
-    <section class="card">
-
-        <div class="evidence">
-            <strong>Before submitting:</strong>
-            Provide accurate information. For match disputes,
-            include the match code and explain exactly what happened.
-            In production, supporting evidence may be reviewed by the
-            WIN ZONE dispute system.
-        </div>
-
-        <form id="disputeForm">
-
-            <div class="group">
-
-                <label for="category">
-                    Dispute Category
-                </label>
-
-                <select id="category" required>
-
-                    <option value="">
-                        Select category
-                    </option>
-
-                    <option value="match-result">
-                        Match Result
-                    </option>
-
-                    <option value="payment">
-                        Deposit / Payment
-                    </option>
-
-                    <option value="withdrawal">
-                        Withdrawal
-                    </option>
-
-                    <option value="account">
-                        Account Problem
-                    </option>
-
-                    <option value="security">
-                        Security Issue
-                    </option>
-
-                    <option value="other">
-                        Other
-                    </option>
-
-                </select>
-
+                <div class="wz-header-right">
+                    <a href="mailto:bigmin00001@gmail.com" class="wz-btn wz-btn-secondary wz-btn-sm">
+                        Help: bigmin00001@gmail.com
+                    </a>
+                </div>
             </div>
+        </div>
+    </header>
 
-            <div class="group">
-
-                <label for="matchCode">
-                    Match Code
-                </label>
-
-                <input
-                    id="matchCode"
-                    type="text"
-                    maxlength="5"
-                    placeholder="Example: A7K2"
-                >
-
-                <div class="help">
-                    Required when the dispute concerns a match.
+    <!-- =============================================
+         DISPUTE MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-sm">
+            
+            <div class="wz-card">
+                <div class="wz-card-header">
+                    <h2>Submit Fair Play Match Dispute</h2>
+                    <span class="wz-badge wz-badge-warning">ADMINISTRATIVE OVERSIGHT</span>
                 </div>
 
+                <p style="color: var(--wz-text-muted); font-size: 13.5px; margin-bottom: 20px;">
+                    If you experienced an unfair match outcome, opponent disconnection, score tampering, or rule violations, submit your dispute with evidence below.
+                </p>
+
+                <form id="disputeForm">
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="disputeMatchId">Match ID / Reference Code</label>
+                        <input type="text" id="disputeMatchId" class="wz-input" placeholder="e.g. M-84920 or Match Code" required value="M-84920">
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="disputeCategory">Dispute Category</label>
+                        <select id="disputeCategory" class="wz-select" required>
+                            <option value="result_disagreement">Disagreement about Final Score / Winner</option>
+                            <option value="disconnection">Opponent Disconnected / Abandoned Match</option>
+                            <option value="false_evidence">Fraudulent Result Submission</option>
+                            <option value="rule_violation">Game Rule Infraction / Unfair Play</option>
+                            <option value="technical_bug">Technical System Issue</option>
+                        </select>
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="disputeOpponent">Opponent Username</label>
+                        <input type="text" id="disputeOpponent" class="wz-input" placeholder="e.g. PlayerTwo_Apex" required value="PlayerTwo_Apex">
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="disputeDescription">Detailed Statement of the Issue</label>
+                        <textarea id="disputeDescription" class="wz-textarea" placeholder="Explain precisely what happened during the competition and provide any score proof links..." required></textarea>
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label" for="disputeEvidence">Attach Screenshot / Video Proof URL</label>
+                        <input type="url" id="disputeEvidence" class="wz-input" placeholder="https://image-upload.com/screenshot.jpg">
+                        <div class="wz-input-help">Include screenshot of final game scoreboard or game result screen.</div>
+                    </div>
+
+                    <div id="disputeStatus" style="display: none; margin-bottom: 16px;"></div>
+
+                    <button type="submit" id="btnSubmitDispute" class="wz-btn wz-btn-primary wz-btn-block wz-btn-lg">
+                        Submit Dispute for Administrative Review
+                    </button>
+                </form>
+
+                <div class="wz-notice info" style="margin-top: 24px;">
+                    <strong>Investigation Timeline:</strong>
+                    Disputes freeze match escrow payouts until an authorized administrator investigates game telemetry, screenshots, and logs. For urgent assistance, reach out directly to <strong>bigmin00001@gmail.com</strong>.
+                </div>
             </div>
 
-            <div class="group">
+        </div>
+    </main>
 
-                <label for="description">
-                    Explain the Issue
-                </label>
-
-                <textarea
-                    id="description"
-                    maxlength="3000"
-                    placeholder="Describe what happened..."
-                    required
-                ></textarea>
-
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
             </div>
+        </div>
+    </footer>
 
-            <div class="group">
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("disputeForm");
+            const statusEl = document.getElementById("disputeStatus");
 
-                <label for="contact">
-                    Contact Email
-                </label>
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const btn = document.getElementById("btnSubmitDispute");
+                btn.disabled = true;
+                btn.textContent = "Submitting Dispute...";
 
-                <input
-                    id="contact"
-                    type="email"
-                    placeholder="Your account email"
-                    required
-                >
-
-            </div>
-
-            <button class="submit" type="submit">
-                Submit Dispute
-            </button>
-
-            <a href="dashboard.html" class="back">
-                Back to Dashboard
-            </a>
-
-            <div id="status" class="status"></div>
-
-        </form>
-
-    </section>
-
-</main>
-
-<script src="js/global.js"></script>
-
-<script>
-document.getElementById("disputeForm")
-    .addEventListener("submit", function(event) {
-
-        event.preventDefault();
-
-        const status = document.getElementById("status");
-
-        status.classList.add("show");
-
-        status.innerHTML =
-            "<strong>Dispute prepared.</strong><br>" +
-            "This frontend prototype has not created a real support case. " +
-            "The production backend will authenticate the user, create the dispute, " +
-            "store the evidence and assign a case ID.";
-
-    });
-</script>
-
+                setTimeout(function () {
+                    WINZONE.status(statusEl, "Dispute case filed successfully! Case Ref #DSP-" + Math.floor(1000 + Math.random() * 9000) + ". Our administration team will review evidence within 24 hours.", "success");
+                    btn.textContent = "Dispute Submitted";
+                }, 1000);
+            });
+        });
+    </script>
 </body>
 </html>

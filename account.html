@@ -3,296 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Account | WIN ZONE</title>
-
+    <title>Account Settings & Verification | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 80% 10%,rgba(124,77,255,.12),transparent 30%),
-                #030914;
-            color:white;
-        }
-
-        .account-page {
-            max-width:850px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .heading {
-            text-align:center;
-            margin-bottom:28px;
-        }
-
-        .heading h1 {
-            font-size:40px;
-            margin:10px 0;
-        }
-
-        .heading p {
-            color:#9eafc4;
-        }
-
-        .card {
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.09);
-            border-radius:21px;
-            padding:25px;
-            margin-bottom:17px;
-        }
-
-        .card h2 {
-            margin-top:0;
-        }
-
-        .profile-grid {
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-        }
-
-        .item {
-            padding:15px;
-            border-radius:13px;
-            background:rgba(255,255,255,.035);
-        }
-
-        .item small {
-            display:block;
-            color:#91a2b7;
-            margin-bottom:6px;
-        }
-
-        .item strong {
-            word-break:break-word;
-        }
-
-        .setting {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:15px;
-            padding:15px 0;
-        }
-
-        .setting + .setting {
-            border-top:1px solid rgba(255,255,255,.06);
-        }
-
-        .setting span {
-            color:#9eafc4;
-            font-size:13px;
-        }
-
-        .setting a {
-            color:#00e5ff;
-            text-decoration:none;
-        }
-
-        .logout {
-            width:100%;
-            padding:14px;
-            border:0;
-            border-radius:12px;
-            background:rgba(255,77,109,.10);
-            color:#ff9dae;
-            font-weight:800;
-            cursor:pointer;
-        }
-
-        @media(max-width:650px) {
-            .profile-grid {
-                grid-template-columns:1fr;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <a href="dashboard.html" class="wz-logo">
-            WIN ZONE
-        </a>
+                <nav class="wz-nav-links">
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link">Wallet</a>
+                    <a href="account.html" class="wz-nav-link active">Account</a>
+                </nav>
 
-        <a href="dashboard.html" style="color:white;text-decoration:none;">
-            Dashboard
-        </a>
-
-    </div>
-</header>
-
-<main class="account-page">
-
-    <section class="heading">
-
-        <div class="wz-badge">
-            ACCOUNT
+                <div class="wz-header-right">
+                    <a href="dashboard.html" class="wz-btn wz-btn-secondary wz-btn-sm">Dashboard</a>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <h1>Account Settings</h1>
-
-        <p>
-            Manage your profile, security and WIN ZONE preferences.
-        </p>
-
-    </section>
-
-    <section class="card">
-
-        <h2>Profile</h2>
-
-        <div class="profile-grid">
-
-            <div class="item">
-                <small>Name</small>
-                <strong>Player</strong>
+    <!-- =============================================
+         ACCOUNT MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container-md">
+            
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 30px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                    Account & Identity Profile
+                </h1>
+                <p style="color: var(--wz-text-muted); font-size: 13.5px;">
+                    Review your verification status, personal credentials, and responsible gaming limits.
+                </p>
             </div>
 
-            <div class="item">
-                <small>Email</small>
-                <strong>Not connected</strong>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                
+                <!-- Profile Information Card -->
+                <div class="wz-card">
+                    <div class="wz-card-header">
+                        <h3>Personal Profile</h3>
+                        <span class="wz-badge wz-badge-success">18+ KYC VERIFIED</span>
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Player Username</label>
+                        <input type="text" class="wz-input" value="PlayerOne" readonly style="opacity: 0.8;">
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Registered Email</label>
+                        <input type="email" class="wz-input" value="player@example.com" readonly style="opacity: 0.8;">
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Mobile Number</label>
+                        <input type="text" class="wz-input" value="+250 788 123 456" readonly style="opacity: 0.8;">
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Date of Birth</label>
+                        <input type="text" class="wz-input" value="1998-05-14 (Age: 28)" readonly style="opacity: 0.8;">
+                    </div>
+                </div>
+
+                <!-- Responsible Gaming & Limits -->
+                <div class="wz-card">
+                    <div class="wz-card-header">
+                        <h3>Responsible Gaming Limits</h3>
+                        <span class="wz-badge wz-badge-warning">PLAYER PROTECTION</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: var(--wz-text-muted); margin-bottom: 16px;">
+                        WIN ZONE is committed to fair play and player well-being. You can configure daily staking limits and timeout periods.
+                    </p>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Daily Staking Cap (USD)</label>
+                        <select class="wz-select">
+                            <option value="50">$50.00 / day</option>
+                            <option value="100" selected>$100.00 / day</option>
+                            <option value="250">$250.00 / day</option>
+                            <option value="unlimited">No Limit</option>
+                        </select>
+                    </div>
+
+                    <div class="wz-form-group">
+                        <label class="wz-label">Self-Exclusion / Cool-off Period</label>
+                        <select class="wz-select">
+                            <option value="none">Disabled (Active Account)</option>
+                            <option value="24h">24-Hour Timeout</option>
+                            <option value="7d">7-Day Break</option>
+                            <option value="30d">30-Day Cool-off</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="wz-btn wz-btn-secondary wz-btn-block" onclick="alert('Responsible gaming preferences saved.')">
+                        Save Gaming Preferences
+                    </button>
+                </div>
+
             </div>
 
-            <div class="item">
-                <small>Country</small>
-                <strong>Not selected</strong>
-            </div>
-
-            <div class="item">
-                <small>Verification</small>
-                <strong>Pending</strong>
+            <!-- Official Support Section -->
+            <div class="wz-card" style="margin-top: 24px;">
+                <div class="wz-card-header">
+                    <h3>Official Help & Support Center</h3>
+                </div>
+                <p style="font-size: 13.5px; color: var(--wz-text-secondary); line-height: 1.6;">
+                    Have questions about match rules, account changes, deposit confirmations, or regulatory verification? Email our dedicated support team at:
+                </p>
+                <div style="margin-top: 12px;">
+                    <a href="mailto:bigmin00001@gmail.com" class="wz-btn wz-btn-primary wz-btn-sm">
+                        ✉️ bigmin00001@gmail.com
+                    </a>
+                </div>
             </div>
 
         </div>
+    </main>
 
-    </section>
-
-    <section class="card">
-
-        <h2>Security</h2>
-
-        <div class="setting">
-            <div>
-                <strong>Password</strong>
-                <span>Change your account password.</span>
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
             </div>
-
-            <a href="forgot-password.html">
-                Change
-            </a>
         </div>
+    </footer>
 
-        <div class="setting">
-            <div>
-                <strong>PIN</strong>
-                <span>Secure wallet actions with your account PIN.</span>
-            </div>
-
-            <a href="#">
-                Manage
-            </a>
-        </div>
-
-    </section>
-
-    <section class="card">
-
-        <h2>Preferences</h2>
-
-        <div class="setting">
-            <div>
-                <strong>Notifications</strong>
-                <span>Manage browser notifications.</span>
-            </div>
-
-            <a href="notifications.html">
-                Open
-            </a>
-        </div>
-
-        <div class="setting">
-            <div>
-                <strong>Transactions</strong>
-                <span>Review wallet activity.</span>
-            </div>
-
-            <a href="transactions.html">
-                View
-            </a>
-        </div>
-
-    </section>
-
-    <section class="card">
-
-        <h2>Support</h2>
-
-        <div class="setting">
-            <div>
-                <strong>Help Center</strong>
-                <span>bigmin00001@gmail.com</span>
-            </div>
-
-            <a href="dispute.html">
-                Help
-            </a>
-        </div>
-
-        <div class="setting">
-            <div>
-                <strong>Terms</strong>
-                <span>Read WIN ZONE terms.</span>
-            </div>
-
-            <a href="terms.html">
-                Open
-            </a>
-        </div>
-
-        <div class="setting">
-            <div>
-                <strong>Privacy</strong>
-                <span>Read privacy information.</span>
-            </div>
-
-            <a href="privacy.html">
-                Open
-            </a>
-        </div>
-
-    </section>
-
-    <button id="logoutButton" class="logout">
-        Log Out
-    </button>
-
-</main>
-
-<script src="js/global.js"></script>
-
-<script>
-document.getElementById("logoutButton")
-    .addEventListener("click", function() {
-
-        if (window.WINZONE &&
-            typeof window.WINZONE.logout === "function") {
-
-            window.WINZONE.logout();
-
-        } else {
-
-            window.location.href = "login.html";
-
-        }
-
-    });
-</script>
-
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
 </body>
 </html>

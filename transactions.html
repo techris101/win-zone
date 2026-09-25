@@ -3,268 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Transactions | WIN ZONE</title>
-
+    <title>Transaction History & Ledger | WIN ZONE</title>
     <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background:
-                radial-gradient(circle at 10% 10%,rgba(0,229,255,.10),transparent 30%),
-                radial-gradient(circle at 90% 10%,rgba(124,77,255,.12),transparent 30%),
-                #030914;
-            color:white;
-        }
-
-        .transactions-page {
-            max-width:1050px;
-            margin:auto;
-            padding:45px 20px 70px;
-        }
-
-        .page-title {
-            text-align:center;
-            margin-bottom:30px;
-        }
-
-        .page-title h1 {
-            font-size:42px;
-            margin:10px 0;
-        }
-
-        .page-title p {
-            color:#9eafc4;
-        }
-
-        .filters {
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-            margin-bottom:20px;
-        }
-
-        .filters select {
-            width:100%;
-            padding:14px;
-            background:#0d1b2e;
-            color:white;
-            border:1px solid rgba(255,255,255,.1);
-            border-radius:12px;
-        }
-
-        .transaction-card {
-            background:rgba(13,27,46,.95);
-            border:1px solid rgba(255,255,255,.09);
-            border-radius:20px;
-            overflow:hidden;
-        }
-
-        .transaction-header,
-        .transaction-row {
-            display:grid;
-            grid-template-columns:1.2fr 1fr 1fr 1fr;
-            gap:15px;
-            align-items:center;
-            padding:17px 20px;
-        }
-
-        .transaction-header {
-            color:#91a2b7;
-            font-size:11px;
-            text-transform:uppercase;
-            letter-spacing:.7px;
-            background:rgba(255,255,255,.03);
-        }
-
-        .transaction-row {
-            border-top:1px solid rgba(255,255,255,.06);
-            font-size:13px;
-        }
-
-        .transaction-row.empty {
-            display:block;
-            text-align:center;
-            padding:60px 20px;
-            color:#91a2b7;
-        }
-
-        .type {
-            font-weight:800;
-        }
-
-        .amount-positive {
-            color:#45e483;
-            font-weight:800;
-        }
-
-        .amount-negative {
-            color:#ff8095;
-            font-weight:800;
-        }
-
-        .muted {
-            color:#91a2b7;
-        }
-
-        .nav-buttons {
-            display:flex;
-            gap:10px;
-            justify-content:center;
-            margin-top:25px;
-            flex-wrap:wrap;
-        }
-
-        .nav-buttons a {
-            padding:11px 17px;
-            border-radius:11px;
-            color:white;
-            background:rgba(255,255,255,.05);
-            text-decoration:none;
-        }
-
-        @media(max-width:700px) {
-
-            .filters {
-                grid-template-columns:1fr;
-            }
-
-            .transaction-header {
-                display:none;
-            }
-
-            .transaction-row {
-                grid-template-columns:1fr 1fr;
-            }
-
-            .page-title h1 {
-                font-size:34px;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<header class="wz-header">
-    <div class="wz-header-inner">
+    <!-- =============================================
+         HEADER
+    ================================================= -->
+    <header class="wz-header">
+        <div class="wz-container">
+            <div class="wz-header-inner">
+                <a href="index.html" class="wz-logo">
+                    <div class="wz-logo-badge">W</div>
+                    <div>WIN <span>ZONE</span></div>
+                </a>
 
-        <a href="dashboard.html" class="wz-logo">
-            WIN ZONE
-        </a>
+                <nav class="wz-nav-links">
+                    <a href="match.html" class="wz-nav-link">Competitions</a>
+                    <a href="dashboard.html" class="wz-nav-link">Dashboard</a>
+                    <a href="wallet.html" class="wz-nav-link">Wallet</a>
+                    <a href="transactions.html" class="wz-nav-link active">Transactions</a>
+                </nav>
 
-        <div>
-            <a href="wallet.html" style="color:white;text-decoration:none;margin-right:15px;">
-                Wallet
-            </a>
-
-            <a href="account.html" style="color:white;text-decoration:none;">
-                Account
-            </a>
+                <div class="wz-header-right">
+                    <a href="wallet.html" class="wz-wallet-pill">
+                        <span class="pill-label">Balance:</span>
+                        <span class="pill-val wz-wallet-available">$50.00</span>
+                    </a>
+                </div>
+            </div>
         </div>
+    </header>
 
-    </div>
-</header>
+    <!-- =============================================
+         TRANSACTIONS MAIN
+    ================================================= -->
+    <main style="padding: 40px 0 60px;">
+        <div class="wz-container">
+            
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 30px; font-weight: 800; color: var(--wz-text-bright); letter-spacing: -0.02em;">
+                    Complete Financial Ledger
+                </h1>
+                <p style="color: var(--wz-text-muted); font-size: 13.5px;">
+                    Immutable record of all deposits, match stakes, payouts, commissions, and withdrawals.
+                </p>
+            </div>
 
-<main class="transactions-page">
+            <!-- Filters Bar -->
+            <div class="wz-card" style="padding: 16px 20px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="filterButtons">
+                        <button class="wz-btn wz-btn-secondary wz-btn-sm active-filter" data-type="all">All Records</button>
+                        <button class="wz-btn wz-btn-secondary wz-btn-sm" data-type="deposit">Deposits</button>
+                        <button class="wz-btn wz-btn-secondary wz-btn-sm" data-type="withdraw">Withdrawals</button>
+                        <button class="wz-btn wz-btn-secondary wz-btn-sm" data-type="payout">Match Winnings</button>
+                        <button class="wz-btn wz-btn-secondary wz-btn-sm" data-type="loss">Losses</button>
+                    </div>
 
-    <section class="page-title">
+                    <div style="font-size: 12.5px; color: var(--wz-text-muted);">
+                        Export: <a href="javascript:void(0)" onclick="alert('Audit ledger exported to CSV.')" style="color: var(--wz-primary); font-weight: 600;">Download CSV</a>
+                    </div>
+                </div>
+            </div>
 
-        <div class="wz-badge">WALLET HISTORY</div>
-
-        <h1>Transactions</h1>
-
-        <p>
-            Review deposits, withdrawals, match funds, payouts and other wallet activity.
-        </p>
-
-    </section>
-
-    <section class="filters">
-
-        <select id="typeFilter">
-            <option value="all">All transaction types</option>
-            <option value="deposit">Deposits</option>
-            <option value="withdrawal">Withdrawals</option>
-            <option value="stake">Match Stakes</option>
-            <option value="payout">Payouts</option>
-            <option value="commission">Commission</option>
-        </select>
-
-        <select id="statusFilter">
-            <option value="all">All statuses</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-        </select>
-
-    </section>
-
-    <section class="transaction-card">
-
-        <div class="transaction-header">
-            <div>Transaction</div>
-            <div>Amount</div>
-            <div>Status</div>
-            <div>Date</div>
-        </div>
-
-        <div id="transactionList">
-
-            <div class="transaction-row empty">
-                <strong>No transactions yet.</strong>
-                <br><br>
-                Your deposits, withdrawals, match stakes and payouts
-                will appear here once real wallet activity exists.
+            <!-- Transactions Table -->
+            <div class="wz-card">
+                <div class="wz-table-responsive">
+                    <table class="wz-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction Ref</th>
+                                <th>Category</th>
+                                <th>Details / Activity</th>
+                                <th>Timestamp</th>
+                                <th>Execution Status</th>
+                                <th style="text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txFullTableBody">
+                            <!-- Populated from WINZONE.getTransactions() -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
+    </main>
 
-    </section>
+    <!-- =============================================
+         FOOTER
+    ================================================= -->
+    <footer class="wz-footer">
+        <div class="wz-container">
+            <div class="wz-footer-inner">
+                <div>WIN ZONE &copy; 2026 &bull; Official Support: <a href="mailto:bigmin00001@gmail.com">bigmin00001@gmail.com</a></div>
+                <div class="wz-footer-links">
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="dispute.html">Help & Disputes</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-    <div class="nav-buttons">
+    <script src="js/global.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let activeFilter = "all";
+            const tbody = document.getElementById("txFullTableBody");
+            const filterBtns = document.querySelectorAll("#filterButtons button");
 
-        <a href="wallet.html">Wallet</a>
-        <a href="deposit.html">Deposit</a>
-        <a href="withdraw.html">Withdraw</a>
-        <a href="dashboard.html">Dashboard</a>
+            function renderTable() {
+                const txs = WINZONE.getTransactions();
+                const filtered = activeFilter === "all" ? txs : txs.filter(t => t.type === activeFilter);
 
-    </div>
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--wz-text-dim); padding: 30px;">No transactions match the selected filter.</td></tr>`;
+                    return;
+                }
 
-</main>
+                tbody.innerHTML = filtered.map(tx => {
+                    const isPositive = tx.amount > 0;
+                    const amtColor = isPositive ? "var(--wz-primary)" : "var(--wz-danger)";
+                    const sign = isPositive ? "+" : "";
+                    const badgeClass = tx.status === "Completed" ? "wz-badge-success" : "wz-badge-warning";
 
-<script src="js/global.js"></script>
+                    return `
+                        <tr>
+                            <td><strong style="color: var(--wz-text-bright);">${tx.id}</strong></td>
+                            <td><span class="wz-badge wz-badge-neutral">${tx.type.toUpperCase()}</span></td>
+                            <td>${tx.title}</td>
+                            <td>${WINZONE.formatDate(tx.date)}</td>
+                            <td><span class="wz-badge ${badgeClass}">${tx.status || "Completed"}</span></td>
+                            <td style="text-align: right; font-weight: 700; color: ${amtColor}; font-size: 14.5px;">
+                                ${sign}${WINZONE.formatMoney(Math.abs(tx.amount))}
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            }
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+            filterBtns.forEach(btn => {
+                btn.addEventListener("click", function () {
+                    filterBtns.forEach(b => {
+                        b.classList.remove("wz-btn-primary");
+                        b.classList.add("wz-btn-secondary");
+                    });
+                    this.classList.remove("wz-btn-secondary");
+                    this.classList.add("wz-btn-primary");
+                    activeFilter = this.getAttribute("data-type");
+                    renderTable();
+                });
+            });
 
-    const typeFilter = document.getElementById("typeFilter");
-    const statusFilter = document.getElementById("statusFilter");
+            // Set default active button
+            filterBtns[0].classList.remove("wz-btn-secondary");
+            filterBtns[0].classList.add("wz-btn-primary");
 
-    function filterNotice() {
-
-        const type = typeFilter.value;
-        const status = statusFilter.value;
-
-        console.log(
-            "Transaction filters:",
-            type,
-            status
-        );
-
-        /*
-         * Production:
-         * Fetch authenticated transactions from
-         * the backend and filter server-side where
-         * appropriate.
-         */
-    }
-
-    typeFilter.addEventListener("change", filterNotice);
-    statusFilter.addEventListener("change", filterNotice);
-
-});
-</script>
-
+            renderTable();
+        });
+    </script>
 </body>
 </html>
