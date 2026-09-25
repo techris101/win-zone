@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Local build artifacts
+dist/
+win-zone-production-build/
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
