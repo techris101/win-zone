@@ -6,8 +6,9 @@ Everything is free and done in your browser. Never paste passwords or secret tok
 1. Open the project at supabase.com.
 2. **Authentication, then Sign In / Providers, then Email:** turn **off** "Confirm email" (demo only; turn it back on when you own a domain).
 3. **Wipe the old staking app (permanent).** Open **SQL Editor, then New query**. Paste the whole of `supabase/reset/legacy_reset.sql` from this repo and press **Run**.
-   - It deletes everything in the `public` schema (old wallets, matches, profiles and so on). Login accounts are kept.
+   - It deletes the old app's tables, views, functions and custom types in the `public` schema (old wallets, matches, profiles and so on). Login accounts and installed extensions (such as `pg_net`) are kept.
    - It refuses to run if the new WIN ZONE tables already exist, so it can never erase live data.
+   - It runs as one block: if it fails, nothing is deleted.
    - Success looks like "Success. No rows returned".
 4. Look for leftovers from the old app that I cannot see: **Database, then Cron jobs** (extension pg_cron), **Edge Functions**, and **Storage** buckets. Delete what the old app used.
 5. Make sure you know the database password. If not: **Project Settings, then Database, then Reset database password**, and save it.
