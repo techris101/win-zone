@@ -822,8 +822,211 @@ begin
   end loop;
   perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'not_qualified') = 2, 'the two who missed the cut are told');
   perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'round_complete_league') >= 4, 'league round updates with position');
-  perform pg_temp.ok(exists (select 1 from notifications where tournament_id = t and kind = 'round_complete_league' and body like '%#1 with%' or body like '%1e avec%'), 'position is in the update');
+  perform pg_temp.ok(exists (select 1 from notifications where tournament_id = t and kind = 'round_complete_league' and (body like '%#1 with%' or body like '%1e avec%' or body like '%mwanya wa 1 %')), 'position is in the update (any language)');
   perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'next_match') = 2, 'the two qualifiers get their knockout match');
+end $$;
+
+
+-- ============================================================ formats, tie-breaks and speeds (0010)
+-- helper: play every open fixture of a stage/round with the host (player A) winning 1-0
+create or replace function pg_temp.play_round(p_tid uuid, p_stage text, p_round int) returns int language plpgsql as $$
+declare fx record; n int := 0;
+begin
+  for fx in select * from fixtures where tournament_id = p_tid and stage = p_stage and round = p_round
+            and status in ('scheduled', 'active') and player_a_id is not null and player_b_id is not null order by slot loop
+    update fixtures set kickoff_at = now(), status = 'active' where id = fx.id;
+    perform pg_temp.terminal(fx.id, fx.player_a_id, 'result', 1, 0, null, null, case when p_stage in ('knockout', 'playoff') then 5400 else 5400 end);
+    perform pg_temp.terminal(fx.id, fx.player_b_id, 'result', 0, 1, null, null, 5400);
+    perform _finalize(fx.id, null);
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+
+do $$
+declare i int;
+begin
+  for i in 1..20 loop insert into tu values ('g' || i, pg_temp.mkuser('gplayer' || i)); end loop;
+end $$;
+
+-- the recommendation
+do $$ begin
+  perform pg_temp.ok(recommend_format(4) = 'league' and recommend_format(10) = 'league_knockout'
+                     and recommend_format(20) = 'groups_knockout' and recommend_format(40) = 'league_phase', 'format recommended by player count');
+end $$;
+
+-- tie-break order: wins, strength of opponents, forfeits, then earlier registration
+do $$
+declare t uuid; x uuid := pg_temp.u('g1'); y uuid := pg_temp.u('g2'); z uuid := pg_temp.u('g3'); w uuid := pg_temp.u('g4');
+        v uuid := pg_temp.u('g5'); a uuid := pg_temp.u('g6'); b uuid := pg_temp.u('g7');
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Tie League', 'tie-league', 'football-1v1', 'league', 16);
+  update tournaments set status = 'live' where id = t;
+  insert into tournament_entries (tournament_id, user_id, created_at) values
+    (t, x, now() - interval '9 hours'), (t, y, now() - interval '8 hours'), (t, z, now() - interval '7 hours'), (t, w, now() - interval '6 hours'),
+    (t, v, now() - interval '5 hours'), (t, a, now() - interval '4 hours'), (t, b, now() - interval '3 hours');
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, score_a, score_b, winner_id, outcome) values
+    (t, 'league', 1, 1, x, z, 'completed', 1, 0, x, 'win_by_score'),    -- X: 1 win, 1 loss: 3 pts, GD 0, GF 1
+    (t, 'league', 2, 1, w, x, 'completed', 1, 0, w, 'win_by_score'),
+    (t, 'league', 1, 2, y, z, 'completed', 0, 0, null, 'draw'),         -- Y: 3 draws: 3 pts, GD 0, GF 1
+    (t, 'league', 2, 2, y, w, 'completed', 0, 0, null, 'draw'),
+    (t, 'league', 3, 1, y, v, 'completed', 1, 1, null, 'draw'),
+    (t, 'league', 3, 2, w, v, 'completed', null, null, w, 'win_by_noshow');   -- V did not show: a forfeit loss
+  perform pg_temp.ok((select rank from league_table(t) where user_id = x) < (select rank from league_table(t) where user_id = y), 'more wins ranks higher when points, GD, GF and head-to-head are level');
+  perform pg_temp.ok((select forfeits from league_table(t) where user_id = v) = 1, 'forfeit losses are counted');
+  perform pg_temp.ok((select sos from league_table(t) where user_id = x) =
+                     (select sum(points) from league_table(t) where user_id in (z, w)), 'strength of opponents = their total points');
+  perform pg_temp.ok((select rank from league_table(t) where user_id = a) < (select rank from league_table(t) where user_id = b), 'all else equal: earlier registration ranks higher');
+end $$;
+
+-- groups + knockout: 12 players = 3 groups of 4; top 2 + 2 best third-placed make a bracket of 8
+do $$
+declare t uuid; i int; n int;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Group Cup', 'group-cup', 'football-1v1', 'groups_knockout', 12, now() + interval '2 days');
+  perform set_tournament_status(t, 'open');
+  for i in 1..12 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform pg_temp.ok((select status from tournaments where id = t) = 'planning', 'full: draft prepared');
+  perform publish_tournament(t);
+  perform pg_temp.ok((select count(distinct group_no) from tournament_entries where tournament_id = t) = 3, '3 groups');
+  perform pg_temp.ok((select bool_and(c = 4) from (select count(*) c from tournament_entries where tournament_id = t group by group_no) q), 'groups of 4');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'group') = 18, '6 matches per group');
+  perform pg_temp.ok((select count(*) from fixtures f where f.tournament_id = t and f.stage = 'group' and
+        (select group_no from tournament_entries where tournament_id = t and user_id = f.player_a_id) <> f.group_no) = 0, 'players only meet their own group');
+  for i in 1..3 loop perform pg_temp.play_round(t, 'group', i); end loop;
+  perform pg_temp.ok((select count(*) from group_tables(t)) = 12, 'group tables cover everyone');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'knockout') = 7, 'bracket of 8 created after the groups');
+  perform pg_temp.ok((select count(distinct x) from fixtures, unnest(array[player_a_id, player_b_id]) x where tournament_id = t and stage = 'knockout' and round = 1) = 8, '8 different qualifiers');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'not_qualified') = 4, 'the 4 who did not qualify are told');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'knockout' and round = 1 and scheduled_at is not null) = 4, 'knockout round 1 is timed automatically');
+  -- group winners all go through
+  perform pg_temp.ok((select bool_and(exists (select 1 from fixtures f where f.tournament_id = t and f.stage = 'knockout' and f.round = 1 and gt.user_id in (f.player_a_id, f.player_b_id)))
+                      from group_tables(t) gt where gt.rank = 1), 'every group winner qualifies');
+end $$;
+
+-- 9 players: 3 groups of 3 (everyone plays 2 group matches); 20 players: 5 groups -> winners + 3 best runners-up
+do $$
+declare t uuid; i int;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Group Nine', 'group-nine', 'football-1v1', 'groups_knockout', 9);
+  perform set_tournament_status(t, 'open');
+  for i in 1..9 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'group') = 9, '3 groups of 3 = 9 matches');
+  for i in 1..3 loop perform pg_temp.play_round(t, 'group', i); end loop;
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'knockout') = 7, '3 groups: 6 + 2 best thirds = bracket of 8');
+
+  t := create_tournament('Group Twenty', 'group-twenty', 'football-1v1', 'groups_knockout', 20);
+  perform set_tournament_status(t, 'open');
+  for i in 1..20 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  perform pg_temp.ok((select count(distinct group_no) from tournament_entries where tournament_id = t) = 5, '20 players: 5 groups');
+  for i in 1..3 loop perform pg_temp.play_round(t, 'group', i); end loop;
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'knockout') = 7, '5 groups: winners + 3 best runners-up = bracket of 8');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'not_qualified') = 12, 'the other 12 are told');
+end $$;
+
+-- league phase (Swiss): 10 players, 6 rounds, then play-offs (3v6, 4v5), then semi-finals with 1 and 2
+do $$
+declare t uuid; i int; r int; rep int;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Phase Cup', 'phase-cup', 'football-1v1', 'league_phase', 10, now() + interval '2 days');
+  perform set_tournament_status(t, 'open');
+  for i in 1..10 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  perform pg_temp.ok((select phase_rounds from tournaments where id = t) = 6, '10 players: 6 league-phase rounds');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'league') = 5, 'only round 1 is paired at first');
+  for r in 1..6 loop
+    perform pg_temp.ok((select count(distinct x) from fixtures, unnest(array[player_a_id, player_b_id]) x where tournament_id = t and stage = 'league' and round = r) = 10, 'round ' || r || ': everyone plays once');
+    perform pg_temp.play_round(t, 'league', r);
+  end loop;
+  select count(*) into rep from (select least(player_a_id, player_b_id), greatest(player_a_id, player_b_id) from fixtures
+     where tournament_id = t and stage = 'league' group by 1, 2 having count(*) > 1) q;
+  perform pg_temp.ok(rep = 0, 'no rematches in the league phase (got ' || rep || ')');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'playoff') = 2, 'play-off round: ranks 3-6');
+  perform pg_temp.ok((select player_a_id from fixtures where tournament_id = t and stage = 'playoff' and slot = 1) = (select user_id from league_table(t) where rank = 3)
+                 and (select player_b_id from fixtures where tournament_id = t and stage = 'playoff' and slot = 1) = (select user_id from league_table(t) where rank = 6), '3rd plays 6th');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'not_qualified') = 4, 'ranks 7-10 are told they are out');
+  perform pg_temp.play_round(t, 'playoff', 1);
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'knockout') = 3, 'semi-finals and final created after the play-offs');
+  perform pg_temp.ok((select count(*) from fixtures f where f.tournament_id = t and f.stage = 'knockout' and f.round = 1
+                      and ((select user_id from league_table(t) where rank = 1) in (f.player_a_id, f.player_b_id)
+                        or (select user_id from league_table(t) where rank = 2) in (f.player_a_id, f.player_b_id))) = 2, 'the top 2 qualified directly, in different semi-finals');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'knocked_out') = 2, 'play-off losers are knocked out');
+  perform pg_temp.play_round(t, 'knockout', 1);
+  perform pg_temp.play_round(t, 'knockout', 2);
+  perform pg_temp.ok((select status from tournaments where id = t) = 'completed', 'league-phase tournament completes');
+end $$;
+
+-- league phase with an odd number of players: one bye per round, never twice for the same player
+do $$
+declare t uuid; i int; r int;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Phase Nine', 'phase-nine', 'football-1v1', 'league_phase', 9);
+  perform set_tournament_status(t, 'open');
+  for i in 1..9 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  for r in 1..(select phase_rounds from tournaments where id = t) loop
+    perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and stage = 'league' and round = r and status = 'bye') = 1, 'round ' || r || ': one bye');
+    perform pg_temp.play_round(t, 'league', r);
+  end loop;
+  perform pg_temp.ok((select max(c) from (select count(*) c from fixtures where tournament_id = t and status = 'bye' group by player_a_id) q) = 1, 'nobody gets two byes');
+  perform pg_temp.ok((select won from league_table(t) lt join fixtures f on f.player_a_id = lt.user_id and f.status = 'bye' and f.tournament_id = t limit 1) >= 1, 'a bye counts as a win');
+end $$;
+
+-- schedule speeds
+do $$
+declare t uuid; i int; r1 timestamptz; r2 timestamptz; fin timestamptz;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Fast League', 'fast-league', 'football-1v1', 'league', 8, now() + interval '2 days');
+  perform pg_temp.ok((update_tournament(t, '{"schedule_speed":"fast"}'::jsonb) ->> 'ok')::boolean, 'speed set to fast');
+  perform pg_temp.ok((select round_gap_hours from tournaments where id = t) = 24, 'fast = 24 hours between rounds');
+  perform pg_temp.ok(update_tournament(t, '{"schedule_speed":"turbo"}'::jsonb) ->> 'reason' = 'unknown_speed', 'unknown speed rejected');
+  perform set_tournament_status(t, 'open');
+  for i in 1..4 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform generate_tournament(t);
+  select min(scheduled_at) into r1 from fixtures where tournament_id = t and round = 1;
+  select min(scheduled_at) into r2 from fixtures where tournament_id = t and round = 2;
+  perform pg_temp.ok(r2 - r1 = interval '24 hours', 'rounds 24 hours apart');
+
+  t := create_tournament('One Day Cup', 'one-day-cup', 'football-1v1', 'knockout', 4, now() + interval '2 hours');
+  perform update_tournament(t, '{"schedule_speed":"oneday"}'::jsonb);
+  perform set_tournament_status(t, 'open');
+  for i in 1..4 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  select min(scheduled_at) into r1 from fixtures where tournament_id = t and round = 1;
+  perform pg_temp.ok(abs(extract(epoch from r1 - (select starts_at from tournaments where id = t))) < 1, 'one-day: round 1 at the start time (not moved to 18:00)');
+  perform pg_temp.play_round(t, 'knockout', 1);
+  select scheduled_at into fin from fixtures where tournament_id = t and round = 2;
+  perform pg_temp.ok(fin - r1 = interval '45 minutes', 'one-day: next round 45 minutes later');
+end $$;
+
+-- match rules per stage: group draws are results; a level play-off needs penalties
+do $$
+declare t uuid; f fixtures; i int; r jsonb;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Rule Groups', 'rule-groups', 'football-1v1', 'groups_knockout', 8);
+  perform set_tournament_status(t, 'open');
+  for i in 1..8 loop insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g' || i)); end loop;
+  perform publish_tournament(t);
+  select * into f from fixtures where tournament_id = t and stage = 'group' limit 1;
+  update fixtures set kickoff_at = now(), status = 'active' where id = f.id;
+  perform pg_temp.terminal(f.id, f.player_a_id, 'result', 1, 1, null, null, 5400);
+  perform pg_temp.terminal(f.id, f.player_b_id, 'result', 1, 1, null, null, 5400);
+  r := _finalize(f.id, null);
+  perform pg_temp.ok(r ->> 'outcome' = 'draw', 'a group-stage draw is a result');
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, kickoff_at)
+  values (t, 'playoff', 1, 1, f.player_a_id, f.player_b_id, 'active', now()) returning * into f;
+  perform pg_temp.terminal(f.id, f.player_a_id, 'result', 1, 1, null, null, 5400);
+  perform pg_temp.terminal(f.id, f.player_b_id, 'result', 1, 1, null, null, 5400);
+  perform pg_temp.ok(_finalize(f.id, null) ->> 'status' = 'disputed', 'a level play-off without penalties goes to review');
 end $$;
 
 -- ============================================================ existing accounts, no age gate

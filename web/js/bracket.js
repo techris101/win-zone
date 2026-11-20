@@ -24,9 +24,17 @@ function side(f, which, profiles) {
     <span>${showPen ? `<span class="pen">(${pen})</span>` : ""}<span class="sc">${showScore ? esc(score) : ""}</span></span></div>`;
 }
 
+function matchCard(f, profiles) {
+  const live = f.status === "active";
+  const foot = live ? `<span class="live-t">● ${esc(t("fx.active"))}</span>` : f.status === "scheduled" && f.scheduled_at ? esc(fmtDate(f.scheduled_at)) : f.status === "bye" ? "" : esc(t("fx." + f.status));
+  return `<article class="match ${live ? "live" : ""}">${side(f, "A", profiles)}${side(f, "B", profiles)}<div class="match-foot"><span>${foot}</span></div></article>`;
+}
+
 export function renderBracket(fixtures, profiles) {
   const ko = fixtures.filter((f) => f.stage === "knockout");
-  if (!ko.length) return `<div class="empty">${esc(t("t.nomatches"))}</div>`;
+  const po = fixtures.filter((f) => f.stage === "playoff").sort((a, b) => a.slot - b.slot);
+  const playoff = po.length ? `<div class="b-playoff"><h4>${esc(t("rd.playoff"))}</h4><div class="b-playoff-grid">${po.map((f) => matchCard(f, profiles)).join("")}</div></div>` : "";
+  if (!ko.length) return playoff ? `<div class="bracket-scroll">${playoff}</div>` : `<div class="empty">${esc(t("t.nomatches"))}</div>`;
   const rounds = Math.max(...ko.map((f) => f.round));
   const cols = [];
   for (let r = 1; r <= rounds; r++) {
@@ -38,14 +46,17 @@ export function renderBracket(fixtures, profiles) {
         <div class="match-foot"><span>${foot}</span><span>${f.player_a_id && f.player_b_id ? "" : ""}</span></div></article>`;
     }).join("")}</div></div>`);
   }
-  return `<div class="bracket-scroll"><div class="bracket">${cols.join("")}</div></div>`;
+  return `<div class="bracket-scroll">${playoff}<div class="bracket">${cols.join("")}</div></div>`;
 }
 
-export function renderTable(rows, profiles, advance = 0) {
+// zones: { direct: n, playoff: m } -> ranks 1..n qualify, n+1..n+m go to the play-off round
+export function renderTable(rows, profiles, advance = 0, zones = null) {
   if (!rows.length) return `<div class="empty">${esc(t("t.nomatches"))}</div>`;
-  return `<div class="table-wrap"><table class="std"><thead><tr>
+  const zoneOf = (r) => zones ? (r.rank <= zones.direct ? "adv" : r.rank <= zones.direct + zones.playoff ? "po" : "") : (advance && r.rank <= advance ? "adv" : "");
+  const legend = zones ? `<p class="mute small zone-legend"><span class="zl adv"></span>${esc(t("t.zdirect"))} <span class="zl po"></span>${esc(t("t.zplayoff"))}</p>` : "";
+  return `${legend}<div class="table-wrap"><table class="std"><thead><tr>
     <th>${t("tb.rank")}</th><th>${t("tb.player")}</th><th>${t("tb.p")}</th><th>${t("tb.w")}</th><th>${t("tb.d")}</th><th>${t("tb.l")}</th><th>${t("tb.gd")}</th><th>${t("tb.pts")}</th></tr></thead><tbody>
-    ${rows.map((r) => `<tr class="${advance && r.rank <= advance ? "adv" : ""}"><td>${r.rank}</td><td>${esc(nameOf(profiles, r.user_id))}</td>
+    ${rows.map((r) => `<tr class="${zoneOf(r)}"><td>${r.rank}</td><td>${esc(nameOf(profiles, r.user_id))}</td>
       <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td class="pts">${r.points}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
@@ -68,4 +79,19 @@ export function renderPlayers(entries, profiles) {
   if (!entries.length) return `<div class="empty">—</div>`;
   const list = [...entries].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999));
   return `<div class="players-grid">${list.map((e) => `<div class="pl"><span class="s">${e.seed ?? ""}</span>${esc(nameOf(profiles, e.user_id))}</div>`).join("")}</div>`;
+}
+
+export function groupLetter(n) { return String.fromCharCode(64 + Number(n)); }
+
+export function renderGroups(rows, profiles) {
+  if (!rows.length) return `<div class="empty">${esc(t("t.nomatches"))}</div>`;
+  const groups = [...new Set(rows.map((r) => r.group_no))].sort((a, b) => a - b);
+  return `<div class="groups-grid">${groups.map((g) => `<section class="group"><h4>${esc(t("t.group"))} ${groupLetter(g)}</h4>
+    ${renderTable(rows.filter((r) => r.group_no === g).sort((a, b) => a.rank - b.rank), profiles, 2)}</section>`).join("")}</div>`;
+}
+
+// same rule as the server: knockout size 16 with 32+ players, 8 with 16+, else 4
+export function phaseZones(players) {
+  const s = players >= 32 ? 16 : players >= 16 ? 8 : 4;
+  return players >= s + s / 2 ? { direct: s / 2, playoff: s } : { direct: Math.min(s, players), playoff: 0 };
 }

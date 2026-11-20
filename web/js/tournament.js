@@ -1,6 +1,6 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n, chooseCountryAndSave } from "./ui.js";
 import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds } from "./api.js";
-import { renderBracket, renderTable, renderFixtures, renderPlayers } from "./bracket.js";
+import { renderBracket, renderTable, renderFixtures, renderPlayers, renderGroups, phaseZones } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
 await mountChrome();
@@ -39,11 +39,12 @@ async function refresh(first) {
   render(first);
 }
 
-const hasKnockout = () => data.fixtures.some((f) => f.stage === "knockout");
+const hasKnockout = () => data.fixtures.some((f) => f.stage === "knockout" || f.stage === "playoff");
 function tabsFor() {
   const out = [];
+  if (tour.format === "groups_knockout") out.push(["groups", "t.groups"]);
   if (tour.format !== "league") out.push(["bracket", "t.bracket"]);
-  if (tour.format !== "knockout") out.push(["table", "t.table"]);
+  if (["league", "league_knockout", "league_phase"].includes(tour.format)) out.push(["table", "t.table"]);
   out.push(["fixtures", "t.fixtures"], ["players", "t.players"]);
   return out;
 }
@@ -51,7 +52,8 @@ function tabsFor() {
 function render() {
   const tabs = tabsFor();
   if (!tab || !tabs.some(([k]) => k === tab)) {
-    tab = tour.format === "knockout" ? "bracket" : tour.format === "league" ? "table" : hasKnockout() ? "bracket" : "table";
+    tab = tour.format === "knockout" ? "bracket" : tour.format === "league" ? "table"
+      : hasKnockout() ? "bracket" : tour.format === "groups_knockout" ? "groups" : "table";
   }
   const players = tour.entries?.[0]?.count ?? data.entries.length;
   const champ = tour.champion_id ? nameOf(data.profiles, tour.champion_id) : null;
@@ -118,8 +120,10 @@ function renderBody() {
     return;
   }
   const adv = tour.format === "league_knockout" ? tour.league_advance : 0;
+  const zones = tour.format === "league_phase" ? phaseZones(data.entries.length) : null;
   body.innerHTML = tab === "bracket" ? renderBracket(data.fixtures, data.profiles)
-    : tab === "table" ? renderTable(data.table, data.profiles, adv)
+    : tab === "groups" ? renderGroups(data.table, data.profiles)
+    : tab === "table" ? renderTable(data.table, data.profiles, adv, zones)
     : tab === "fixtures" ? renderFixtures(data.fixtures, data.profiles)
     : renderPlayers(data.entries, data.profiles);
   applyI18n(body);

@@ -24,20 +24,37 @@ async function loadAll() {
 const say = (el, text, kind = "err") => { el.innerHTML = text ? `<div class="msg ${kind}"></div>` : ""; if (text) el.firstChild.textContent = text; };
 
 // ---------------------------------------------------------------- create
+const FORMAT_NAMES = { league: "League", league_knockout: "League + knockout", groups_knockout: "Groups + knockout", league_phase: "League phase + knockout", knockout: "Knockout only" };
+// same rule as the server's recommend_format(): research in docs/RESEARCH.md
+const recommend = (n) => (n <= 6 ? "league" : n <= 11 ? "league_knockout" : n <= 31 ? "groups_knockout" : "league_phase");
+
 function wireForm() {
-  const name = $("#n-name"), slug = $("#n-slug"), fmt = $("#n-format");
-  let touched = false;
+  const name = $("#n-name"), slug = $("#n-slug"), fmt = $("#n-format"), size = $("#n-size");
+  let touched = false, fmtTouched = false;
   const hint = () => { $("#n-url").textContent = slug.value ? `${location.origin}/t/${slug.value}` : ""; };
+  const syncFormat = () => {
+    const rec = recommend(Number(size.value) || 2);
+    if (!fmtTouched) fmt.value = rec;
+    $("#n-rec").textContent = `Recommended for ${size.value || "?"} players: ${FORMAT_NAMES[rec]}`;
+    $("#n-adv-w").hidden = fmt.value !== "league_knockout";
+    $("#n-rounds-w").hidden = fmt.value !== "league_phase";
+  };
   slug.addEventListener("input", () => { touched = true; hint(); });
   name.addEventListener("input", () => { if (!touched) { slug.value = name.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); hint(); } });
-  fmt.addEventListener("change", () => { $("#n-adv-w").hidden = fmt.value !== "league_knockout"; });
+  size.addEventListener("input", syncFormat);
+  fmt.addEventListener("change", () => { fmtTouched = true; syncFormat(); });
+  syncFormat();
   $("#new-t").addEventListener("submit", async (e) => {
     e.preventDefault();
     const msg = $("#n-msg"); say(msg, "");
     try {
-      await createTournament({ name: name.value.trim(), slug: slug.value.trim(), format: fmt.value, size: Number($("#n-size").value),
+      const tid = await createTournament({ name: name.value.trim(), slug: slug.value.trim(), format: fmt.value, size: Number(size.value),
         starts_at: $("#n-start").value ? new Date($("#n-start").value).toISOString() : null, prize: $("#n-prize").value.trim(), advance: Number($("#n-adv").value) });
-      toast("Tournament created"); e.target.reset(); touched = false; hint(); await loadManaged();
+      const patch = { schedule_speed: $("#n-speed").value };
+      if (fmt.value === "league_phase" && $("#n-rounds").value) patch.phase_rounds = Number($("#n-rounds").value);
+      const r = await updateTournament(tid, patch);
+      if (!r.ok) throw new Error(r.reason);
+      toast("Tournament created"); e.target.reset(); touched = false; fmtTouched = false; hint(); syncFormat(); await loadManaged();
     } catch (err) { say(msg, /duplicate/.test(err.message) ? "That link name is taken." : errMsg(err)); }
   });
 }
@@ -51,6 +68,8 @@ function settingsForm(x) {
     <form data-settings class="form" style="margin-top:14px">
       <div class="row2"><div class="field"><label>Name</label><input name="name" value="${esc(x.name)}" maxlength="60" required></div>
         <div class="field"><label>Prize (non-cash)</label><input name="prize" value="${esc(x.prize_description || "")}" maxlength="120"></div></div>
+      <div class="row2"><div class="field"><label>Format</label><select name="format" ${open ? "" : "disabled"}>${Object.entries(FORMAT_NAMES).map(([k, v]) => `<option value="${k}" ${k === x.format ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></div>
+        <div class="field"><label>Speed</label><select name="speed">${[["standard", "Standard (48 h)"], ["fast", "Fast (24 h)"], ["oneday", "One-day (45 min)"]].map(([k, v]) => `<option value="${k}" ${k === x.schedule_speed ? "selected" : ""}>${v}</option>`).join("")}</select></div></div>
       <div class="row2"><div class="field"><label>Max players</label><input name="size" type="number" min="2" max="128" value="${x.size}" ${open ? "" : "disabled"}></div>
         <div class="field"><label>Starts (in the schedule time zone)</label><input name="starts" type="datetime-local" value="${x.starts_at ? utcToWall(x.starts_at, tzOf(x)) : ""}"></div></div>
       <div class="row2"><div class="field"><label>Schedule time zone</label>
@@ -148,9 +167,11 @@ async function loadManaged() {
     patch.starts_at = v("starts").value ? wallToUtc(v("starts").value, v("tz").value || tzOf(x)).toISOString() : "";
     if (!v("size").disabled) patch.size = Number(v("size").value);
     if (v("adv")) patch.league_advance = Number(v("adv").value);
+    if (v("speed").value !== x.schedule_speed) patch.schedule_speed = v("speed").value;
+    if (!v("format").disabled && v("format").value !== x.format) patch.format = v("format").value;
     try {
       const r = await updateTournament(x.id, patch);
-      if (!r.ok) throw new Error(({ size_below_players: "That is fewer than the players already registered.", size_locked: "The size is locked once fixtures exist.", unknown_time_zone: "Unknown time zone." })[r.reason] || r.reason);
+      if (!r.ok) throw new Error(({ format_locked: "The format is locked once fixtures exist.", unknown_speed: "Unknown speed.", size_below_players: "That is fewer than the players already registered.", size_locked: "The size is locked once fixtures exist.", unknown_time_zone: "Unknown time zone." })[r.reason] || r.reason);
       toast("Saved"); await loadManaged();
     } catch (err) { say(msg, errMsg(err)); }
   }));

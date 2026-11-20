@@ -31,12 +31,21 @@
         <form id="new-t" class="a-body">
           <div class="field"><label for="n-name">Name</label><input id="n-name" required maxlength="60"></div>
           <div class="field"><label for="n-slug">Link name</label><input id="n-slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*"><div class="hint" id="n-url"></div></div>
-          <div class="field"><label for="n-format">Format</label>
-            <select id="n-format"><option value="knockout">Knockout</option><option value="league">League</option><option value="league_knockout">League + knockout</option></select></div>
           <div class="row2">
             <div class="field"><label for="n-size">Max players</label><input id="n-size" type="number" min="2" max="128" value="8" required></div>
             <div class="field" id="n-adv-w" hidden><label for="n-adv">Advance</label><select id="n-adv"><option>2</option><option selected>4</option><option>8</option><option>16</option></select></div>
           </div>
+          <div class="field"><label for="n-format">Format</label>
+            <select id="n-format">
+              <option value="league">League (everyone plays everyone)</option>
+              <option value="league_knockout">League + knockout</option>
+              <option value="groups_knockout">Groups + knockout (World Cup style)</option>
+              <option value="league_phase">League phase + knockout (Champions League style)</option>
+              <option value="knockout">Knockout only</option>
+            </select><div class="hint" id="n-rec"></div></div>
+          <div class="field" id="n-rounds-w" hidden><label for="n-rounds">League-phase matches per player</label><select id="n-rounds"><option value="">Automatic</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+          <div class="field"><label for="n-speed">Speed</label>
+            <select id="n-speed"><option value="standard">Standard: a round every 48 hours</option><option value="fast">Fast: a round every 24 hours</option><option value="oneday">One-day event: a round every 45 minutes</option></select></div>
           <div class="field"><label for="n-start">Starts (optional)</label><input id="n-start" type="datetime-local"></div>
           <div class="field"><label for="n-prize">Prize (non-cash)</label><input id="n-prize" maxlength="120"></div>
           <div id="n-msg" role="alert"></div>

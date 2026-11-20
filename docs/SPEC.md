@@ -16,8 +16,15 @@ A tournament operating system for 1v1 mobile football. Organizers create tournam
 Logic lives once, in the backend. If a rule appears in two places it is a bug.
 
 ## 3. Formats and match rules
-- **Formats:** `knockout`, `league`, `league_knockout` (league then top N, N in 2/4/8/16, knockout seeded by table rank).
-- **League:** single round robin. Points 3/1/0. Tie-break order: goal difference, goals scored, head-to-head points among the tied teams, then username. A forfeit or no-show win counts 3-0 in the table. A fixture that is `disputed` blocks completion of the league until an admin resolves it.
+- **Formats** (research in `docs/RESEARCH.md`; recommended automatically by player count, admin can override):
+  - `league` (2-6): everyone plays everyone once.
+  - `league_knockout` (7-11): league, then the top N (2/4/8/16) in a knockout seeded by table rank.
+  - `groups_knockout` (12-31): groups of 3-4 (snake seeding); top 2 + best third-placed players fill the next bracket size (World Cup 2026 / AFCON). If there are not enough third-placed players the bracket shrinks to group winners + best runners-up. Cross-group comparisons are per match played.
+  - `league_phase` (32+): Swiss pairing, 6 rounds by default (at least log2 of the players, max 12), no rematches (backtracking), one bye per round with an odd number (a win, no goals). Then knockout size 16 (32+ players), 8 (16+) or 4: the top half qualify directly, the next ranks play a single play-off round (9th v 24th ...), the rest are out (Champions League).
+  - `knockout`: any size.
+- **Tie-break order (every table):** points, goal difference, goals scored, head-to-head points among the tied, wins, strength of opponents (their total points), fewer forfeit/no-show losses, earlier registration.
+- **Speeds:** standard (a round every 48 h at the slot hour), fast (24 h), one-day (every 45 minutes from the start time).
+- **League:** single round robin. Points 3/1/0. A forfeit or no-show win counts 3-0 in the table. A fixture that is `disputed` blocks completion of the league until an admin resolves it.
 - **Knockout:** standard seeding, byes to top seeds, winner advances through `next_fixture_id`. A slot fills once; a second fill raises an error.
 - **Clocks:** regulation 90:00, knockout extra time 120:00, with 5 s of tolerance. Penalty scores appear in brackets beside the score on the result screen.
 
@@ -121,7 +128,7 @@ No entry fee, stake or subscription, so no consideration. Required: Terms, Priva
 Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
 
 ## 11. Decisions
-1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 24 Notifications: inbox always, phone push when turned on; full information while playing; one last notification with a keep/stop choice when eliminated; no answer = stop. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
+1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 25 Formats, tie-breaks and speeds as in section 3 (owner approved the recommended options). 24 Notifications: inbox always, phone push when turned on; full information while playing; one last notification with a keep/stop choice when eliminated; no answer = stop. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
 
 ## 12. Open items
 | # | Item | Blocks |
@@ -134,7 +141,7 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O6 | Keep-alive secrets set and monitored | free-tier viability |
 | O7 | Kinyarwanda strings reviewed by a native speaker | launch |
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
-| O9 | Research done (`docs/RESEARCH.md`); proposals A (formats by player count), B (tie-break order), C (schedule speeds) await approval | owner |
+| O9 | Research done and proposals A, B, C approved and built (migration 0010) | done |
 | O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
 | O12 | Old app's four server functions, eight MTN/FX keys and one scheduled job deleted (2026-11-20). Owner to revoke/rotate the MTN MoMo API key and user at MTN | owner |
 | O11 | Player statistics (rank, points, what is needed to qualify) in the app and on the website | Phase 2 |

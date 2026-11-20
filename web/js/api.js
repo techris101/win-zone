@@ -24,7 +24,7 @@ const ok = ({ data, error }) => {
 const NOT_CONNECTED = () => { throw new Error("not_connected"); };
 
 // ------------------------------------------------------------------ public reads
-const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,schedule_tz,slot_hour,round_gap_hours,game:games(name),entries:tournament_entries(count)";
+const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,schedule_tz,slot_hour,round_gap_hours,schedule_speed,phase_rounds,game:games(name),entries:tournament_entries(count)";
 
 export async function listTournaments() {
   if (!LIVE) return DEMO.tournaments;
@@ -46,10 +46,12 @@ export async function getTournamentData(t) {
   }
   const c = await sb();
   const [entries, fixtures] = await Promise.all([
-    c.from("tournament_entries").select("user_id,seed,status").eq("tournament_id", t.id).neq("status", "withdrawn").then(ok),
+    c.from("tournament_entries").select("user_id,seed,status,group_no").eq("tournament_id", t.id).neq("status", "withdrawn").then(ok),
     c.from("fixtures").select("*").eq("tournament_id", t.id).order("round").order("slot").then(ok),
   ]);
-  const table = t.format === "knockout" ? [] : ok(await c.rpc("league_table", { p_tid: t.id }));
+  const table = t.format === "knockout" ? []
+    : t.format === "groups_knockout" ? ok(await c.rpc("group_tables", { p_tid: t.id }))
+    : ok(await c.rpc("league_table", { p_tid: t.id }));
   const profiles = await getProfiles([...entries.map((e) => e.user_id), ...fixtures.flatMap((x) => [x.player_a_id, x.player_b_id])]);
   return { entries, fixtures, table, profiles };
 }

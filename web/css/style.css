@@ -378,3 +378,16 @@ details.a-set > summary { cursor: pointer; font: 700 0.85rem var(--display); let
 .notif p { margin: 4px 0 6px; color: var(--fg2); }
 .notif small { color: var(--mute); }
 .notif .arrow { font: 700 1.6rem/1 var(--display); text-decoration: none; align-self: center; padding-right: 8px; }
+
+/* ---------------------------------------------------------------- groups, zones, play-offs */
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 8px 32px; margin: 28px 0 40px; }
+.group h4 { font: 700 1rem/1 var(--display); letter-spacing: 0.16em; margin: 0 0 -8px; }
+.group .table-wrap { margin: 18px 0 8px; }
+.group table.std { min-width: 0; }
+.std tr.po td:nth-child(1) { color: var(--fg); box-shadow: inset 3px 0 var(--mute); }
+.zone-legend { margin: 22px 0 -12px; display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; }
+.zl { display: inline-block; width: 12px; height: 12px; margin-right: 4px; vertical-align: -1px; }
+.zl.adv { background: var(--accent-text); } .zl.po { background: var(--mute); }
+.b-playoff { margin-bottom: 36px; }
+.b-playoff h4 { font: 700 0.85rem/1 var(--display); letter-spacing: 0.2em; color: var(--mute); margin: 0 0 18px; }
+.b-playoff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
