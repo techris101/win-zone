@@ -134,9 +134,9 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O6 | Keep-alive secrets set and monitored | free-tier viability |
 | O7 | Kinyarwanda strings reviewed by a native speaker | launch |
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
-| O9 | Research the formats and tie-breaks of top leagues and cups, then adapt them (league phase, groups, two-leg ties) and refine the automatic schedule | next |
+| O9 | Research done (`docs/RESEARCH.md`); proposals A (formats by player count), B (tie-break order), C (schedule speeds) await approval | owner |
 | O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
-| O12 | Delete the old app's four server functions (`payment-webhook`, `mtn-request-to-pay`, `matchmaker`, `update-fx-rate`) and their secrets | now: security |
+| O12 | Old app's four server functions, eight MTN/FX keys and one scheduled job deleted (2026-11-20). Owner to revoke/rotate the MTN MoMo API key and user at MTN | owner |
 | O11 | Player statistics (rank, points, what is needed to qualify) in the app and on the website | Phase 2 |
 
 ## 13. Build order
