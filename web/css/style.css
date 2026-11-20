@@ -430,3 +430,5 @@ a.plink:hover { border-bottom-color: var(--accent-text); color: inherit; }
 @media (max-width: 800px) { .p-cols { grid-template-columns: 1fr; } }
 
 .brief-list { margin: 6px 0 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 0.95rem; }
+.form-title { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 26px; text-transform: uppercase; letter-spacing: .02em; margin: 0 0 4px; }
+.msg a, .hint a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

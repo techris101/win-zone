@@ -94,6 +94,17 @@ export async function signIn({ email, password }) {
   const c = await sb();
   return ok(await c.auth.signInWithPassword({ email, password }));
 }
+// Forgot password: Supabase emails a link that opens /reset.html already signed in for this one purpose.
+export async function sendPasswordReset(email) {
+  if (!LIVE) NOT_CONNECTED();
+  const c = await sb();
+  return ok(await c.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/reset.html` }));
+}
+export async function setNewPassword(password) {
+  if (!LIVE) NOT_CONNECTED();
+  const c = await sb();
+  return ok(await c.auth.updateUser({ password }));
+}
 export async function signOut() { if (!LIVE) return; const c = await sb(); await c.auth.signOut(); }
 export async function rpc(name, args = {}) { const c = await sb(); return ok(await c.rpc(name, args)); }
 export async function isOrganizer() { if (!LIVE) return false; try { return Boolean(await rpc("is_organizer")); } catch { return false; } }

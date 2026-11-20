@@ -33,6 +33,15 @@
       <div class="field"><label for="in-pass" data-i18n="a.password"></label><input id="in-pass" type="password" autocomplete="current-password" required></div>
       <div id="in-msg" role="alert"></div>
       <button class="btn" type="submit" data-i18n="a.signin"></button>
+      <p class="hint" style="margin-top:14px"><a href="#forgot" id="go-forgot" data-i18n="a.forgot"></a></p>
+    </form>
+    <form id="form-forgot" class="form" novalidate hidden>
+      <h2 class="form-title" data-i18n="a.resettitle"></h2>
+      <p class="hint" data-i18n="a.resethint"></p>
+      <div class="field"><label for="fg-email" data-i18n="a.email"></label><input id="fg-email" type="email" autocomplete="email" required></div>
+      <div id="fg-msg" role="alert"></div>
+      <button class="btn" type="submit" data-i18n="a.sendlink"></button>
+      <p class="hint" style="margin-top:14px"><a href="#" id="back-in" data-i18n="a.back"></a></p>
     </form>
     <form id="form-up" class="form" novalidate hidden>
       <div class="field"><label for="up-user" data-i18n="a.username"></label><input id="up-user" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required>

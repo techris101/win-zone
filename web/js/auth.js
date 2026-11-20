@@ -1,5 +1,5 @@
 import { mountChrome, $, errMsg, t } from "./ui.js";
-import { signIn, signUp, getUser, listCountries, LIVE } from "./api.js";
+import { signIn, signUp, getUser, listCountries, sendPasswordReset, LIVE } from "./api.js";
 
 await mountChrome();
 const next = (() => {
@@ -10,12 +10,15 @@ const next = (() => {
 if (await getUser().catch(() => null)) location.replace(next);
 
 const show = (which) => {
-  $("#form-in").hidden = which !== "in"; $("#form-up").hidden = which !== "up";
+  $("#form-in").hidden = which !== "in"; $("#form-up").hidden = which !== "up"; $("#form-forgot").hidden = which !== "forgot";
   $("#tab-in").setAttribute("aria-selected", which === "in"); $("#tab-up").setAttribute("aria-selected", which === "up");
 };
 $("#tab-in").onclick = () => show("in");
 $("#tab-up").onclick = () => show("up");
 if (location.hash === "#register") show("up");
+if (location.hash === "#forgot") show("forgot");
+$("#go-forgot").onclick = (e) => { e.preventDefault(); $("#fg-email").value = $("#in-email").value.trim(); show("forgot"); };
+$("#back-in").onclick = (e) => { e.preventDefault(); show("in"); };
 
 // Country list for the sign-up form; preselect from the browser's language region or time zone.
 listCountries().then((list) => {
@@ -52,5 +55,19 @@ $("#form-up").addEventListener("submit", async (e) => {
     else say(msg, "Account created. Check your email to confirm, then sign in.", "ok");
   } catch (err) { say(msg, errMsg(err), "err"); }
 });
+$("#form-forgot").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = $("#fg-msg"); say(msg, "");
+  const email = $("#fg-email").value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say(msg, "Enter the email of your account.", "err");
+  const btn = e.submitter; if (btn) btn.disabled = true;
+  try {
+    await sendPasswordReset(email);
+    // same answer whether or not the account exists, so nobody can test which emails are registered
+    say(msg, "If an account uses this email, a reset link is on its way. Check your inbox and spam folder.", "ok");
+  } catch (err) { say(msg, errMsg(err), "err"); }
+  finally { if (btn) setTimeout(() => { btn.disabled = false; }, 30000); }
+});
+
 if (!LIVE) say($("#in-msg"), "Sample mode: accounts are enabled once the live service is connected.", "ok");
 void t;
