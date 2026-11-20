@@ -19,3 +19,9 @@ Sponsors, dispute evidence upload, demo mode with bots, responsible-play / count
 ## Honest limits of the test app
 - The screen reader is built from your result screenshots only; in-play and penalty screens need real screenshots to tune.
 - It is a debug (test) build: Android will warn "unknown source" when installing. Normal for testing.
+
+## Update — website online (20 Nov 2026)
+- Live at **https://win-zone.pages.dev** (Cloudflare Pages project `win-zone`, direct upload).
+- Deploy again after changes: `python3 tools/build_worker.py` packs `web/` into `dist/_worker.js`, then upload it to the Pages project (see `tools/build_worker.py`). Connecting the GitHub repo in Cloudflare later makes this automatic.
+- Sign-in emails now link to the live site (Supabase site address updated).
+- Revoke the Cloudflare token when you no longer need me to deploy.
