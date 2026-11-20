@@ -21,6 +21,20 @@ Logic lives once, in the backend. If a rule appears in two places it is a bug.
 - **Knockout:** standard seeding, byes to top seeds, winner advances through `next_fixture_id`. A slot fills once; a second fill raises an error.
 - **Clocks:** regulation 90:00, knockout extra time 120:00, with 5 s of tolerance. Penalty scores appear in brackets beside the score on the result screen.
 
+### Tournament lifecycle (admin stays in control)
+`draft` -> `open` -> `planning` -> `live` -> `completed` (or `cancelled`).
+1. **Open:** players register. A country is required (it decides the time zone they see). Registration closes by itself when the last place is taken, or an admin can close it early.
+2. **Planning (draft):** the system seeds players at random, builds all fixtures and proposes **automatic times**. The draft is visible only to the organizer and admins; the public sees "Preparing fixtures". Matchrooms are closed and the sweep ignores drafts.
+3. **Admin reviews:** any single time can be changed (`reschedule_fixture`), schedule rules can be edited (`update_tournament`), or the admin can go back to registration (deletes the draft).
+4. **Publish:** only an admin or the tournament's organizer publishes. Fixtures become public and matchrooms open at their times. Nothing goes live on its own.
+
+### Time and time zones
+All times are stored in UTC. Each player picks a **country** at sign-up (or later); every match time is shown in the time zone of that country, otherwise the browser's. A match has one moment in time, shown to each player in their own zone.
+**Automatic times (provisional defaults, to be refined by the format research):** rounds start at 18:00 in the tournament's schedule time zone (default: the most common zone among its players, else Rwanda), `round_gap_hours` apart (default 48), never sooner than 12 hours from now. League rounds come first, then knockout rounds; all matches of a round share one time. Later knockout rounds are scheduled automatically as soon as both players are known.
+
+### Admins
+Admins can add or remove other admins and organizers (by email or username; the person needs an account). Rules: you cannot remove yourself, and one admin must always remain. Every change is audited. Organizers manage only the tournaments they created.
+
 ## 4. Verification pipeline
 Foreground service (`mediaProjection`), persistent notification, ML Kit OCR on device, frame every 2 s, no frames uploaded. Only extracted fields are sent.
 
@@ -88,7 +102,7 @@ No entry fee, stake or subscription, so no consideration. Required: Terms, Priva
 Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
 
 ## 11. Decisions
-1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
+1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
 
 ## 12. Open items
 | # | Item | Blocks |
@@ -101,6 +115,9 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O6 | Keep-alive secrets set and monitored | free-tier viability |
 | O7 | Kinyarwanda strings reviewed by a native speaker | launch |
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
+| O9 | Research the formats and tie-breaks of top leagues and cups, then adapt them (league phase, groups, two-leg ties) and refine the automatic schedule | next |
+| O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
+| O11 | Player statistics (rank, points, what is needed to qualify) in the app and on the website | Phase 2 |
 
 ## 13. Build order
 - **Phase 1 (done):** schema, rules, bracket and league logic, tests, public site, organizer panel, CI, deploy workflows.

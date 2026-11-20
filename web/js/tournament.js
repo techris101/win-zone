@@ -1,4 +1,4 @@
-import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n } from "./ui.js";
+import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n, chooseCountryAndSave } from "./ui.js";
 import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds } from "./api.js";
 import { renderBracket, renderTable, renderFixtures, renderPlayers } from "./bracket.js";
 import { nameOf } from "./ui.js";
@@ -90,9 +90,14 @@ function render() {
   $("#reg")?.addEventListener("click", async (e) => {
     e.target.disabled = true;
     try {
-      const r = await register(tour.id);
+      let r = await register(tour.id);
+      if (!r.ok && r.reason === "country_required") {
+        const saved = await chooseCountryAndSave();      // times are shown in the player's own time zone
+        if (!saved) { e.target.disabled = false; return; }
+        r = await register(tour.id);
+      }
       if (r.ok) { joined = true; toast(t("t.registered")); await refresh(); }
-      else { toast(({ tournament_full: "This tournament is full.", registration_closed: "Registration is closed." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
+      else { toast(({ tournament_full: "This tournament is full.", registration_closed: "Registration is closed.", country_required: "Choose your country to register." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
     } catch (err) { toast(errMsg(err), "err"); e.target.disabled = false; }
   });
   $("#wd")?.addEventListener("click", async () => { try { await withdraw(tour.id); joined = false; await refresh(); } catch (err) { toast(errMsg(err), "err"); } });
@@ -107,6 +112,11 @@ function render() {
 
 function renderBody() {
   const body = $("#tab-body");
+  if (tour.status === "planning" && tab !== "players") {
+    body.innerHTML = `<div class="empty" style="margin:36px 0">${esc(t("t.planning"))}</div>`;
+    applyI18n(body);
+    return;
+  }
   const adv = tour.format === "league_knockout" ? tour.league_advance : 0;
   body.innerHTML = tab === "bracket" ? renderBracket(data.fixtures, data.profiles)
     : tab === "table" ? renderTable(data.table, data.profiles, adv)

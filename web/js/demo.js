@@ -50,4 +50,6 @@ const tables = {
   ],
 };
 
-export const DEMO = { tournaments, fixtures, entries, tables, profiles };
+const countries = [{ code: "RW", name: "Rwanda", tz: "Africa/Kigali" }, { code: "KE", name: "Kenya", tz: "Africa/Nairobi" }, { code: "UG", name: "Uganda", tz: "Africa/Kampala" }, { code: "TZ", name: "Tanzania", tz: "Africa/Dar_es_Salaam" }, { code: "BI", name: "Burundi", tz: "Africa/Bujumbura" }, { code: "NG", name: "Nigeria", tz: "Africa/Lagos" }];
+
+export const DEMO = { countries, tournaments, fixtures, entries, tables, profiles };

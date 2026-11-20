@@ -357,3 +357,14 @@ table.std { width: 100%; border-collapse: collapse; min-width: 560px; }
 .room-code { text-transform: none; }
 .how-to { margin: 30px 0 0; padding-left: 1.2em; display: grid; gap: 12px; max-width: 40em; }
 .how-to li::marker { color: var(--accent-text); font-weight: 700; }
+
+/* ---------------------------------------------------------------- dialog + admin extras */
+.dlg { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 28px; width: calc(100% - 32px); max-width: 420px; }
+.dlg::backdrop { background: rgba(0, 0, 0, 0.62); }
+.fx-edit { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 12px 20px; border-top: 1px solid var(--line); }
+.fx-edit small { color: var(--mute); display: block; }
+.fx-edit input[type="datetime-local"] { background: var(--bg); border: 1px solid var(--line); color: var(--fg); padding: 10px; font: inherit; }
+.adm-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 12px 20px; border-top: 1px solid var(--line); }
+.adm-row small { color: var(--mute); display: block; }
+details.a-set > summary { cursor: pointer; font: 700 0.85rem var(--display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+@media (max-width: 700px) { .fx-edit, .adm-row { grid-template-columns: 1fr; } }

@@ -1,11 +1,20 @@
-import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n } from "./ui.js";
-import { getUser, myEntries, myFixtures, getProfiles, LIVE } from "./api.js";
+import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, currentTz, chooseCountryAndSave } from "./ui.js";
+import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE } from "./api.js";
 import { CONFIG } from "./config.js";
 
 await mountChrome();
 const user = await getUser().catch(() => null);
 if (!user) { location.replace(LIVE ? "/auth.html?next=/me.html" : "/auth.html"); }
 else {
+  async function showTz() {
+    const p = await myProfile().catch(() => ({}));
+    const line = $("#tz-line");
+    line.innerHTML = p.country_name
+      ? `${esc(t("c.times"))} <b>${esc(p.country_name)}</b> (${esc(p.tz)}). <a href="#" id="chg-country">${esc(t("me.change"))}</a>`
+      : `${esc(t("a.countryhint"))} <a href="#" id="chg-country">${esc(t("a.choosecountry"))}</a>`;
+    $("#chg-country").addEventListener("click", async (e) => { e.preventDefault(); try { if (await chooseCountryAndSave()) location.reload(); } catch (err) { errMsg(err); } });
+  }
+  showTz();
   $("#app-link").innerHTML = CONFIG.APK_URL ? `<a class="btn sm" href="${esc(CONFIG.APK_URL)}">${t("me.getapp")}</a>` : "";
   try {
     const [fx, en] = await Promise.all([myFixtures(user.id), myEntries(user.id)]);

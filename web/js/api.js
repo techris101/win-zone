@@ -24,7 +24,7 @@ const ok = ({ data, error }) => {
 const NOT_CONNECTED = () => { throw new Error("not_connected"); };
 
 // ------------------------------------------------------------------ public reads
-const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,game:games(name),entries:tournament_entries(count)";
+const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,schedule_tz,slot_hour,round_gap_hours,game:games(name),entries:tournament_entries(count)";
 
 export async function listTournaments() {
   if (!LIVE) return DEMO.tournaments;
@@ -82,10 +82,10 @@ export async function getUser() {
   const { data } = await c.auth.getSession();
   return data.session?.user ?? null;
 }
-export async function signUp({ email, password, username }) {
+export async function signUp({ email, password, username, country }) {
   if (!LIVE) NOT_CONNECTED();
   const c = await sb();
-  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username } } }));
+  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username, country } } }));
 }
 export async function signIn({ email, password }) {
   if (!LIVE) NOT_CONNECTED();
@@ -96,6 +96,15 @@ export async function signOut() { if (!LIVE) return; const c = await sb(); await
 export async function rpc(name, args = {}) { const c = await sb(); return ok(await c.rpc(name, args)); }
 export async function isOrganizer() { if (!LIVE) return false; try { return Boolean(await rpc("is_organizer")); } catch { return false; } }
 export async function isAdmin() { if (!LIVE) return false; try { return Boolean(await rpc("is_admin")); } catch { return false; } }
+
+// ------------------------------------------------------------------ country and local time
+export async function listCountries() {
+  if (!LIVE) return DEMO.countries;
+  const c = await sb();
+  return ok(await c.from("countries").select("code,name,tz").order("name"));
+}
+export const myProfile = () => rpc("my_profile");
+export const setMyCountry = (code) => rpc("set_my_country", { p_code: code });
 
 // ------------------------------------------------------------------ player
 export const register = (tid) => rpc("register_for_tournament", { p_tid: tid });
@@ -147,4 +156,17 @@ export async function listAttention() {
   for (const e of ev) if (!reasons[e.fixture_id] && (e.details?.reason || e.event_type === "stalled")) reasons[e.fixture_id] = e.details?.reason || e.event_type;
   const profiles = await getProfiles(fx.flatMap((x) => [x.player_a_id, x.player_b_id]));
   return { fixtures: fx, reasons, profiles };
+}
+
+export const publishTournament = (tid) => rpc("publish_tournament", { p_tid: tid });
+export const reopenRegistration = (tid) => rpc("reopen_registration", { p_tid: tid });
+export const updateTournament = (tid, patch) => rpc("update_tournament", { p_tid: tid, p_patch: patch });
+export const rescheduleFixture = (fid, at) => rpc("reschedule_fixture", { p_fixture_id: fid, p_at: at });
+export const listAdmins = () => rpc("list_admins");
+export const addRole = (who, role) => rpc("add_role", { p_identifier: who, p_role: role });
+export const removeRole = (uid, role) => rpc("remove_role", { p_user_id: uid, p_role: role });
+export async function editableFixtures(tid) {
+  const c = await sb();
+  return ok(await c.from("fixtures").select("id,stage,round,slot,status,scheduled_at,player_a_id,player_b_id")
+    .eq("tournament_id", tid).order("scheduled_at", { nullsFirst: false }).order("round").order("slot"));
 }

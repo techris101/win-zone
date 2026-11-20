@@ -7,11 +7,11 @@ $$ begin if not coalesce(c, false) then raise exception 'ASSERT FAILED: %', msg;
 create or replace function pg_temp.as_user(u uuid) returns void language sql as
 $$ select set_config('request.jwt.claim.sub', coalesce(u::text, ''), false) $$;
 
-create or replace function pg_temp.mkuser(p_name text, p_age boolean default true) returns uuid language plpgsql as $$
+create or replace function pg_temp.mkuser(p_name text, p_country text default 'RW') returns uuid language plpgsql as $$
 declare v uuid;
 begin
   insert into auth.users (email, raw_user_meta_data)
-  values (p_name || '@test.local', jsonb_build_object('username', p_name, 'age_confirmed', p_age::text))
+  values (p_name || '@test.local', jsonb_strip_nulls(jsonb_build_object('username', p_name, 'country', p_country)))
   returning id into v;
   return v;
 end $$;
@@ -35,12 +35,12 @@ grant all on tu to public;
 do $$
 declare n text;
 begin
-  foreach n in array array['admin1', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'minor'] loop
-    insert into tu values (n, pg_temp.mkuser(n, n <> 'minor'));
+  foreach n in array array['admin1', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'minor', 'nocountry', 'admin2'] loop
+    insert into tu values (n, pg_temp.mkuser(n, case when n = 'nocountry' then null else 'RW' end));
   end loop;
   perform grant_role('admin1@test.local', 'admin');
-  perform pg_temp.ok((select count(*) from profiles) = 8, 'profiles created by trigger');
-  perform pg_temp.ok((select age_confirmed_at is null from profiles where username = 'minor'), 'age flag respected');
+  perform pg_temp.ok((select count(*) from profiles) = 10, 'profiles created by trigger');
+  perform pg_temp.ok((select country from profiles where id = (select id from tu where name = 'p1')) = 'RW' and (select country from profiles where id = (select id from tu where name = 'nocountry')) is null, 'country saved from sign-up');
 end $$;
 
 create or replace function pg_temp.u(p_name text) returns uuid language sql as $$ select id from tu where name = p_name $$;
@@ -109,7 +109,8 @@ begin
 
   perform pg_temp.as_user(pg_temp.u('admin1'));
   r := generate_tournament(t);
-  perform pg_temp.ok((r ->> 'players')::int = 4, 'generated with 4 players');
+  perform pg_temp.ok((r ->> 'players')::int = 4 and (select status from tournaments where id = t) = 'planning', 'fixtures are prepared as a draft');
+  perform publish_tournament(t);
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t) = 3, '4-player bracket has 3 fixtures');
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and round = 1 and player_a_id is not null and player_b_id is not null) = 2, 'round 1 populated');
   perform pg_temp.ok((select count(*) from matchrooms) = 2, 'matchrooms created for playable fixtures');
@@ -246,7 +247,7 @@ begin
   t := create_tournament('Cup F', 'cup-f', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id; a := fx.player_a_id; b := fx.player_b_id;
   perform pg_temp.ok(fx.next_fixture_id is null, 'two players -> a single final');
   update fixtures set kickoff_at = now() - interval '5 minutes', status = 'active' where id = f;
@@ -285,7 +286,7 @@ begin
   t := create_tournament('Cup D', 'cup-d', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id;
   update fixtures set kickoff_at = now(), status = 'active' where id = f;
 
@@ -322,7 +323,7 @@ begin
   t := create_tournament('League L', 'league-l', 'football-1v1', 'league', 8);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, p1), (t, p2), (t, p3), (t, p4);
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t) = 6, '4-player league has 6 fixtures');
   perform pg_temp.ok((select count(*) from (select least(player_a_id, player_b_id), greatest(player_a_id, player_b_id) from fixtures where tournament_id = t group by 1, 2) q) = 6, 'every pairing exactly once');
 
@@ -358,7 +359,7 @@ begin
   t := create_tournament('League H', 'league-h', 'football-1v1', 'league', 8);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, p1), (t, p2), (t, p3);
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   -- p1 beats p3 2-0, p2 beats p3 2-0, p2 beats p1 1-0 would break level; make p1 and p2 level via draw:
   -- Results: p1 bt p3 1-0, p2 bt p3 1-0, p1 v p2 0-0  => p1,p2: 4 pts, GD +1, GF 1. Level. h2h level (draw). Falls to username.
   for fx in select * from fixtures where tournament_id = t loop
@@ -382,7 +383,7 @@ begin
   t := create_tournament('League K', 'league-k', 'football-1v1', 'league_knockout', 8, null, null, 2);
   perform set_tournament_status(t, 'open');
   for i in 1..4 loop insert into tournament_entries (tournament_id, user_id) values (t, p[i]); end loop;
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   for fx in select * from fixtures where tournament_id = t and stage = 'league' order by round, slot loop
     update fixtures set kickoff_at = now(), status = 'active' where id = fx.id;
     perform pg_temp.terminal(fx.id, fx.player_a_id, 'result', 2, 0, null, null, 5400);   -- host always wins 2-0
@@ -402,7 +403,7 @@ begin
   t := create_tournament('Cup B', 'cup-b', 'football-1v1', 'knockout', 8);
   perform set_tournament_status(t, 'open');
   for i in 1..5 loop insert into tournament_entries (tournament_id, user_id) values (t, p[i]); end loop;
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t) = 7, '8-slot bracket has 7 fixtures');
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and status = 'bye') = 3, '5 players get 3 byes');
   perform pg_temp.ok((select count(*) from fixtures where tournament_id = t and round = 2 and player_a_id is not null and player_b_id is not null) = 1
@@ -418,7 +419,7 @@ begin
   t := create_tournament('Cup S', 'cup-s', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id;
 
   -- nobody showed up, deadline passed
@@ -447,7 +448,7 @@ begin
   t := create_tournament('Cup H', 'cup-hb', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id;
   perform pg_temp.as_user(fx.host_player_id);
   r := report_host_blocked(f, 'game crashed');
@@ -467,7 +468,7 @@ begin
   t := create_tournament('Cup P', 'cup-p', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id;
   perform pg_temp.ok((select room_code ~ '^[a-hj-km-np-z2-9]{5}$' and room_code ~ '[a-z]' and room_code ~ '[2-9]' from matchrooms where fixture_id = f), 'generated code: 5 chars, lowercase letters and digits, both present');
 
@@ -496,7 +497,7 @@ begin
   t := create_tournament('Cup R', 'cup-r', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2')), (t, pg_temp.u('p3')), (t, pg_temp.u('p4'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t and round = 1 and slot = 1;
   update fixtures set kickoff_at = now(), status = 'active' where id = fx.id;
   perform pg_temp.terminal(fx.id, fx.player_a_id, 'result', 1, 0, null, null, 5400);
@@ -506,6 +507,182 @@ begin
   r := resolve_fixture(fx.id, 'win_player_b', 'wrong winner reported');
   perform pg_temp.ok((select (player_a_id = fx.player_b_id) or (player_b_id = fx.player_b_id) from fixtures where id = fx.next_fixture_id), 'reversal re-advances the other player');
   perform pg_temp.ok(not exists (select 1 from fixtures where id = fx.next_fixture_id and fx.player_a_id in (player_a_id, player_b_id)), 'old winner removed from next round');
+end $$;
+
+
+-- ============================================================ country, local time and the draft -> publish flow
+do $$
+declare t uuid; r jsonb; v_fixture record; v_times timestamptz[]; blocked boolean; n int; v_tz text;
+begin
+  -- country is required to register, and can be set afterwards
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Cup Life', 'cup-life', 'football-1v1', 'knockout', 4, now() + interval '3 days');
+  perform set_tournament_status(t, 'open');
+  perform pg_temp.as_user(pg_temp.u('nocountry'));
+  perform pg_temp.ok(register_for_tournament(t) ->> 'reason' = 'country_required', 'registration needs a country');
+  perform pg_temp.ok(set_my_country('zz') ->> 'reason' = 'unknown_country', 'unknown country rejected');
+  r := set_my_country('ke');
+  perform pg_temp.ok((r ->> 'ok')::boolean and r ->> 'tz' = 'Africa/Nairobi', 'country saved, time zone returned');
+  perform pg_temp.ok(my_profile() ->> 'tz' = 'Africa/Nairobi' and my_profile() ->> 'country_name' = 'Kenya', 'my_profile returns the local time zone');
+  perform pg_temp.ok((register_for_tournament(t) ->> 'ok')::boolean, 'registration works once a country is set');
+
+  -- three more players fill the tournament: registration closes and a hidden draft is prepared automatically
+  perform pg_temp.as_user(pg_temp.u('p1')); perform register_for_tournament(t);
+  perform pg_temp.as_user(pg_temp.u('p2')); perform register_for_tournament(t);
+  perform pg_temp.ok((select status from tournaments where id = t) = 'open', 'still open with 3 of 4 players');
+  perform pg_temp.as_user(pg_temp.u('p3')); r := register_for_tournament(t);
+  perform pg_temp.ok((r ->> 'ok')::boolean and (select status from tournaments where id = t) = 'planning', 'when full: registration closes and the draft is prepared');
+  perform pg_temp.as_user(pg_temp.u('p4'));
+  perform pg_temp.ok(register_for_tournament(t) ->> 'reason' = 'registration_closed', 'no entrance once full');
+  perform pg_temp.ok((select count(*) from fixtures where tournament_id = t) = 3, 'draft has all fixtures');
+  select schedule_tz into v_tz from tournaments where id = t;
+  perform pg_temp.ok(v_tz = 'Africa/Kigali', 'time zone = the most common one among players (3 Rwanda, 1 Kenya)');
+
+  -- automatic times: local slot hour, after the tournament start, never sooner than 12 hours away
+  for v_fixture in select * from fixtures where tournament_id = t and round = 1 loop
+    perform pg_temp.ok(v_fixture.scheduled_at is not null, 'round 1 has an automatic time');
+    perform pg_temp.ok(extract(hour from v_fixture.scheduled_at at time zone 'Africa/Kigali') = 18 and extract(minute from v_fixture.scheduled_at) = 0, 'time is 18:00 local');
+    perform pg_temp.ok(v_fixture.scheduled_at >= now() + interval '12 hours', 'at least 12 hours away');
+  end loop;
+
+  -- hidden from the public while it is a draft; visible to the organizer
+  blocked := false;
+  perform pg_temp.as_user(null);
+  set local role anon;
+  select count(*) into n from fixtures where tournament_id = t;
+  reset role;
+  perform pg_temp.ok(n = 0, 'public cannot see draft fixtures');
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  set local role authenticated;
+  select count(*) into n from fixtures where tournament_id = t;
+  reset role;
+  perform pg_temp.ok(n = 3, 'organizer can see the draft');
+
+  -- not playable while a draft
+  select * into v_fixture from fixtures where tournament_id = t and round = 1 and slot = 1;
+  perform pg_temp.as_user(v_fixture.player_a_id);
+  update fixtures set scheduled_at = now() + interval '30 seconds' where id = v_fixture.id;
+  perform pg_temp.ok(app_join_fixture(v_fixture.id) ->> 'reason' = 'not_live', 'matchroom closed while a draft');
+  perform pg_temp.ok(create_app_handoff(v_fixture.id) ->> 'reason' = 'not_live', 'no app handoff while a draft');
+  -- the sweep leaves drafts alone (no forfeits or cancellations)
+  update fixtures set scheduled_at = now() - interval '1 hour' where id = v_fixture.id;
+  perform sweep_fixtures();
+  perform pg_temp.ok((select status from fixtures where id = v_fixture.id) = 'scheduled', 'sweep ignores draft fixtures');
+
+  -- admin edits one time, players cannot
+  perform pg_temp.as_user(v_fixture.player_a_id);
+  begin perform reschedule_fixture(v_fixture.id, now() + interval '5 days'); raise exception 'ASSERT FAILED: player rescheduled';
+  exception when others then if sqlerrm not like '%not_allowed%' then raise; end if; end;
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  r := reschedule_fixture(v_fixture.id, now() + interval '5 days');
+  perform pg_temp.ok((r ->> 'ok')::boolean and (select scheduled_at from fixtures where id = v_fixture.id) > now() + interval '4 days', 'admin changes a time');
+  perform pg_temp.ok((select count(*) from audit_logs where action = 'reschedule_fixture') = 1, 'time change is audited');
+
+  -- only the owner/admin publishes
+  perform pg_temp.as_user(pg_temp.u('p1'));
+  begin perform publish_tournament(t); raise exception 'ASSERT FAILED: player published';
+  exception when others then if sqlerrm not like '%not_allowed%' then raise; end if; end;
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  r := publish_tournament(t);
+  perform pg_temp.ok((r ->> 'ok')::boolean and (select status from tournaments where id = t) = 'live', 'admin publishes');
+  perform pg_temp.ok(publish_tournament(t) ->> 'reason' = 'not_in_planning', 'publishing twice is refused');
+  perform pg_temp.as_user(null);
+  set local role anon;
+  select count(*) into n from fixtures where tournament_id = t;
+  reset role;
+  perform pg_temp.ok(n = 3, 'fixtures are public once published');
+end $$;
+
+-- ============================================================ later rounds get automatic times; league rounds follow the gap
+do $$
+declare t uuid; fx record; r jsonb; fin fixtures; v_r1 timestamptz; v_r2 timestamptz; v_gap numeric;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('League Gap', 'league-gap', 'football-1v1', 'league', 8, now() + interval '2 days');
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2')), (t, pg_temp.u('p3')), (t, pg_temp.u('p4'));
+  perform generate_tournament(t);
+  select min(scheduled_at) into v_r1 from fixtures where tournament_id = t and round = 1;
+  select min(scheduled_at) into v_r2 from fixtures where tournament_id = t and round = 2;
+  v_gap := extract(epoch from (v_r2 - v_r1)) / 3600;
+  perform pg_temp.ok(v_gap = 48, 'league rounds are 48 hours apart (got ' || v_gap || ')');
+  perform pg_temp.ok((select count(distinct scheduled_at) from fixtures where tournament_id = t and round = 1) = 1, 'all matches of a round share one time');
+  perform publish_tournament(t);
+
+  -- change the schedule policy, then a fresh tournament follows it
+  r := update_tournament(t, '{"slot_hour":20,"round_gap_hours":24,"schedule_tz":"Europe/Paris"}'::jsonb);
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'schedule policy can be changed');
+  perform pg_temp.ok(update_tournament(t, '{"schedule_tz":"Mars/Base"}'::jsonb) ->> 'reason' = 'unknown_time_zone', 'unknown time zone rejected');
+  perform pg_temp.ok(update_tournament(t, '{"size":2}'::jsonb) ->> 'reason' = 'size_locked', 'size is locked after the draft');
+
+  -- knockout: after round 1 finishes, the final gets an automatic time
+  t := create_tournament('Cup Auto', 'cup-auto', 'football-1v1', 'knockout', 4, now() + interval '2 days');
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2')), (t, pg_temp.u('p3')), (t, pg_temp.u('p4'));
+  perform generate_tournament(t); perform publish_tournament(t);
+  for fx in select * from fixtures where tournament_id = t and round = 1 loop
+    update fixtures set kickoff_at = now(), status = 'active' where id = fx.id;
+    perform pg_temp.terminal(fx.id, fx.player_a_id, 'result', 1, 0, null, null, 5400);
+    perform pg_temp.terminal(fx.id, fx.player_b_id, 'result', 0, 1, null, null, 5400);
+    perform _finalize(fx.id, null);
+  end loop;
+  select * into fin from fixtures where tournament_id = t and round = 2;
+  perform pg_temp.ok(fin.scheduled_at is not null and fin.scheduled_at >= now() + interval '12 hours', 'the final is scheduled automatically');
+  perform pg_temp.ok(extract(hour from fin.scheduled_at at time zone 'Africa/Kigali') = 18, 'the final is at the local slot hour');
+end $$;
+
+-- ============================================================ going back to registration
+do $$
+declare t uuid; r jsonb;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Cup Back', 'cup-back', 'football-1v1', 'knockout', 4);
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
+  perform generate_tournament(t);   -- admin closes early with 2 players
+  perform pg_temp.ok((select status from tournaments where id = t) = 'planning', 'admin can close registration early');
+  r := reopen_registration(t);
+  perform pg_temp.ok((r ->> 'ok')::boolean and (select status from tournaments where id = t) = 'open' and (select count(*) from fixtures where tournament_id = t) = 0, 'reopen removes the draft');
+  r := update_tournament(t, '{"size":6}'::jsonb);
+  perform pg_temp.ok((r ->> 'ok')::boolean and (select size from tournaments where id = t) = 6, 'size can grow while open');
+  perform pg_temp.ok(update_tournament(t, '{"size":1}'::jsonb) ->> 'reason' = 'size_below_players', 'size cannot drop below the players');
+end $$;
+
+-- ============================================================ adding and removing admins
+do $$
+declare r jsonb; n int; blocked boolean := false;
+begin
+  perform pg_temp.as_user(pg_temp.u('p1'));
+  begin perform add_role('p2', 'admin'); raise exception 'ASSERT FAILED: player added an admin';
+  exception when others then if sqlerrm not like '%not_allowed%' then raise; end if; end;
+  begin perform list_admins(); raise exception 'ASSERT FAILED: player listed admins';
+  exception when others then if sqlerrm not like '%not_allowed%' then raise; end if; end;
+
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  perform pg_temp.ok(add_role('nobody@nowhere.test', 'admin') ->> 'reason' = 'no_such_account', 'unknown account rejected');
+  perform pg_temp.ok(add_role('p2', 'owner') ->> 'reason' = 'bad_role', 'only known roles accepted');
+  r := add_role('admin2@test.local', 'admin');
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'admin added by email');
+  perform pg_temp.ok((add_role('PlayerP2', 'organizer') ->> 'ok')::boolean, 'organizer added by username (case-insensitive)');
+  select count(*) into n from list_admins();
+  perform pg_temp.ok(n >= 3, 'admins can be listed');
+
+  -- the new admin has real powers
+  perform pg_temp.as_user(pg_temp.u('admin2'));
+  perform pg_temp.ok(is_admin(), 'the new admin is an admin');
+  perform pg_temp.ok((add_role('PlayerP3', 'organizer') ->> 'ok')::boolean, 'the new admin can add people too');
+
+  -- protections
+  perform pg_temp.ok(remove_role(pg_temp.u('admin2'), 'admin') ->> 'reason' = 'cannot_remove_yourself', 'cannot remove yourself');
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  perform pg_temp.ok((remove_role(pg_temp.u('admin2'), 'admin') ->> 'ok')::boolean, 'an admin can be removed');
+  perform pg_temp.as_user(pg_temp.u('p2'));
+  perform pg_temp.ok(not is_admin() and is_organizer(), 'organizer is not an admin');
+  -- a removed admin loses every power immediately
+  perform pg_temp.as_user(pg_temp.u('admin2'));
+  begin perform add_role('PlayerP5', 'admin'); raise exception 'ASSERT FAILED: removed admin still acts';
+  exception when others then if sqlerrm not like '%not_allowed%' then raise; end if; end;
+  perform pg_temp.ok((select count(*) from audit_logs where action in ('add_role', 'remove_role')) >= 4, 'role changes are audited');
 end $$;
 
 -- ============================================================ existing accounts, no age gate
@@ -553,7 +730,7 @@ begin
   t := create_tournament('Cup Handoff', 'cup-handoff', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
-  perform generate_tournament(t);
+  perform generate_tournament(t); perform publish_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id; a := fx.player_a_id; b := fx.player_b_id;
   perform schedule_fixtures(t, 'knockout', 1, now() + interval '1 hour', 30);
 

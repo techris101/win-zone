@@ -44,6 +44,14 @@
     <section>
       <div class="a-card" id="attention-card" hidden><header><b>Needs attention</b><span class="pill">Disputes and stalls</span></header><div id="attention"></div></div>
       <div id="managed"></div>
+      <div class="a-card" id="admins-card" hidden><header><b>Admins</b><span class="pill">People who can manage everything</span></header>
+        <div id="admins-list"></div>
+        <form id="add-admin" class="a-body">
+          <div class="row2"><div class="field"><label for="ad-who">Email or username</label><input id="ad-who" required autocomplete="off"></div>
+            <div class="field"><label for="ad-role">Role</label><select id="ad-role"><option value="admin">Admin (full control)</option><option value="organizer">Organizer (own tournaments)</option></select></div></div>
+          <div class="hint mute small">They need a WIN ZONE account first.</div>
+          <div id="ad-msg" role="alert"></div><button class="btn sm" type="submit">Add</button>
+        </form></div>
     </section>
   </div>
 </div>

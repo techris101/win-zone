@@ -1,14 +1,67 @@
 import { t, applyI18n, setLang, getLang, LANGS } from "./i18n.js";
-import { LIVE, getUser, signOut, isOrganizer } from "./api.js";
+import { LIVE, getUser, signOut, isOrganizer, myProfile, listCountries, setMyCountry } from "./api.js";
 import { CONFIG } from "./config.js";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-export function fmtDate(ts) {
+// Times are stored in UTC and shown in the player's own time zone (from their country), else the browser's.
+export function setTz(tz) {
+  try { if (tz) localStorage.setItem("wz_tz", tz); else localStorage.removeItem("wz_tz"); } catch (_) {}
+}
+export function currentTz() {
+  try { return localStorage.getItem("wz_tz") || undefined; } catch (_) { return undefined; }
+}
+export function fmtDate(ts, tz) {
   if (!ts) return "—";
-  return new Date(ts).toLocaleString(getLang(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const opts = { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" };
+  try { return new Date(ts).toLocaleString(getLang(), { ...opts, timeZone: tz || currentTz() }); }
+  catch (_) { return new Date(ts).toLocaleString(getLang(), opts); }
+}
+
+// Wall-clock helpers for the admin: type a time in the tournament's zone, store it as UTC.
+function tzOffsetMs(ts, tz) {
+  const o = {};
+  new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    .formatToParts(new Date(ts)).forEach((p) => { o[p.type] = p.value; });
+  return Date.UTC(o.year, o.month - 1, o.day, o.hour, o.minute, o.second) - ts;
+}
+export function wallToUtc(str, tz) {   // "2026-12-05T18:00" in tz -> Date
+  const [d, t] = str.split("T"); const [y, m, da] = d.split("-").map(Number); const [h, mi] = t.split(":").map(Number);
+  const wall = Date.UTC(y, m - 1, da, h, mi); let guess = wall;
+  for (let i = 0; i < 2; i++) guess = wall - tzOffsetMs(guess, tz);
+  return new Date(guess);
+}
+export function utcToWall(ts, tz) {    // -> "2026-12-05T18:00" as seen in tz
+  const o = {};
+  new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    .formatToParts(new Date(ts)).forEach((p) => { o[p.type] = p.value; });
+  return `${o.year}-${o.month}-${o.day}T${o.hour}:${o.minute}`;
+}
+
+// A small accessible dialog asking for the player's country. Resolves to a code, or null if cancelled.
+export async function askCountry() {
+  const list = await listCountries();
+  return new Promise((resolve) => {
+    const d = document.createElement("dialog");
+    d.className = "dlg";
+    d.innerHTML = `<form method="dialog" class="form"><h3>${esc(t("a.country"))}</h3><p class="mute small">${esc(t("a.countryhint"))}</p>
+      <div class="field"><select required aria-label="${esc(t("a.country"))}"><option value="">${esc(t("a.choosecountry"))}</option>
+      ${list.map((c) => `<option value="${esc(c.code)}">${esc(c.name)}</option>`).join("")}</select></div>
+      <div class="a-actions"><button class="btn" value="ok">${esc(t("c.save"))}</button><button class="btn ghost" value="cancel" formnovalidate>${esc(t("c.cancel"))}</button></div></form>`;
+    document.body.append(d);
+    d.addEventListener("close", () => { const v = d.returnValue === "ok" ? d.querySelector("select").value : null; d.remove(); resolve(v || null); });
+    d.showModal();
+  });
+}
+export async function chooseCountryAndSave() {
+  const code = await askCountry();
+  if (!code) return null;
+  const r = await setMyCountry(code);
+  if (!r.ok) throw new Error(r.reason || "could not save country");
+  setTz(r.tz);
+  return r;
 }
 export function nameOf(profiles, id) {
   if (!id) return null;
@@ -91,7 +144,7 @@ export async function mountChrome(active = "") {
   });
   applyI18n(document);
   syncThemeBtn();
-  renderAuthSlot();
+  await renderAuthSlot();
 }
 
 function syncThemeBtn() {
@@ -110,8 +163,10 @@ async function renderAuthSlot() {
   let user = null;
   try { user = await getUser(); } catch (_) {}
   if (!user) {
+    setTz(null);
     slot.innerHTML = `<a class="btn sm" href="/auth.html" data-i18n="nav.signin"></a>`;
   } else {
+    try { const p = await myProfile(); setTz(p && p.tz ? p.tz : null); } catch (_) {}
     const org = await isOrganizer();
     slot.innerHTML = `${org ? `<a class="btn sm ghost" href="/admin.html" data-i18n="nav.admin"></a> ` : ""}<a class="btn sm" href="/me.html" data-i18n="nav.me"></a>`;
     const nav = $("#nav-links");
