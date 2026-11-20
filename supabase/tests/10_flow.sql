@@ -84,6 +84,7 @@ grant all on ctx to public;
 do $$
 declare t uuid; r jsonb; v_fix record; host uuid; guest uuid; code text;
 begin
+  update games set room_code_model = 'host_issued' where slug = 'football-1v1';   -- both models stay supported
   perform pg_temp.as_user(pg_temp.u('p1'));
   begin
     perform create_tournament('x', 'x-cup', 'football-1v1', 'knockout', 8);
@@ -97,9 +98,6 @@ begin
   insert into ctx values ('cup', t::text);
   perform set_tournament_status(t, 'open');
 
-  perform pg_temp.as_user(pg_temp.u('minor'));
-  r := register_for_tournament(t);
-  perform pg_temp.ok(r ->> 'reason' = 'age_not_confirmed', 'age gate blocks registration');
 
   foreach host in array array[pg_temp.u('p1'), pg_temp.u('p2'), pg_temp.u('p3'), pg_temp.u('p4')] loop
     perform pg_temp.as_user(host);
@@ -471,7 +469,7 @@ begin
   insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
   perform generate_tournament(t);
   select * into fx from fixtures where tournament_id = t; f := fx.id;
-  perform pg_temp.ok((select room_code ~ '^[A-Z2-9]{6,8}$' and room_code ~ '[A-Z]' and room_code ~ '[2-9]' from matchrooms where fixture_id = f), 'generated code format');
+  perform pg_temp.ok((select room_code ~ '^[a-hj-km-np-z2-9]{5}$' and room_code ~ '[a-z]' and room_code ~ '[2-9]' from matchrooms where fixture_id = f), 'generated code: 5 chars, lowercase letters and digits, both present');
 
   perform schedule_fixtures(t, 'knockout', 1, now() + interval '1 hour', 30);
   perform pg_temp.as_user(fx.player_a_id);
@@ -488,8 +486,7 @@ begin
   perform pg_temp.as_user(pg_temp.u('admin1'));
   perform regenerate_room_code(f);
   perform pg_temp.ok((select room_code from matchrooms where fixture_id = f) <> r1 ->> 'room_code', 'admin regeneration changes the code');
-  update games set room_code_model = 'host_issued' where slug = 'football-1v1';
-end $$;
+end $$;   -- the game stays platform-issued from here on (the shipped default)
 
 -- admin reversal of a completed fixture is blocked once downstream play started
 do $$
@@ -511,7 +508,7 @@ begin
   perform pg_temp.ok(not exists (select 1 from fixtures where id = fx.next_fixture_id and fx.player_a_id in (player_a_id, player_b_id)), 'old winner removed from next round');
 end $$;
 
--- ============================================================ existing accounts + age confirmation
+-- ============================================================ existing accounts, no age gate
 do $$
 declare t uuid; r jsonb; v int;
 begin
@@ -522,18 +519,116 @@ begin
   perform pg_temp.ok((select username from profiles where id = pg_temp.u('p6')) = 'playerp6', 'backfilled profile gets a valid username');
   perform pg_temp.ok(_backfill_profiles() = 0, 'backfill is idempotent');
 
-  -- a player without an age flag confirms it, then can register
+  -- there is no age confirmation any more
   perform pg_temp.as_user(pg_temp.u('admin1'));
   t := create_tournament('Cup Age', 'cup-age', 'football-1v1', 'knockout', 4);
   perform set_tournament_status(t, 'open');
   perform pg_temp.as_user(pg_temp.u('minor'));
   r := register_for_tournament(t);
-  perform pg_temp.ok(r ->> 'reason' = 'age_not_confirmed', 'unconfirmed age blocks registration');
-  perform pg_temp.ok((confirm_age() ->> 'ok')::boolean, 'player confirms age');
-  r := register_for_tournament(t);
-  perform pg_temp.ok((r ->> 'ok')::boolean, 'registration works after age confirmation');
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'registration needs no age confirmation');
+  perform pg_temp.ok(to_regprocedure('public.confirm_age()') is null, 'confirm_age no longer exists');
+end $$;
+
+-- ============================================================ room code format (3-5, letters and digits)
+do $$
+declare i int; c text; n int;
+begin
+  for n in 3..5 loop
+    for i in 1..300 loop
+      c := _gen_room_code(n);
+      perform pg_temp.ok(length(c) = n, 'code length is ' || n);
+      perform pg_temp.ok(c ~ '^[a-z2-9]+$' and c ~ '[a-z]' and c ~ '[2-9]', 'code has letters and digits only, both present: ' || c);
+    end loop;
+  end loop;
+  perform pg_temp.ok(length(_gen_room_code(9)) = 5 and length(_gen_room_code(1)) = 3, 'requested length is clamped to 3..5');
+  perform pg_temp.ok((select room_code_model from games where slug = 'football-1v1') = 'platform_issued', 'game ships as platform-issued');
+end $$;
+
+-- ============================================================ web -> app handoff and match pass
+do $$
+declare
+  t uuid; fx fixtures; a uuid; b uuid; f uuid; r jsonb; ca text; cb text; pass_a text; pass_b text; blocked boolean;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Cup Handoff', 'cup-handoff', 'football-1v1', 'knockout', 4);
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('p1')), (t, pg_temp.u('p2'));
+  perform generate_tournament(t);
+  select * into fx from fixtures where tournament_id = t; f := fx.id; a := fx.player_a_id; b := fx.player_b_id;
+  perform schedule_fixtures(t, 'knockout', 1, now() + interval '1 hour', 30);
+
+  perform pg_temp.as_user(a);
+  perform pg_temp.ok(create_app_handoff(f) ->> 'reason' = 'too_early', 'no handoff before the room opens');
+  update fixtures set scheduled_at = now() + interval '90 seconds' where id = f;
+
+  perform pg_temp.as_user(pg_temp.u('p5'));
+  perform pg_temp.ok(create_app_handoff(f) ->> 'reason' = 'not_a_participant', 'outsider cannot get a handoff');
   perform pg_temp.as_user(null);
-  perform pg_temp.ok(confirm_age() ->> 'reason' = 'not_signed_in', 'age confirmation needs a signed-in user');
+  perform pg_temp.ok(create_app_handoff(f) ->> 'reason' = 'not_a_participant', 'signed-out visitor cannot get a handoff');
+
+  perform pg_temp.as_user(a);  r := create_app_handoff(f);  ca := r ->> 'code';
+  perform pg_temp.ok((r ->> 'ok')::boolean and length(ca) = 24 and (r ->> 'expires_in')::int = 60, 'handoff code issued: 24 chars, 60 s');
+  perform pg_temp.as_user(b);  r := create_app_handoff(f);  cb := r ->> 'code';
+  perform pg_temp.ok((select count(*) from app_handoffs where code_hash = ca or code_hash = cb) = 0, 'plain codes are never stored');
+
+  -- the app has no login: redeem as anonymous
+  perform pg_temp.as_user(null);
+  r := redeem_app_handoff('not-a-real-code');
+  perform pg_temp.ok(r ->> 'reason' = 'invalid_or_expired', 'unknown code rejected');
+  r := redeem_app_handoff(ca);
+  perform pg_temp.ok((r ->> 'ok')::boolean and r ->> 'my_side' = 'A' and length(r ->> 'pass') = 64, 'code redeemed for a pass');
+  pass_a := r ->> 'pass';
+  perform pg_temp.ok((r ->> 'regulation_seconds')::int = 5400, 'app learns the match clock settings');
+  perform pg_temp.ok(redeem_app_handoff(ca) ->> 'reason' = 'invalid_or_expired', 'a code works only once');
+  pass_b := redeem_app_handoff(cb) ->> 'pass';
+  perform pg_temp.ok(pass_b is not null and pass_b <> pass_a, 'second player gets their own pass');
+
+  -- expired code
+  perform pg_temp.as_user(a);  r := create_app_handoff(f);
+  update app_handoffs set expires_at = now() - interval '1 second' where used_at is null;
+  perform pg_temp.as_user(null);
+  perform pg_temp.ok(redeem_app_handoff(r ->> 'code') ->> 'reason' = 'invalid_or_expired', 'expired code rejected');
+
+  -- the pass reports state for its own player and fixture only
+  perform pg_temp.ok(submit_screen_state_pass('bad', 'in_play', 0, 0, null, null, 3, 1) ->> 'reason' = 'invalid_pass', 'bad pass rejected');
+  r := submit_screen_state_pass(pass_a, 'in_play', 0, 0, null, null, 5, 1);
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'pass can report state');
+  perform pg_temp.ok((select layout from match_latest_state where fixture_id = f and user_id = a) = 'in_play', 'state stored for the pass holder');
+  perform submit_screen_state_pass(pass_b, 'in_play', 0, 0, null, null, 6, 1);
+  update match_latest_state set in_play_since = now() - interval '9 seconds' where fixture_id = f;
+  r := submit_screen_state_pass(pass_a, 'in_play', 0, 0, null, null, 12, 2);
+  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff works through passes');
+
+  -- finish the match through passes only (A wins 2-1), then each sees their own view
+  perform submit_screen_state_pass(pass_a, 'result', 2, 1, null, null, 5400, 3);
+  perform submit_screen_state_pass(pass_b, 'result', 1, 2, null, null, 5400, 3);
+  r := finalize_fixture_pass(pass_b);
+  perform pg_temp.ok(r ->> 'status' = 'completed' and (r ->> 'winner_id')::uuid = a, 'result finalized through a pass');
+  r := match_status_pass(pass_a);
+  perform pg_temp.ok((r ->> 'winner_is_me')::boolean and (r ->> 'score_me')::int = 2 and (r ->> 'score_opp')::int = 1, 'winner sees 2-1 and "winner"');
+  r := match_status_pass(pass_b);
+  perform pg_temp.ok(not (r ->> 'winner_is_me')::boolean and (r ->> 'score_me')::int = 1 and (r ->> 'score_opp')::int = 2, 'loser sees 1-2 and "not winner"');
+
+  -- a pass only reaches its own fixture's state
+  perform pg_temp.ok(not exists (select 1 from match_latest_state where fixture_id <> f and user_id in (a, b) and client_seq = 3 and layout = 'result' and t_score_me = 2), 'pass cannot write to other fixtures');
+
+  -- permissions
+  blocked := false; set local role anon;
+  begin perform public._pass('x'); exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'internal pass lookup is not callable by API roles');
+  blocked := false; set local role authenticated;
+  begin perform 1 from app_handoffs limit 1; exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'handoff table is unreachable by API roles');
+  blocked := false; set local role anon;
+  begin perform public.create_app_handoff(f); exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'only signed-in players can create a handoff');
+  blocked := false; set local role anon;
+  begin perform public._submit_screen_state(a, f, 'in_play', 0, 0, null, null, 1, 99, null); exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'the internal submit function cannot be called with a chosen user id');
 end $$;
 
 select 'database tests: all assertions passed' as result;

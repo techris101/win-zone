@@ -85,7 +85,7 @@ export async function getUser() {
 export async function signUp({ email, password, username }) {
   if (!LIVE) NOT_CONNECTED();
   const c = await sb();
-  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username, age_confirmed: "true" } } }));
+  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username } } }));
 }
 export async function signIn({ email, password }) {
   if (!LIVE) NOT_CONNECTED();
@@ -99,7 +99,6 @@ export async function isAdmin() { if (!LIVE) return false; try { return Boolean(
 
 // ------------------------------------------------------------------ player
 export const register = (tid) => rpc("register_for_tournament", { p_tid: tid });
-export const confirmAge = () => rpc("confirm_age");
 export const withdraw = (tid) => rpc("withdraw_from_tournament", { p_tid: tid });
 
 export async function myEntryIds(uid) {
@@ -118,6 +117,7 @@ export async function myFixtures(uid) {
     .or(`player_a_id.eq.${uid},player_b_id.eq.${uid}`).in("status", ["scheduled", "active", "stalled"])
     .not("player_a_id", "is", null).not("player_b_id", "is", null).order("scheduled_at", { ascending: true, nullsFirst: false }));
 }
+export const createHandoff = (fid) => rpc("create_app_handoff", { p_fixture_id: fid });
 export const joinFixture = (fid) => rpc("app_join_fixture", { p_fixture_id: fid });
 export const submitRoomCode = (fid, code) => rpc("submit_room_code", { p_fixture_id: fid, p_room_code: code, p_capture_method: "manual" });
 export const reportHostBlocked = (fid, reason) => rpc("report_host_blocked", { p_fixture_id: fid, p_reason: reason });

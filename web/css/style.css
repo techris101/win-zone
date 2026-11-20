@@ -351,3 +351,9 @@ table.std { width: 100%; border-collapse: collapse; min-width: 560px; }
   .menu-btn { padding: 8px 9px; font-size: 0.72rem; letter-spacing: 0.08em; }
   .theme-btn { width: 34px; height: 34px; }
 }
+
+/* ---------------------------------------------------------------- matchroom steps */
+.code-label { font: 600 0.8rem/1 var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); margin: 26px 0 10px; }
+.room-code { text-transform: none; }
+.how-to { margin: 30px 0 0; padding-left: 1.2em; display: grid; gap: 12px; max-width: 40em; }
+.how-to li::marker { color: var(--accent-text); font-weight: 700; }

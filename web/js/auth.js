@@ -34,7 +34,7 @@ $("#form-up").addEventListener("submit", async (e) => {
   const username = $("#up-user").value.trim(), email = $("#up-email").value.trim(), password = $("#up-pass").value;
   if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) return say(msg, "Username: 3–20 letters, numbers or _.", "err");
   if (password.length < 8) return say(msg, "Password needs 8 or more characters.", "err");
-  if (!$("#up-age").checked || !$("#up-agree").checked) return say(msg, "Please confirm your age and accept the terms.", "err");
+  if (!$("#up-agree").checked) return say(msg, "Please accept the terms.", "err");
   try {
     const r = await signUp({ email, password, username });
     if (r.session) location.href = next;

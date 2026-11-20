@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n } from "./ui.js";
-import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, confirmAge } from "./api.js";
+import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds } from "./api.js";
 import { renderBracket, renderTable, renderFixtures, renderPlayers } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
@@ -55,6 +55,7 @@ function render() {
   }
   const players = tour.entries?.[0]?.count ?? data.entries.length;
   const champ = tour.champion_id ? nameOf(data.profiles, tour.champion_id) : null;
+  const full = players >= tour.size;
   const canRegister = tour.status === "open";
 
   root.innerHTML = `
@@ -77,7 +78,9 @@ function render() {
     </div>`;
 
   const actions = $("#actions");
-  if (canRegister) {
+  if (canRegister && full && !joined) {
+    actions.innerHTML = `<span class="pill"><i class="dot"></i>${t("t.full")}</span>`;
+  } else if (canRegister) {
     if (!user) actions.innerHTML = `<a class="btn" href="/auth.html?next=${encodeURIComponent(location.pathname)}">${t("t.signin")}</a>`;
     else if (joined) actions.innerHTML = `<span class="pill open"><i class="dot"></i>${t("t.registered")}</span><button class="btn ghost sm" id="wd">${t("t.withdraw")}</button>`;
     else actions.innerHTML = `<button class="btn" id="reg">${t("t.register")}</button>`;
@@ -87,13 +90,9 @@ function render() {
   $("#reg")?.addEventListener("click", async (e) => {
     e.target.disabled = true;
     try {
-      let r = await register(tour.id);
-      if (!r.ok && r.reason === "age_not_confirmed" && confirm(t("a.ageq"))) {
-        await confirmAge();
-        r = await register(tour.id);
-      }
+      const r = await register(tour.id);
       if (r.ok) { joined = true; toast(t("t.registered")); await refresh(); }
-      else { toast(({ age_not_confirmed: "You must be 18 or older to register.", tournament_full: "This tournament is full.", registration_closed: "Registration is closed." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
+      else { toast(({ tournament_full: "This tournament is full.", registration_closed: "Registration is closed." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
     } catch (err) { toast(errMsg(err), "err"); e.target.disabled = false; }
   });
   $("#wd")?.addEventListener("click", async () => { try { await withdraw(tour.id); joined = false; await refresh(); } catch (err) { toast(errMsg(err), "err"); } });

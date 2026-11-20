@@ -69,7 +69,7 @@ export async function mountChrome(active = "") {
           <a href="/#tournaments" data-i18n="nav.tournaments"></a><a href="/#how" data-i18n="nav.how"></a><a href="/organizers.html" data-i18n="nav.organizers"></a></div>
         <div><h4 data-i18n="f.legal"></h4>
           <a href="/terms.html" data-i18n="f.terms"></a><a href="/privacy.html" data-i18n="f.privacy"></a><a href="/contact.html" data-i18n="f.contact"></a></div>
-        <div><h4>18+</h4><p class="mute small">Free to enter. Skill-based. Play responsibly.</p></div>
+        <div><h4>Free to play</h4><p class="mute small">Free to enter. Skill-based. Play responsibly.</p></div>
       </div>
       <div class="foot-base"><span>© ${new Date().getFullYear()} WIN ZONE. <span data-i18n="f.rights"></span></span><span>win-zone.pages.dev</span></div>
     </div>`;

@@ -6,4 +6,5 @@ export const CONFIG = {
   CONTACT_EMAIL: "",
   APK_URL: "",
   APP_SCHEME: "winzone",
+  APP_PACKAGE: "app.winzone.player",   // Android package id of the WIN ZONE app (Phase 2)
 };

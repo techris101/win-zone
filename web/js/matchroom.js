@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, fmtDate, toast, errMsg, applyI18n } from "./ui.js";
-import { getUser, joinFixture, submitRoomCode, reportHostBlocked, openDispute, LIVE } from "./api.js";
+import { getUser, joinFixture, submitRoomCode, reportHostBlocked, openDispute, createHandoff, LIVE } from "./api.js";
 import { CONFIG } from "./config.js";
 
 await mountChrome();
@@ -22,22 +22,61 @@ function countdown(el, to, onZero) {
 
 function show(html) { room.innerHTML = html + NOTE; applyI18n(room); }
 
+async function copyCode(code) {
+  try { await navigator.clipboard.writeText(code); toast("Code copied"); return; } catch (_) {}
+  // Fallback for browsers that block the clipboard API: select the text and use the old command.
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = code; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    toast("Code copied");
+  } catch (_) { toast("Press and hold the code to copy it"); }
+}
+
+// "Play game": ask the server for a one-time code, then open the app with it.
+// The link carries the match id and that single-use 60-second code, never a login.
+async function playGame(btn) {
+  if (!/Android/i.test(navigator.userAgent)) { toast("Open this page on your Android phone to play.", "err"); return; }
+  btn.disabled = true;
+  try {
+    const r = await createHandoff(fid);
+    if (!r.ok) {
+      toast(({ too_early: "The room opens 2 minutes before kickoff.", fixture_closed: "This match is closed.", waiting_for_code: "The code is not ready yet." })[r.reason] || r.reason, "err");
+      return;
+    }
+    const fallback = CONFIG.APK_URL || location.href;
+    location.href = `intent://play?f=${encodeURIComponent(r.fixture_id)}&c=${encodeURIComponent(r.code)}#Intent;scheme=${CONFIG.APP_SCHEME};package=${CONFIG.APP_PACKAGE};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
+  } catch (err) { toast(errMsg(err), "err"); }
+  finally { setTimeout(() => { btn.disabled = false; }, 4000); }
+}
+
 async function load() {
   let r;
   try { r = await joinFixture(fid); } catch (e) { return show(`<h1>Matchroom</h1><div class="msg err">${esc(errMsg(e))}</div>`); }
 
   if (r.ok) {
     clearTimeout(poll); poll = setTimeout(load, 10000);
-    show(`<h1 style="font-size:clamp(2.6rem,7vw,4.4rem)">You're in</h1>
+    show(`<h1 style="font-size:clamp(2.6rem,7vw,4.4rem)">Your match</h1>
       <div class="vs">You <i>VS</i> ${esc(r.opponent || "Opponent")}</div>
-      <p class="mute">${esc(r.game || "")} · ${esc(fmtDate(r.scheduled_at))}${r.is_host ? " · You are the host" : ""}</p>
-      <div class="room-code" aria-label="Room code">${esc(r.room_code)}</div>
-      <p class="mute small" style="margin-top:14px">${r.is_host ? "You created this room in the game. Your opponent enters this code." : "Enter this code in the game to join your opponent."}</p>
-      <div class="hero-actions"><a class="btn" href="${esc(CONFIG.APP_SCHEME)}://match?f=${encodeURIComponent(fid)}">Open the app</a>
-        ${CONFIG.APK_URL ? `<a class="btn ghost" href="${esc(CONFIG.APK_URL)}">Get the app</a>` : ""}</div>
-      <details style="margin-top:36px"><summary class="mute" style="cursor:pointer">Something wrong with this match?</summary>
+      <p class="mute">${esc(fmtDate(r.scheduled_at))}</p>
+      <div class="code-label">Match code</div>
+      <div class="room-code" id="the-code" aria-label="Match code">${esc(r.room_code)}</div>
+      <div class="hero-actions" style="margin-top:14px">
+        <button class="btn ghost" type="button" id="copy-code">Copy code</button>
+        <button class="btn" type="button" id="play-btn">Play game</button>
+      </div>
+      <ol class="how-to">
+        <li><b>Copy the code</b> above.</li>
+        <li>Tap <b>Play game</b>. The WIN ZONE app opens and asks permission to record the screen.</li>
+        <li>In the game, open the <b>private match</b> screen, paste the code and press <b>Search</b>. ${esc(r.opponent || "Your opponent")} does the same, and the game connects you.</li>
+        <li>Play. The app reads the result and the bracket updates by itself.</li>
+      </ol>
+      <details style="margin-top:28px"><summary class="mute" style="cursor:pointer">Something wrong with this match?</summary>
         <form id="dispute" class="form" style="margin-top:16px"><div class="field"><label for="d-note">Tell us what happened</label><textarea id="d-note" rows="3" maxlength="1000"></textarea></div>
         <button class="btn ghost sm" type="submit">Send to review</button></form></details>`);
+
+    $("#copy-code").addEventListener("click", () => copyCode(r.room_code));
+    $("#play-btn").addEventListener("click", (e) => playGame(e.currentTarget));
     $("#dispute").addEventListener("submit", async (e) => {
       e.preventDefault();
       try { await openDispute(fid, $("#d-note").value); toast("Sent. An admin will review it."); } catch (err) { toast(errMsg(err), "err"); }
