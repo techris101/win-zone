@@ -84,7 +84,7 @@ No entry fee, stake or subscription, so no consideration. Required: 18+ gate (st
 Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
 
 ## 11. Decisions
-1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Token-free deep link. 10 Both room-code models, per game. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`.
+1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Token-free deep link. 10 Both room-code models, per game. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
 
 ## 12. Open items
 | # | Item | Blocks |

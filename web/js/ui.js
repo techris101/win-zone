@@ -39,11 +39,18 @@ export async function mountChrome(active = "") {
       <a class="logo" href="/" aria-label="WIN ZONE"><span class="logo-mark"></span><span class="logo-text">WIN <b>ZONE</b></span></a>
       <nav class="nav-links" id="nav-links" aria-label="Main">
         ${NAV.map(([href, key]) => `<a href="${href}" data-i18n="${key}" ${active === key ? 'aria-current="page"' : ""}></a>`).join("")}
+        <div class="lang lang-m" role="group" aria-label="Language">
+          ${LANGS.map((l) => `<button type="button" data-lang="${l}" aria-pressed="${l === getLang()}">${l.toUpperCase()}</button>`).join("")}
+        </div>
       </nav>
       <div class="nav-end">
         <div class="lang" role="group" aria-label="Language">
           ${LANGS.map((l) => `<button type="button" data-lang="${l}" aria-pressed="${l === getLang()}">${l.toUpperCase()}</button>`).join("")}
         </div>
+        <button class="theme-btn" type="button" id="theme-btn">
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
         <span id="auth-slot"></span>
         <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-links" data-i18n="nav.menu"></button>
       </div>
@@ -68,6 +75,12 @@ export async function mountChrome(active = "") {
   document.body.append(footer);
 
   header.addEventListener("click", (e) => {
+    if (e.target.closest("#theme-btn")) {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("wz_theme", next); } catch (_) {}
+      syncThemeBtn();
+    }
     const lb = e.target.closest("[data-lang]");
     if (lb) { setLang(lb.dataset.lang); location.reload(); }
     if (e.target.closest(".menu-btn")) {
@@ -76,7 +89,18 @@ export async function mountChrome(active = "") {
     }
   });
   applyI18n(document);
+  syncThemeBtn();
   renderAuthSlot();
+}
+
+function syncThemeBtn() {
+  const btn = $("#theme-btn");
+  if (!btn) return;
+  const dark = document.documentElement.dataset.theme === "dark";
+  const label = t(dark ? "nav.light" : "nav.dark");
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+  btn.setAttribute("aria-pressed", String(dark));
 }
 
 async function renderAuthSlot() {

@@ -67,7 +67,7 @@ async function loadManaged() {
       try { rounds = await pendingRounds(x.id); } catch (_) {}
       body.innerHTML = rounds.length ? rounds.map((r) => `<form class="row2" data-sched data-stage="${r.stage}" data-round="${r.round}" style="align-items:end">
           <div class="field"><label>${esc(r.stage)} round ${r.round} · ${r.n} fixtures</label><input type="datetime-local" required></div>
-          <div class="a-actions"><input type="number" min="5" max="240" value="30" aria-label="Minutes between fixtures" style="width:90px;background:var(--ink);border:1px solid var(--line);color:var(--bone);padding:13px">
+          <div class="a-actions"><input type="number" min="5" max="240" value="30" aria-label="Minutes between fixtures" style="width:90px;background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:13px">
           <button class="btn sm" type="submit">Schedule</button></div></form>`).join("") : `<p class="mute">Everything playable is scheduled.</p>`;
     } else body.innerHTML = `<p class="mute">No actions.</p>`;
   }

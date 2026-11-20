@@ -6,7 +6,7 @@ const D = {
   en: {
     "nav.tournaments": "Tournaments", "nav.how": "How it works", "nav.organizers": "Organizers",
     "nav.signin": "Sign in", "nav.signup": "Register", "nav.me": "My matches", "nav.signout": "Sign out", "nav.admin": "Admin",
-    "nav.menu": "Menu",
+    "nav.menu": "Menu", "nav.dark": "Switch to dark mode", "nav.light": "Switch to light mode",
     "hero.kicker": "Free 1v1 football tournaments",
     "hero.title": "Every match. <em>One bracket.</em>",
     "hero.lede": "Register free. Get your fixture. Play on your phone. The app verifies the result and the bracket updates live, for everyone watching.",
@@ -46,7 +46,7 @@ const D = {
   },
   fr: {
     "nav.tournaments": "Tournois", "nav.how": "Comment ça marche", "nav.organizers": "Organisateurs",
-    "nav.signin": "Connexion", "nav.signup": "S'inscrire", "nav.me": "Mes matchs", "nav.signout": "Déconnexion", "nav.admin": "Admin", "nav.menu": "Menu",
+    "nav.signin": "Connexion", "nav.signup": "S'inscrire", "nav.me": "Mes matchs", "nav.signout": "Déconnexion", "nav.admin": "Admin", "nav.menu": "Menu", "nav.dark": "Passer en mode sombre", "nav.light": "Passer en mode clair",
     "hero.kicker": "Tournois de football 1v1 gratuits",
     "hero.title": "Chaque match. <em>Un seul tableau.</em>",
     "hero.lede": "Inscription gratuite. Recevez votre match. Jouez sur votre téléphone. L'application vérifie le résultat et le tableau se met à jour en direct pour tous.",
@@ -86,7 +86,7 @@ const D = {
   },
   rw: {
     "nav.tournaments": "Amarushanwa", "nav.how": "Uko bikora", "nav.organizers": "Abategura",
-    "nav.signin": "Injira", "nav.signup": "Iyandikishe", "nav.me": "Imikino yanjye", "nav.signout": "Sohoka", "nav.admin": "Ubuyobozi", "nav.menu": "Menu",
+    "nav.signin": "Injira", "nav.signup": "Iyandikishe", "nav.me": "Imikino yanjye", "nav.signout": "Sohoka", "nav.admin": "Ubuyobozi", "nav.menu": "Menu", "nav.dark": "Koresha uburyo bw'umwijima", "nav.light": "Koresha uburyo bw'umucyo",
     "hero.kicker": "Amarushanwa y'umupira w'amaguru ni ubuntu",
     "hero.title": "Buri mukino. <em>Urutonde rumwe.</em>",
     "hero.lede": "Iyandikishe ku buntu. Menya umukino wawe. Kina kuri telefone yawe. Porogaramu isuzuma amanota, urutonde rugahita ruvugururwa kuri bose.",
