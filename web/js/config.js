@@ -6,5 +6,6 @@ export const CONFIG = {
   CONTACT_EMAIL: "",
   APK_URL: "",
   APP_SCHEME: "winzone",
+  VAPID_PUBLIC_KEY: "BP3MK9kZ7jmxv6mp2BGL1N2T72UQ2c3aeQfHgcLVdLjFq04p01TT7RnNOlz5BQjNLu69ihWqNya_ld_x9Hyw4TI",   // public half of the push key pair (safe to publish)
   APP_PACKAGE: "app.winzone.player",   // Android package id of the WIN ZONE app (Phase 2)
 };

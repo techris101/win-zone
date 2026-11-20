@@ -1,5 +1,5 @@
 import { t, applyI18n, setLang, getLang, LANGS } from "./i18n.js";
-import { LIVE, getUser, signOut, isOrganizer, myProfile, listCountries, setMyCountry } from "./api.js";
+import { LIVE, getUser, signOut, isOrganizer, myProfile, listCountries, setMyCountry, unreadCount, onMyNotification, setMyLang } from "./api.js";
 import { CONFIG } from "./config.js";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -83,6 +83,11 @@ export function errMsg(e) {
 
 const NAV = [["/#tournaments", "nav.tournaments"], ["/#how", "nav.how"], ["/organizers.html", "nav.organizers"]];
 
+// The service worker shows notifications on the phone even when the site is closed.
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
 export async function mountChrome(active = "") {
   document.documentElement.lang = getLang();
   const header = document.createElement("header");
@@ -136,7 +141,11 @@ export async function mountChrome(active = "") {
       syncThemeBtn();
     }
     const lb = e.target.closest("[data-lang]");
-    if (lb) { setLang(lb.dataset.lang); location.reload(); }
+    if (lb) {
+      setLang(lb.dataset.lang);
+      // signed-in players also get notifications in this language
+      getUser().then((u) => (u ? setMyLang(lb.dataset.lang) : null)).catch(() => {}).finally(() => location.reload());
+    }
     if (e.target.closest(".menu-btn")) {
       const open = $("#nav-links").classList.toggle("open");
       e.target.closest(".menu-btn").setAttribute("aria-expanded", String(open));
@@ -168,7 +177,11 @@ async function renderAuthSlot() {
   } else {
     try { const p = await myProfile(); setTz(p && p.tz ? p.tz : null); } catch (_) {}
     const org = await isOrganizer();
-    slot.innerHTML = `${org ? `<a class="btn sm ghost" href="/admin.html" data-i18n="nav.admin"></a> ` : ""}<a class="btn sm" href="/me.html" data-i18n="nav.me"></a>`;
+    slot.innerHTML = `${org ? `<a class="btn sm ghost" href="/admin.html" data-i18n="nav.admin"></a> ` : ""}<a class="btn sm" href="/me.html" id="me-btn"><span data-i18n="nav.me"></span><span class="badge" id="unread" hidden></span></a>`;
+    const setBadge = (n) => { const b = $("#unread"); if (!b) return; b.hidden = !n; b.textContent = n > 9 ? "9+" : String(n); };
+    unreadCount().then(setBadge).catch(() => {});
+    // live: a new notification bumps the badge and shows a short message
+    onMyNotification(user.id, (n) => { unreadCount().then(setBadge); toast(n.title); }).catch(() => {});
     const nav = $("#nav-links");
     const out = document.createElement("a");
     out.href = "#"; out.dataset.i18n = "nav.signout";

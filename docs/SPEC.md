@@ -35,6 +35,25 @@ All times are stored in UTC. Each player picks a **country** at sign-up (or late
 ### Admins
 Admins can add or remove other admins and organizers (by email or username; the person needs an account). Rules: you cannot remove yourself, and one admin must always remain. Every change is audited. Organizers manage only the tournaments they created.
 
+### Notifications
+Every notification is stored (site inbox on "My matches", always works) and, if the player turned it on, pushed to their phone (free web push; works with the site closed on Android; on iPhone after "Add to Home Screen"). Text follows the player's language (en / fr / rw) and times follow their country's time zone.
+
+| While still in the tournament | When |
+|---|---|
+| You're in | registration |
+| Fixtures are out + first match | admin publishes |
+| Next match (opponent, round, time) | both players known |
+| Match time changed | admin or system changes a time |
+| Match in 1 hour | 60 minutes before |
+| Your match code is ready | room opens (2 minutes before) |
+| Result (win / loss / draw, own score first) | match settled |
+| Match under review | sent to admin review |
+| Round finished (players left, or your league position) | round complete |
+| Champion | tournament completed |
+
+**Knocked out / not qualified:** one last notification with **Keep following** / **Stop**. No answer means stop. Followers keep getting tournament-wide updates (round finished, champion); personal ones end with their last match. Players can change their choice and turn phone notifications on or off at any time.
+Plumbing: database triggers create notifications; a database hook calls the `send-push` server function, which signs and encrypts the push (VAPID keys stored only as Supabase secrets) and removes phones that no longer exist. A 1-minute job sends reminders. A push failure never blocks a result or a registration.
+
 ## 4. Verification pipeline
 Foreground service (`mediaProjection`), persistent notification, ML Kit OCR on device, frame every 2 s, no frames uploaded. Only extracted fields are sent.
 
@@ -102,7 +121,7 @@ No entry fee, stake or subscription, so no consideration. Required: Terms, Priva
 Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
 
 ## 11. Decisions
-1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
+1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 24 Notifications: inbox always, phone push when turned on; full information while playing; one last notification with a keep/stop choice when eliminated; no answer = stop. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
 
 ## 12. Open items
 | # | Item | Blocks |
@@ -117,6 +136,7 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
 | O9 | Research the formats and tie-breaks of top leagues and cups, then adapt them (league phase, groups, two-leg ties) and refine the automatic schedule | next |
 | O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
+| O12 | Delete the old app's four server functions (`payment-webhook`, `mtn-request-to-pay`, `matchmaker`, `update-fx-rate`) and their secrets | now: security |
 | O11 | Player statistics (rank, points, what is needed to qualify) in the app and on the website | Phase 2 |
 
 ## 13. Build order

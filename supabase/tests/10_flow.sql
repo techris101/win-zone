@@ -685,6 +685,147 @@ begin
   perform pg_temp.ok((select count(*) from audit_logs where action in ('add_role', 'remove_role')) >= 4, 'role changes are audited');
 end $$;
 
+
+-- ============================================================ notifications
+do $$
+declare
+  t uuid; r jsonb; n int; fx record; s1 fixtures; s2 fixtures; fin fixtures; i int;
+  u uuid[] := array[]::uuid[]; w1 uuid; l1 uuid; w2 uuid; l2 uuid; blocked boolean;
+begin
+  for i in 1..4 loop
+    insert into tu values ('n' || i, pg_temp.mkuser('nplayer' || i));
+    u := u || pg_temp.u('n' || i);
+  end loop;
+  update profiles set lang = 'fr' where id = u[2];
+
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Notify Cup', 'notify-cup', 'football-1v1', 'knockout', 4, now() + interval '2 days');
+  perform set_tournament_status(t, 'open');
+  for i in 1..4 loop perform pg_temp.as_user(u[i]); perform register_for_tournament(t); end loop;
+
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'registered') = 4, 'every player is told they are in');
+  perform pg_temp.ok((select title from notifications where user_id = u[2] and kind = 'registered') like 'Inscription confirmée%', 'French player gets French text');
+  perform pg_temp.ok((select count(*) from tournament_follows where tournament_id = t and state = 'playing') = 4, 'all players follow while playing');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind like 'published%') = 0, 'nothing about fixtures while it is a draft');
+
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  perform publish_tournament(t);
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'published') = 4, 'publishing tells every player their first match');
+  perform pg_temp.ok((select url from notifications where user_id = u[1] and kind = 'published') like '/matchroom.html?f=%', 'it links to the matchroom');
+  perform pg_temp.ok((select body from notifications where user_id = u[1] and kind = 'published') ~ '\d\d/\d\d \d\d:\d\d', 'it shows the time in the player''s zone');
+
+  select * into s1 from fixtures where tournament_id = t and round = 1 and slot = 1;
+  select * into s2 from fixtures where tournament_id = t and round = 1 and slot = 2;
+
+  -- the admin moves a match: both players are told
+  r := reschedule_fixture(s1.id, now() + interval '3 days');
+  perform pg_temp.ok((select count(*) from notifications where fixture_id = s1.id and kind = 'rescheduled') = 2, 'time change reaches both players');
+
+  -- reminders: 1 hour before, then when the room opens; never twice
+  update fixtures set scheduled_at = now() + interval '40 minutes' where id = s1.id;
+  perform _notify_reminders(); perform _notify_reminders();
+  perform pg_temp.ok((select count(*) from notifications where fixture_id = s1.id and kind = 'reminder') = 2, 'one reminder each, no duplicates');
+  update fixtures set scheduled_at = now() + interval '60 seconds' where id = s1.id;
+  perform _notify_reminders(); perform _notify_reminders();
+  perform pg_temp.ok((select count(*) from notifications where fixture_id = s1.id and kind = 'room_open') = 2, 'code-ready notice when the room opens');
+
+  -- semi-final 1: A wins. Results for both, the loser gets the last notification with a choice
+  w1 := s1.player_a_id; l1 := s1.player_b_id;
+  update fixtures set kickoff_at = now(), status = 'active' where id = s1.id;
+  perform pg_temp.terminal(s1.id, w1, 'result', 2, 0, null, null, 5400);
+  perform pg_temp.terminal(s1.id, l1, 'result', 0, 2, null, null, 5400);
+  perform _finalize(s1.id, null);
+  perform pg_temp.ok((select kind from notifications where user_id = w1 and fixture_id = s1.id and kind like 'result%') = 'result_win', 'winner told they won');
+  perform pg_temp.ok((select title from notifications where user_id = l1 and fixture_id = s1.id and kind = 'result_loss') like '%0-2', 'loser sees their own score first (0-2)');
+  perform pg_temp.ok((select actions from notifications where user_id = l1 and kind = 'knocked_out') -> 0 ->> 'action' = 'follow', 'knocked-out notice carries Keep following / Stop');
+  perform pg_temp.ok((select state from tournament_follows where user_id = l1 and tournament_id = t) = 'asked', 'loser is asked, not auto-followed');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'round_complete_ko') = 0, 'round not complete yet');
+
+  -- the first loser keeps following
+  perform pg_temp.as_user(l1);
+  perform pg_temp.ok(set_follow(t, true) ->> 'state' = 'following', 'loser chooses to keep following');
+
+  -- semi-final 2: the second loser does not answer
+  w2 := s2.player_a_id; l2 := s2.player_b_id;
+  update fixtures set kickoff_at = now(), status = 'active' where id = s2.id;
+  perform pg_temp.terminal(s2.id, w2, 'result', 1, 0, null, null, 5400);
+  perform pg_temp.terminal(s2.id, l2, 'result', 0, 1, null, null, 5400);
+  perform _finalize(s2.id, null);
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'round_complete_ko') = 3, 'round update to the 2 still playing + 1 follower');
+  perform pg_temp.ok(not exists (select 1 from notifications where user_id = l2 and kind = 'round_complete_ko'), 'no answer = no more updates');
+  select * into fin from fixtures where tournament_id = t and round = 2;
+  perform pg_temp.ok((select count(*) from notifications where fixture_id = fin.id and kind = 'next_match') = 2, 'finalists get their next match');
+  perform pg_temp.ok((select body from notifications where user_id = w1 and kind = 'next_match') like '%Final%'
+                  or (select body from notifications where user_id = w1 and kind = 'next_match') like '%Finale%', 'next match names the round');
+
+  -- second loser now says stop explicitly
+  perform pg_temp.as_user(l2);
+  perform pg_temp.ok(set_follow(t, false) ->> 'state' = 'stopped', 'loser can stop');
+
+  -- final
+  update fixtures set kickoff_at = now(), status = 'active' where id = fin.id;
+  perform pg_temp.terminal(fin.id, fin.player_a_id, 'result', 3, 1, null, null, 5400);
+  perform pg_temp.terminal(fin.id, fin.player_b_id, 'result', 1, 3, null, null, 5400);
+  perform _finalize(fin.id, null);
+  perform pg_temp.ok(exists (select 1 from notifications where user_id = fin.player_a_id and kind = 'champion_you'), 'the champion is told');
+  perform pg_temp.ok(exists (select 1 from notifications where user_id = l1 and kind = 'champion'), 'the follower hears who won');
+  perform pg_temp.ok(not exists (select 1 from notifications where user_id = l2 and kind = 'champion'), 'the one who stopped hears nothing');
+
+  -- privacy and permissions
+  perform pg_temp.as_user(u[1]);
+  set local role authenticated;
+  select count(*) into n from notifications;
+  reset role;
+  perform pg_temp.ok(n = (select count(*) from notifications where user_id = u[1]) and n > 0, 'players read only their own notifications');
+  blocked := false; set local role authenticated;
+  begin insert into notifications (user_id, kind, title, body, dedupe_key) values (u[1], 'x', 'x', 'x', 'x'); exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'clients cannot create notifications');
+  perform pg_temp.ok(mark_notifications_read(null) = n, 'mark all as read');
+  perform pg_temp.ok(not exists (select 1 from notifications where user_id = u[1] and read_at is null), 'all read');
+
+  perform pg_temp.ok(save_push_subscription('http://insecure', 'k', 'a') ->> 'reason' = 'bad_subscription', 'only https push endpoints');
+  perform pg_temp.ok((save_push_subscription('https://push.example/abc', 'key', 'auth', 'test') ->> 'ok')::boolean, 'phone subscription saved');
+  perform pg_temp.as_user(u[2]);
+  perform delete_push_subscription('https://push.example/abc');
+  perform pg_temp.ok((select count(*) from push_subscriptions where endpoint = 'https://push.example/abc') = 1, 'someone else cannot remove my phone');
+  blocked := false; set local role authenticated;
+  begin perform 1 from push_subscriptions limit 1; exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'push subscriptions are unreachable from the API');
+  -- a new notification for a user with a phone must not fail without a push sender configured
+  perform _notify(u[1], t, null, 'registered', '{}', 'test:push');
+  perform pg_temp.ok(exists (select 1 from notifications where user_id = u[1] and dedupe_key = 'test:push'), 'notification stored even when push is not configured');
+  perform pg_temp.as_user(u[1]);
+  perform delete_push_subscription('https://push.example/abc');
+  perform pg_temp.ok((select count(*) from push_subscriptions where endpoint = 'https://push.example/abc') = 0, 'I can remove my phone');
+  perform pg_temp.ok((set_my_lang('rw') ->> 'ok')::boolean, 'language accepted');
+  perform pg_temp.ok((select lang from profiles where id = u[1]) = 'rw', 'language saved');
+  perform pg_temp.ok(set_my_lang('de') ->> 'ok' = 'false', 'unknown language rejected');
+end $$;
+
+-- league + knockout: those who miss the cut are told, with the same choice
+do $$
+declare t uuid; fx record; i int; u uuid[] := array[pg_temp.u('n1'), pg_temp.u('n2'), pg_temp.u('n3'), pg_temp.u('n4')];
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Notify League', 'notify-league', 'football-1v1', 'league_knockout', 8, now() + interval '2 days', null, 2);
+  perform set_tournament_status(t, 'open');
+  for i in 1..4 loop perform pg_temp.as_user(u[i]); perform register_for_tournament(t); end loop;
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  perform generate_tournament(t); perform publish_tournament(t);
+  for fx in select * from fixtures where tournament_id = t and stage = 'league' order by round, slot loop
+    update fixtures set kickoff_at = now(), status = 'active' where id = fx.id;
+    perform pg_temp.terminal(fx.id, fx.player_a_id, 'result', 2, 0, null, null, 5400);
+    perform pg_temp.terminal(fx.id, fx.player_b_id, 'result', 0, 2, null, null, 5400);
+    perform _finalize(fx.id, null);
+  end loop;
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'not_qualified') = 2, 'the two who missed the cut are told');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'round_complete_league') >= 4, 'league round updates with position');
+  perform pg_temp.ok(exists (select 1 from notifications where tournament_id = t and kind = 'round_complete_league' and body like '%#1 with%' or body like '%1e avec%'), 'position is in the update');
+  perform pg_temp.ok((select count(*) from notifications where tournament_id = t and kind = 'next_match') = 2, 'the two qualifiers get their knockout match');
+end $$;
+
 -- ============================================================ existing accounts, no age gate
 do $$
 declare t uuid; r jsonb; v int;
@@ -806,6 +947,12 @@ begin
   begin perform public._submit_screen_state(a, f, 'in_play', 0, 0, null, null, 1, 99, null); exception when insufficient_privilege then blocked := true; end;
   reset role;
   perform pg_temp.ok(blocked, 'the internal submit function cannot be called with a chosen user id');
+end $$;
+
+do $$ begin
+  perform pg_temp.ok(has_table_privilege('service_role', 'public.notifications', 'SELECT')
+                 and has_table_privilege('service_role', 'public.push_subscriptions', 'DELETE'), 'server functions can read notifications and remove dead phones');
+  perform pg_temp.ok(not has_table_privilege('anon', 'public.push_subscriptions', 'SELECT'), 'visitors still cannot');
 end $$;
 
 select 'database tests: all assertions passed' as result;

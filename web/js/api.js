@@ -85,7 +85,7 @@ export async function getUser() {
 export async function signUp({ email, password, username, country }) {
   if (!LIVE) NOT_CONNECTED();
   const c = await sb();
-  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username, country } } }));
+  return ok(await c.auth.signUp({ email, password, options: { data: { username, display_name: username, country, lang: (typeof localStorage !== "undefined" && localStorage.getItem("wz_lang")) || "en" } } }));
 }
 export async function signIn({ email, password }) {
   if (!LIVE) NOT_CONNECTED();
@@ -169,4 +169,33 @@ export async function editableFixtures(tid) {
   const c = await sb();
   return ok(await c.from("fixtures").select("id,stage,round,slot,status,scheduled_at,player_a_id,player_b_id")
     .eq("tournament_id", tid).order("scheduled_at", { nullsFirst: false }).order("round").order("slot"));
+}
+
+// ------------------------------------------------------------------ notifications
+export async function myNotifications(limit = 40) {
+  const c = await sb();
+  return ok(await c.from("notifications").select("id,kind,title,body,url,actions,tournament_id,created_at,read_at")
+    .order("created_at", { ascending: false }).limit(limit));
+}
+export async function unreadCount() {
+  if (!LIVE) return 0;
+  const c = await sb();
+  const { count, error } = await c.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
+  if (error) return 0;
+  return count || 0;
+}
+export async function myFollows() {
+  const c = await sb();
+  return ok(await c.from("tournament_follows").select("tournament_id,state"));
+}
+export const markAllRead = () => rpc("mark_notifications_read", { p_ids: null });
+export const setFollow = (tid, follow) => rpc("set_follow", { p_tid: tid, p_follow: follow });
+export const savePush = (endpoint, p256dh, auth, ua) => rpc("save_push_subscription", { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth, p_ua: ua });
+export const deletePush = (endpoint) => rpc("delete_push_subscription", { p_endpoint: endpoint });
+export const setMyLang = (lang) => rpc("set_my_lang", { p_lang: lang });
+export async function onMyNotification(uid, cb) {
+  if (!LIVE) return () => {};
+  const c = await sb();
+  const ch = c.channel(`n-${uid}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, (p) => cb(p.new)).subscribe();
+  return () => c.removeChannel(ch);
 }

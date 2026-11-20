@@ -368,3 +368,13 @@ table.std { width: 100%; border-collapse: collapse; min-width: 560px; }
 .adm-row small { color: var(--mute); display: block; }
 details.a-set > summary { cursor: pointer; font: 700 0.85rem var(--display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
 @media (max-width: 700px) { .fx-edit, .adm-row { grid-template-columns: 1fr; } }
+
+/* ---------------------------------------------------------------- notifications */
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-left: 8px;
+  background: var(--ink); color: var(--volt); font: 700 0.75rem/1 var(--display); letter-spacing: 0; }
+.notif-list { border-top: 1px solid var(--line); }
+.notif { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 18px 0 18px 16px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; }
+.notif.unread { border-left-color: var(--accent-text); background: var(--bg2); }
+.notif p { margin: 4px 0 6px; color: var(--fg2); }
+.notif small { color: var(--mute); }
+.notif .arrow { font: 700 1.6rem/1 var(--display); text-decoration: none; align-self: center; padding-right: 8px; }
