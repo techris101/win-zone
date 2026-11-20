@@ -75,6 +75,14 @@ Plumbing: database triggers create notifications; a database hook calls the `sen
   "potm":    { "player": "Messi", "team": "me", "rating": "8.9" } }
 ```
 
+### Players and rankings
+- **Players page** (`/players.html`, `rankings`): every player with at least one finished match, ranked by titles, then points (3/1/0 from all matches), win rate, goal difference. Search by name or team.
+- **Player page** (`/p/<username>`, `public_player`): name, in-game team name, world rank, career numbers, tournaments (with titles marked) and the last 10 results. Country stays private. Names in tables link to player pages.
+- **Team name:** each player saves their in-game team name (My matches page, or the app). The app uses it to know which side of the result screen is theirs; it is public on leaderboards.
+
+### Admin "describe the tournament" box
+The admin writes the tournament in plain words (English, French or Kinyarwanda), for example *"Kigali Cup" knockout for 16 players on 5 December at 18:00, fast. Prize: headphones*. A free, rule-based reader (`web/js/describe.js`, tested in CI) fills the creation form: name (in quotes), players, format, players who advance, matches per player, start date and time, speed and prize. Anything not found is filled from the recommendation and marked "assumed, please check". The admin reviews and creates; "Open registration right away" publishes the tournament page at once.
+
 ## 4. Verification pipeline
 Foreground service (`mediaProjection`), persistent notification, ML Kit OCR on device, frame every 2 s, no frames uploaded. Only extracted fields are sent.
 
@@ -156,8 +164,12 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O7 | Kinyarwanda strings reviewed by a native speaker | launch |
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
 | O9 | Research done and proposals A, B, C approved and built (migration 0010) | done |
-| O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
+| O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | done |
 | O12 | Old app's leftovers removed from the live project (2026-11-20); nothing money-related remains | done |
+| O13 | Sponsor placements UI (tables exist, unused) | later, owner decision |
+| O14 | Dispute evidence upload (the text dispute form exists) | later, owner decision |
+| O15 | Demo mode with bot players | later, owner decision |
+| O16 | Responsible play (self-pause) and country blocking | later, owner decision |
 | O11 | Player statistics: website done (migration 0011); app screens in Phase 2 | partly done |
 
 ## 13. Build order

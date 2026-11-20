@@ -68,6 +68,13 @@ export function nameOf(profiles, id) {
   const p = profiles[id];
   return p ? p.display_name || p.username : "…";
 }
+// a player's name linking to their public page
+export function playerLink(profiles, id) {
+  const p = id && profiles[id];
+  if (!p) return esc(nameOf(profiles, id) || "");
+  return `<a class="plink" href="/p/${encodeURIComponent(p.username)}">${esc(p.display_name || p.username)}</a>`;
+}
+
 export function toast(msg, kind = "") {
   let host = $(".toast-host");
   if (!host) { host = document.createElement("div"); host.className = "toast-host"; host.setAttribute("role", "status"); document.body.append(host); }
@@ -81,7 +88,7 @@ export function errMsg(e) {
   return (e && e.message) || t("c.error");
 }
 
-const NAV = [["/#tournaments", "nav.tournaments"], ["/#how", "nav.how"], ["/organizers.html", "nav.organizers"]];
+const NAV = [["/#tournaments", "nav.tournaments"], ["/players.html", "nav.players"], ["/#how", "nav.how"], ["/organizers.html", "nav.organizers"]];
 
 // The service worker shows notifications on the phone even when the site is closed.
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {

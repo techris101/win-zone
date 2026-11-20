@@ -27,6 +27,14 @@
   <div id="admin-gate" class="empty" data-i18n="c.loading"></div>
   <div class="admin-grid" id="admin-main" hidden>
     <aside>
+      <div class="a-card"><header><b>Describe it</b></header>
+        <div class="a-body">
+          <div class="field"><label for="brief">Describe the tournament in your words</label>
+            <textarea id="brief" rows="5" placeholder='Example: "Kigali Cup" knockout for 16 players on 5 December at 18:00, fast. Prize: headphones'></textarea>
+            <div class="hint">English, French or Kinyarwanda. Put the name in quotes. I fill in the form below; you check it before creating.</div></div>
+          <button class="btn sm" type="button" id="read-brief">Read it</button>
+          <div id="brief-out"></div>
+        </div></div>
       <div class="a-card"><header><b>New tournament</b></header>
         <form id="new-t" class="a-body">
           <div class="field"><label for="n-name">Name</label><input id="n-name" required maxlength="60"></div>
@@ -48,6 +56,7 @@
             <select id="n-speed"><option value="standard">Standard: a round every 48 hours</option><option value="fast">Fast: a round every 24 hours</option><option value="oneday">One-day event: a round every 45 minutes</option></select></div>
           <div class="field"><label for="n-start">Starts (optional)</label><input id="n-start" type="datetime-local"></div>
           <div class="field"><label for="n-prize">Prize (non-cash)</label><input id="n-prize" maxlength="120"></div>
+          <label class="check"><input id="n-open" type="checkbox" checked><span>Open registration right away (the tournament page goes public)</span></label>
           <div id="n-msg" role="alert"></div>
           <button class="btn" type="submit">Create</button>
         </form></div>

@@ -34,9 +34,11 @@ jobs:
           node-version: 22
       - name: JavaScript syntax
         run: for f in web/js/*.js web/sw.js; do node --check "$f"; done
+      - name: Tournament description reader
+        run: node web/js/describe.test.mjs
       - name: Required files
         run: |
-          for f in index.html t/index.html auth.html me.html matchroom.html admin.html organizers.html terms.html privacy.html contact.html 404.html _redirects _headers sw.js manifest.webmanifest; do
+          for f in index.html t/index.html auth.html me.html matchroom.html admin.html organizers.html terms.html privacy.html contact.html 404.html _redirects _headers sw.js manifest.webmanifest players.html p/index.html; do
             test -f "web/$f" || { echo "missing web/$f"; exit 1; }
           done
       - name: Public pages must not name the game

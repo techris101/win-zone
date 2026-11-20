@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, chooseCountryAndSave, toast } from "./ui.js";
-import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush } from "./api.js";
+import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, setMyTeamName, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush } from "./api.js";
 import { CONFIG } from "./config.js";
 import { statusText } from "./bracket.js";
 
@@ -142,3 +142,16 @@ async function renderMyStats() {
   $("#my-race").innerHTML = lines.join("");
 }
 if (user) renderMyStats().catch(() => {});
+
+// ---------------------------------------------------------------- my team name (the app uses it to find my side of the screen)
+if (user) {
+  myProfile().then((p) => { if (p && p.team_name) $("#team-name").value = p.team_name; }).catch(() => {});
+  $("#team-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const r = await setMyTeamName($("#team-name").value);
+      if (!r.ok) throw new Error(r.reason === "bad_name" ? "Use 2 to 30 characters." : r.reason);
+      $("#team-name").value = r.team_name; toast(t("me.teamsaved"));
+    } catch (err) { toast(errMsg(err), "err"); }
+  });
+}

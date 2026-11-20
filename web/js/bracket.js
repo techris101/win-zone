@@ -1,4 +1,4 @@
-import { esc, nameOf, fmtDate, t } from "./ui.js";
+import { esc, nameOf, fmtDate, t, playerLink } from "./ui.js";
 
 export function roundLabel(round, rounds) {
   const left = rounds - round;
@@ -56,7 +56,7 @@ export function renderTable(rows, profiles, advance = 0, zones = null) {
   const legend = zones ? `<p class="mute small zone-legend"><span class="zl adv"></span>${esc(t("t.zdirect"))} <span class="zl po"></span>${esc(t("t.zplayoff"))}</p>` : "";
   return `${legend}<div class="table-wrap"><table class="std"><thead><tr>
     <th>${t("tb.rank")}</th><th>${t("tb.player")}</th><th>${t("tb.p")}</th><th>${t("tb.w")}</th><th>${t("tb.d")}</th><th>${t("tb.l")}</th><th>${t("tb.gd")}</th><th>${t("tb.pts")}</th></tr></thead><tbody>
-    ${rows.map((r) => `<tr class="${zoneOf(r)}"><td>${r.rank}</td><td>${esc(nameOf(profiles, r.user_id))}</td>
+    ${rows.map((r) => `<tr class="${zoneOf(r)}"><td>${r.rank}</td><td>${playerLink(profiles, r.user_id)}</td>
       <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td class="pts">${r.points}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
@@ -68,9 +68,9 @@ export function renderFixtures(fixtures, profiles) {
   return `<div class="fx-list">${list.map((f) => {
     const done = f.status === "completed";
     return `<div class="fx"><span class="when">${esc(f.scheduled_at ? fmtDate(f.scheduled_at) : "—")}</span>
-      <span class="p r ${done && f.winner_id === f.player_a_id ? "w" : ""}">${esc(nameOf(profiles, f.player_a_id))}</span>
+      <span class="p r ${done && f.winner_id === f.player_a_id ? "w" : ""}">${playerLink(profiles, f.player_a_id)}</span>
       <span class="score">${done ? `${f.score_a}–${f.score_b}` : "v"}</span>
-      <span class="p ${done && f.winner_id === f.player_b_id ? "w" : ""}">${esc(nameOf(profiles, f.player_b_id))}</span>
+      <span class="p ${done && f.winner_id === f.player_b_id ? "w" : ""}">${playerLink(profiles, f.player_b_id)}</span>
       <span class="st"><span class="pill ${f.status === "active" ? "live" : ""}">${esc(t("fx." + f.status))}</span></span></div>`;
   }).join("")}</div>`;
 }
@@ -78,7 +78,7 @@ export function renderFixtures(fixtures, profiles) {
 export function renderPlayers(entries, profiles) {
   if (!entries.length) return `<div class="empty">—</div>`;
   const list = [...entries].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999));
-  return `<div class="players-grid">${list.map((e) => `<div class="pl"><span class="s">${e.seed ?? ""}</span>${esc(nameOf(profiles, e.user_id))}</div>`).join("")}</div>`;
+  return `<div class="players-grid">${list.map((e) => `<div class="pl"><span class="s">${e.seed ?? ""}</span>${playerLink(profiles, e.user_id)}</div>`).join("")}</div>`;
 }
 
 export function groupLetter(n) { return String.fromCharCode(64 + Number(n)); }
@@ -112,7 +112,7 @@ export function renderRace(rows, profiles, format) {
   const showTable = rows.some((r) => r.pos != null);
   return `<div class="table-wrap"><table class="std race"><thead><tr>
       <th>${showTable ? t("tb.rank") : ""}</th><th>${t("tb.player")}</th>${showTable ? `<th>${t("tb.pts")}</th><th>${t("s.max")}</th>` : ""}<th>${t("s.form")}</th><th>${t("s.status")}</th></tr></thead><tbody>
-    ${rows.map((r) => `<tr><td>${r.pos ?? ""}</td><td>${esc(nameOf(profiles, r.user_id))}${r.group_no ? ` <span class="mute small">${esc(t("t.group"))} ${groupLetter(r.group_no)}</span>` : ""}</td>
+    ${rows.map((r) => `<tr><td>${r.pos ?? ""}</td><td>${playerLink(profiles, r.user_id)}${r.group_no ? ` <span class="mute small">${esc(t("t.group"))} ${groupLetter(r.group_no)}</span>` : ""}</td>
       ${showTable ? `<td class="pts">${r.points}</td><td>${r.max_points}</td>` : ""}
       <td class="frm">${(r.form || "").split("").map((c) => `<i class="f-${c}">${c}</i>`).join("")}</td>
       <td class="st"><span class="tag ${cls(r.status)}">${esc(statusText(r, format))}</span></td></tr>`).join("")}

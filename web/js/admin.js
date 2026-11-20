@@ -1,4 +1,5 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, nameOf, wallToUtc, utcToWall } from "./ui.js";
+import { parseBrief } from "./describe.js";
 import { LIVE, getUser, isOrganizer, isAdmin, listManaged, createTournament, setTournamentStatus, generateTournament, publishTournament,
          reopenRegistration, updateTournament, rescheduleFixture, editableFixtures, getProfiles, listCountries, listAdmins, addRole, removeRole,
          resolveFixture, listAttention } from "./api.js";
@@ -44,6 +45,35 @@ function wireForm() {
   size.addEventListener("input", syncFormat);
   fmt.addEventListener("change", () => { fmtTouched = true; syncFormat(); });
   syncFormat();
+
+  // "Describe it": read the text, fill the form, show what was understood and what was assumed
+  $("#read-brief").addEventListener("click", () => {
+    const { draft, found } = parseBrief($("#brief").value);
+    const pad = (n) => String(n).padStart(2, "0");
+    const local = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    if (draft.name) { name.value = draft.name; slug.value = draft.slug; touched = true; hint(); }
+    size.value = draft.size;
+    fmt.value = draft.format; fmtTouched = found.format;
+    if (draft.advance) $("#n-adv").value = String(draft.advance);
+    if (draft.rounds) $("#n-rounds").value = String(draft.rounds);
+    $("#n-speed").value = draft.speed;
+    $("#n-start").value = draft.starts_at ? local(draft.starts_at) : "";
+    $("#n-prize").value = draft.prize;
+    syncFormat();
+    const row = (label, value, ok) => `<li><b>${esc(label)}:</b> ${esc(value)} <span class="mute small">${ok ? "· read from your text" : "· assumed, please check"}</span></li>`;
+    $("#brief-out").innerHTML = `<ul class="brief-list">
+      ${row("Name", draft.name || "(missing)", found.name)}
+      ${row("Players", draft.size, found.size)}
+      ${row("Format", FORMAT_NAMES[draft.format] + (found.format ? "" : " (recommended for this size)"), found.format)}
+      ${draft.format === "league_knockout" ? row("Players who advance", draft.advance || 4, found.advance) : ""}
+      ${draft.format === "league_phase" ? row("Matches per player", draft.rounds || "automatic", found.rounds) : ""}
+      ${row("Starts", draft.starts_at ? draft.starts_at.toLocaleString() : "not set", found.starts)}
+      ${row("Speed", { standard: "Standard (48 h)", fast: "Fast (24 h)", oneday: "One-day (45 min)" }[draft.speed], found.speed)}
+      ${row("Prize", draft.prize || "none", found.prize)}</ul>
+      <p class="mute small">The form below is filled in. Change anything, then press Create.</p>`;
+    $("#n-name").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
   $("#new-t").addEventListener("submit", async (e) => {
     e.preventDefault();
     const msg = $("#n-msg"); say(msg, "");
@@ -54,7 +84,9 @@ function wireForm() {
       if (fmt.value === "league_phase" && $("#n-rounds").value) patch.phase_rounds = Number($("#n-rounds").value);
       const r = await updateTournament(tid, patch);
       if (!r.ok) throw new Error(r.reason);
-      toast("Tournament created"); e.target.reset(); touched = false; fmtTouched = false; hint(); syncFormat(); await loadManaged();
+      if ($("#n-open").checked) await setTournamentStatus(tid, "open");
+      toast($("#n-open").checked ? "Tournament created and open for registration" : "Tournament created as a draft");
+      $("#brief-out").innerHTML = ""; $("#brief").value = ""; e.target.reset(); touched = false; fmtTouched = false; hint(); syncFormat(); await loadManaged();
     } catch (err) { say(msg, /duplicate/.test(err.message) ? "That link name is taken." : errMsg(err)); }
   });
 }

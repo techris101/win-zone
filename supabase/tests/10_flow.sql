@@ -1151,6 +1151,58 @@ begin
   perform pg_temp.ok(blocked, 'raw reports are private');
 end $$;
 
+
+-- ============================================================ 0012: team names, app support, rankings, player pages
+do $$
+declare t uuid; fx fixtures; r jsonb; code text; pass text; a uuid := pg_temp.u('g17'); b uuid := pg_temp.u('g18'); v timestamptz;
+begin
+  -- team names (the app uses them to know which side of the screen is yours)
+  perform pg_temp.as_user(a);
+  perform pg_temp.ok(set_my_team_name('x') ->> 'reason' = 'bad_name', 'team name too short rejected');
+  perform pg_temp.ok(set_my_team_name('  dream   fc ') ->> 'team_name' = 'DREAM FC', 'team name cleaned and saved');
+  perform pg_temp.ok(my_profile() ->> 'team_name' = 'DREAM FC', 'my profile shows the team name');
+
+  -- the app's handoff now carries the tournament, both team names; the profile rules are available with the pass
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('App Cup', 'app-cup', 'football-1v1', 'knockout', 2);
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, a), (t, b);
+  perform publish_tournament(t);
+  select * into fx from fixtures where tournament_id = t;
+  update fixtures set scheduled_at = now() + interval '60 seconds' where id = fx.id;
+  perform pg_temp.as_user(a);
+  code := create_app_handoff(fx.id) ->> 'code';
+  perform pg_temp.as_user(null);
+  r := redeem_app_handoff(code);
+  pass := r ->> 'pass';
+  perform pg_temp.ok((r ->> 'tournament_id')::uuid = t and r ->> 'my_team' = 'DREAM FC' and r ? 'opp_team', 'handoff carries tournament and team names');
+  perform pg_temp.ok((set_team_name_pass(pass, 'harmou fc') ->> 'ok')::boolean, 'app can set the team name with its pass');
+  perform pg_temp.ok((select team_name from profiles where id = a) = 'HARMOU FC', 'team name saved from the app');
+  perform pg_temp.ok((game_profile_pass(pass) -> 'profile' ->> 'version')::int = 1, 'screen-reading rules come from the server');
+  perform pg_temp.ok(game_profile_pass('nope') ->> 'reason' = 'invalid_pass', 'rules need a valid pass');
+
+  -- kickoff works even if the clock cannot be read
+  perform pg_temp.as_user(a); perform submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 1);
+  perform pg_temp.as_user(b); perform submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 1);
+  update match_latest_state set in_play_since = now() - interval '8 seconds' where fixture_id = fx.id;
+  r := submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 2);
+  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff without a readable clock');
+
+end $$;
+
+-- rankings and public player pages
+do $$
+declare r jsonb; top uuid;
+begin
+  perform pg_temp.ok((select count(*) from rankings(500, null)) > 0, 'rankings list players with matches');
+  select user_id into top from rankings(1, null);
+  perform pg_temp.ok((select titles from rankings(500, null) where user_id = top) >= (select max(titles) from rankings(500, null)), 'most titles ranks first');
+  perform pg_temp.ok((select count(*) from rankings(500, 'gplayer1')) >= 1 and (select bool_and(username ilike '%gplayer1%') from rankings(500, 'gplayer1')), 'search by name');
+  r := public_player((select username from profiles where id = top));
+  perform pg_temp.ok((r ->> 'ok')::boolean and r ? 'career' and jsonb_array_length(r -> 'recent') > 0 and (r ->> 'rank')::int = 1, 'player page: career, recent results, rank');
+  perform pg_temp.ok(public_player('nobody_here') ->> 'reason' = 'not_found', 'unknown player');
+end $$;
+
 -- ============================================================ existing accounts, no age gate
 do $$
 declare t uuid; r jsonb; v int;

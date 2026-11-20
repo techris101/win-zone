@@ -414,3 +414,19 @@ table.race td.st { text-align: right; }
 table.race td.frm { white-space: nowrap; text-align: left; }
 table.race td.frm { min-width: 120px; }
 table.race th:nth-child(5) { text-align: left; }
+
+/* ---------------------------------------------------------------- players */
+a.plink { text-decoration: none; color: inherit; border-bottom: 1px solid transparent; }
+a.plink:hover { border-bottom-color: var(--accent-text); color: inherit; }
+.p-head { padding: clamp(40px, 6vw, 72px) 0 28px; border-bottom: 1px solid var(--line); }
+.p-head h1 { font-size: clamp(2.8rem, 8vw, 5.6rem); margin-bottom: 8px; }
+.p-team { font: 700 1.1rem var(--display); letter-spacing: 0.12em; color: var(--accent-text); text-transform: uppercase; }
+.p-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 36px; padding-bottom: 80px; }
+.res { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.res .r { font: 800 1rem/28px var(--display); text-align: center; }
+.res .r.W { background: var(--accent-text); color: var(--bg); } .res .r.D { background: var(--line); } .res .r.L { background: var(--fg); color: var(--bg); }
+.res small { display: block; color: var(--mute); }
+.res .sc { font: 800 1.3rem/1 var(--display); font-variant-numeric: tabular-nums; }
+@media (max-width: 800px) { .p-cols { grid-template-columns: 1fr; } }
+
+.brief-list { margin: 6px 0 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 0.95rem; }

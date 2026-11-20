@@ -61,7 +61,7 @@ export async function getProfiles(ids) {
   if (!LIVE) return DEMO.profiles;
   if (!uniq.length) return {};
   const c = await sb();
-  const rows = ok(await c.from("profiles").select("id,username,display_name").in("id", uniq));
+  const rows = ok(await c.from("profiles").select("id,username,display_name,team_name").in("id", uniq));
   return Object.fromEntries(rows.map((r) => [r.id, r]));
 }
 
@@ -206,3 +206,8 @@ export async function onMyNotification(uid, cb) {
 export async function playerStats(tid) { if (!LIVE) return []; return rpc("player_stats", { p_tid: tid }); }
 export async function leaders(tid, kind, limit = 10) { if (!LIVE) return []; return rpc("footballer_leaders", { p_tid: tid, p_kind: kind, p_limit: limit }); }
 export async function careerStats(uid) { if (!LIVE) return null; return rpc("career_stats", { p_user: uid }); }
+
+// ------------------------------------------------------------------ players
+export async function rankings(search = null, limit = 200) { if (!LIVE) return []; return rpc("rankings", { p_limit: limit, p_search: search || null }); }
+export async function publicPlayer(username) { if (!LIVE) return { ok: false, reason: "not_connected" }; return rpc("public_player", { p_username: username }); }
+export const setMyTeamName = (name) => rpc("set_my_team_name", { p_name: name });

@@ -4,7 +4,7 @@ export const LANGS = ["en", "fr", "rw"];
 
 const D = {
   en: {
-    "nav.tournaments": "Tournaments", "nav.how": "How it works", "nav.organizers": "Organizers",
+    "nav.tournaments": "Tournaments", "nav.players": "Players", "pl.eyebrow": "Rankings", "pl.title": "Players", "pl.lede": "Every WIN ZONE player, ranked by titles, then points from all their matches.", "pl.search": "Search a player or team", "pl.titles": "Titles", "pl.played": "Played", "pl.winrate": "Win %", "pl.none": "No ranked players yet. Rankings start with the first finished match.", "p.since": "Member since", "p.rank": "World rank", "p.tournaments": "Tournaments", "p.recent": "Recent results", "p.notfound": "We could not find that player.", "p.team": "Team", "p.champion": "Champion", "me.team": "Your team name in the game", "me.teamhint": "Write it exactly as the game shows it. The app uses it to know which side of the screen is yours.", "me.teamsaved": "Team name saved", "nav.how": "How it works", "nav.organizers": "Organizers",
     "nav.signin": "Sign in", "nav.signup": "Register", "nav.me": "My matches", "nav.signout": "Sign out", "nav.admin": "Admin",
     "nav.menu": "Menu", "nav.dark": "Switch to dark mode", "nav.light": "Switch to light mode",
     "hero.kicker": "Free 1v1 football tournaments",
@@ -44,7 +44,7 @@ const D = {
     "c.loading": "Loading", "c.error": "Something went wrong. Try again.", "c.sample": "Sample data. The live service is not connected yet.",
   },
   fr: {
-    "nav.tournaments": "Tournois", "nav.how": "Comment ça marche", "nav.organizers": "Organisateurs",
+    "nav.tournaments": "Tournois", "nav.players": "Joueurs", "pl.eyebrow": "Classement", "pl.title": "Joueurs", "pl.lede": "Tous les joueurs WIN ZONE, classés par titres puis par points sur tous leurs matchs.", "pl.search": "Chercher un joueur ou une équipe", "pl.titles": "Titres", "pl.played": "Joués", "pl.winrate": "% victoires", "pl.none": "Aucun joueur classé pour le moment. Le classement commence au premier match terminé.", "p.since": "Membre depuis", "p.rank": "Rang mondial", "p.tournaments": "Tournois", "p.recent": "Derniers résultats", "p.notfound": "Joueur introuvable.", "p.team": "Équipe", "p.champion": "Champion", "me.team": "Nom de votre équipe dans le jeu", "me.teamhint": "Écrivez-le exactement comme le jeu l'affiche. L'application s'en sert pour savoir quel côté de l'écran est le vôtre.", "me.teamsaved": "Nom d'équipe enregistré", "nav.how": "Comment ça marche", "nav.organizers": "Organisateurs",
     "nav.signin": "Connexion", "nav.signup": "S'inscrire", "nav.me": "Mes matchs", "nav.signout": "Déconnexion", "nav.admin": "Admin", "nav.menu": "Menu", "nav.dark": "Passer en mode sombre", "nav.light": "Passer en mode clair",
     "hero.kicker": "Tournois de football 1v1 gratuits",
     "hero.title": "Chaque match. <em>Un seul tableau.</em>",
@@ -83,7 +83,7 @@ const D = {
     "c.loading": "Chargement", "c.error": "Une erreur est survenue. Réessayez.", "c.sample": "Données d'exemple. Le service n'est pas encore connecté.",
   },
   rw: {
-    "nav.tournaments": "Amarushanwa", "nav.how": "Uko bikora", "nav.organizers": "Abategura",
+    "nav.tournaments": "Amarushanwa", "nav.players": "Abakinnyi", "pl.eyebrow": "Urutonde", "pl.title": "Abakinnyi", "pl.lede": "Abakinnyi bose ba WIN ZONE, bakurikiranye hakurikijwe ibikombe hanyuma amanota y'imikino yabo yose.", "pl.search": "Shakisha umukinnyi cyangwa ikipe", "pl.titles": "Ibikombe", "pl.played": "Yakinnye", "pl.winrate": "% yo gutsinda", "pl.none": "Nta mukinnyi uri ku rutonde. Urutonde rutangira nyuma y'umukino wa mbere urangiye.", "p.since": "Umunyamuryango kuva", "p.rank": "Umwanya ku isi", "p.tournaments": "Amarushanwa", "p.recent": "Ibisubizo biheruka", "p.notfound": "Ntitwabonye uwo mukinnyi.", "p.team": "Ikipe", "p.champion": "Uwegukanye", "me.team": "Izina ry'ikipe yawe mu mukino", "me.teamhint": "Ryandike neza nk'uko umukino uryerekana. Porogaramu irikoresha kumenya uruhande rwawe kuri ecran.", "me.teamsaved": "Izina ry'ikipe ryabitswe", "nav.how": "Uko bikora", "nav.organizers": "Abategura",
     "nav.signin": "Injira", "nav.signup": "Iyandikishe", "nav.me": "Imikino yanjye", "nav.signout": "Sohoka", "nav.admin": "Ubuyobozi", "nav.menu": "Menu", "nav.dark": "Koresha uburyo bw'umwijima", "nav.light": "Koresha uburyo bw'umucyo",
     "hero.kicker": "Amarushanwa y'umupira w'amaguru ni ubuntu",
     "hero.title": "Buri mukino. <em>Urutonde rumwe.</em>",
