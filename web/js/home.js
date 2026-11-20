@@ -1,4 +1,4 @@
-import { mountChrome, esc, statusPill, t, applyI18n } from "./ui.js";
+import { mountChrome, esc, statusPill, t, applyI18n, errMsg } from "./ui.js";
 import { listTournaments } from "./api.js";
 
 await mountChrome();
@@ -17,6 +17,6 @@ try {
   const list = await listTournaments();
   host.innerHTML = list.length ? list.map(row).join("") : `<div class="empty">${esc(t("live.empty"))}</div>`;
 } catch (e) {
-  host.innerHTML = `<div class="empty">${esc(t("c.error"))}</div>`;
+  host.innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`;
 }
 applyI18n(host);

@@ -24,6 +24,7 @@ export function toast(msg, kind = "") {
 }
 export function errMsg(e) {
   if (e && e.message === "not_connected") return "The live service is not connected yet.";
+  if (e && e.message === "not_ready") return "The live service is being set up. Please check back soon.";
   return (e && e.message) || t("c.error");
 }
 

@@ -72,6 +72,8 @@ RLS summary: public (anon) reads published tournaments, entries, fixtures, usern
 | Image storage (later) | Supabase Storage (1 GB) | R2 needs a payment card, so it is not used |
 | App build and releases | GitHub Actions + GitHub Releases | APK is sideloaded |
 
+Existing Supabase project: the old staking tables are removed once, by hand, with `supabase/reset/legacy_reset.sql` (guarded so it refuses to run on a live WIN ZONE database). Login accounts are kept and get profiles through migration `0005`.
+
 Not used in v1: Cloudflare R2, Workers, D1, Durable Objects. Ads wait for a real domain (ad networks reject `pages.dev`). Supabase's built-in email is rate-limited, so the demo runs without email confirmation.
 
 ## 8. Android app (Phase 2) requirements

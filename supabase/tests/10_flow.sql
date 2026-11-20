@@ -511,4 +511,29 @@ begin
   perform pg_temp.ok(not exists (select 1 from fixtures where id = fx.next_fixture_id and fx.player_a_id in (player_a_id, player_b_id)), 'old winner removed from next round');
 end $$;
 
+-- ============================================================ existing accounts + age confirmation
+do $$
+declare t uuid; r jsonb; v int;
+begin
+  -- an account that predates the schema gets a profile
+  delete from profiles where id = pg_temp.u('p6');
+  v := _backfill_profiles();
+  perform pg_temp.ok(v = 1, 'backfill creates the missing profile');
+  perform pg_temp.ok((select username from profiles where id = pg_temp.u('p6')) = 'playerp6', 'backfilled profile gets a valid username');
+  perform pg_temp.ok(_backfill_profiles() = 0, 'backfill is idempotent');
+
+  -- a player without an age flag confirms it, then can register
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Cup Age', 'cup-age', 'football-1v1', 'knockout', 4);
+  perform set_tournament_status(t, 'open');
+  perform pg_temp.as_user(pg_temp.u('minor'));
+  r := register_for_tournament(t);
+  perform pg_temp.ok(r ->> 'reason' = 'age_not_confirmed', 'unconfirmed age blocks registration');
+  perform pg_temp.ok((confirm_age() ->> 'ok')::boolean, 'player confirms age');
+  r := register_for_tournament(t);
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'registration works after age confirmation');
+  perform pg_temp.as_user(null);
+  perform pg_temp.ok(confirm_age() ->> 'reason' = 'not_signed_in', 'age confirmation needs a signed-in user');
+end $$;
+
 select 'database tests: all assertions passed' as result;

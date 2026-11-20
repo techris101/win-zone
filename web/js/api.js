@@ -13,7 +13,14 @@ export async function sb() {
   _client = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   return _client;
 }
-const ok = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
+const ok = ({ data, error }) => {
+  if (error) {
+    // The database exists but the WIN ZONE tables have not been created yet.
+    if (error.code === "PGRST205" || /schema cache/i.test(error.message || "")) throw new Error("not_ready");
+    throw new Error(error.message);
+  }
+  return data;
+};
 const NOT_CONNECTED = () => { throw new Error("not_connected"); };
 
 // ------------------------------------------------------------------ public reads
@@ -92,6 +99,7 @@ export async function isAdmin() { if (!LIVE) return false; try { return Boolean(
 
 // ------------------------------------------------------------------ player
 export const register = (tid) => rpc("register_for_tournament", { p_tid: tid });
+export const confirmAge = () => rpc("confirm_age");
 export const withdraw = (tid) => rpc("withdraw_from_tournament", { p_tid: tid });
 
 export async function myEntryIds(uid) {

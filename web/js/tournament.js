@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n } from "./ui.js";
-import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds } from "./api.js";
+import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, confirmAge } from "./api.js";
 import { renderBracket, renderTable, renderFixtures, renderPlayers } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
@@ -87,9 +87,13 @@ function render() {
   $("#reg")?.addEventListener("click", async (e) => {
     e.target.disabled = true;
     try {
-      const r = await register(tour.id);
+      let r = await register(tour.id);
+      if (!r.ok && r.reason === "age_not_confirmed" && confirm(t("a.ageq"))) {
+        await confirmAge();
+        r = await register(tour.id);
+      }
       if (r.ok) { joined = true; toast(t("t.registered")); await refresh(); }
-      else { toast(({ age_not_confirmed: "Please confirm your age in your account.", tournament_full: "This tournament is full.", registration_closed: "Registration is closed." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
+      else { toast(({ age_not_confirmed: "You must be 18 or older to register.", tournament_full: "This tournament is full.", registration_closed: "Registration is closed." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
     } catch (err) { toast(errMsg(err), "err"); e.target.disabled = false; }
   });
   $("#wd")?.addEventListener("click", async () => { try { await withdraw(tour.id); joined = false; await refresh(); } catch (err) { toast(errMsg(err), "err"); } });
