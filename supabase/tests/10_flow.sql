@@ -1029,6 +1029,128 @@ begin
   perform pg_temp.ok(_finalize(f.id, null) ->> 'status' = 'disputed', 'a level play-off without penalties goes to review');
 end $$;
 
+
+-- ============================================================ statistics (0011)
+do $$
+declare t uuid; a uuid := pg_temp.u('g11'); b uuid := pg_temp.u('g12'); c uuid := pg_temp.u('g13'); d uuid := pg_temp.u('g14');
+begin
+  -- league + knockout, top 2 advance, 3 rounds; after 2 rounds A and B have 6 points, C and D none
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Race Cup', 'race-cup', 'football-1v1', 'league_knockout', 8, null, null, 2);
+  update tournaments set status = 'live' where id = t;
+  insert into tournament_entries (tournament_id, user_id) values (t, a), (t, b), (t, c), (t, d);
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, score_a, score_b, winner_id, outcome, completed_at) values
+    (t, 'league', 1, 1, a, c, 'completed', 1, 0, a, 'win_by_score', now() - interval '2 days'),
+    (t, 'league', 1, 2, b, d, 'completed', 2, 0, b, 'win_by_score', now() - interval '2 days'),
+    (t, 'league', 2, 1, a, d, 'completed', 3, 1, a, 'win_by_score', now() - interval '1 day'),
+    (t, 'league', 2, 2, b, c, 'completed', 1, 0, b, 'win_by_score', now() - interval '1 day');
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, scheduled_at) values
+    (t, 'league', 3, 1, a, b, 'scheduled', now() + interval '1 day'), (t, 'league', 3, 2, c, d, 'scheduled', now() + interval '1 day');
+  perform pg_temp.ok((select status from player_stats(t) where user_id = a) = 'qualified', 'A is mathematically through (only B can still catch A)');
+  perform pg_temp.ok((select status from player_stats(t) where user_id = c) = 'eliminated', 'C cannot reach the top 2 any more');
+  perform pg_temp.ok((select remaining || '/' || max_points || '/' || form from player_stats(t) where user_id = a) = '1/9/WW', 'matches left, best possible points, form');
+  perform pg_temp.ok((select next_opponent from player_stats(t) where user_id = a) is not null, 'next opponent shown');
+
+  -- the title race of a plain league: nothing is "certain" too early
+  t := create_tournament('Title Race', 'title-race', 'football-1v1', 'league', 8);
+  update tournaments set status = 'live' where id = t;
+  insert into tournament_entries (tournament_id, user_id) values (t, a), (t, b), (t, c), (t, d);
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, score_a, score_b, winner_id, outcome, completed_at) values
+    (t, 'league', 1, 1, a, b, 'completed', 1, 0, a, 'win_by_score', now() - interval '2 days'),
+    (t, 'league', 1, 2, c, d, 'completed', 1, 0, c, 'win_by_score', now() - interval '2 days'),
+    (t, 'league', 2, 1, a, c, 'completed', 2, 0, a, 'win_by_score', now() - interval '1 day'),
+    (t, 'league', 2, 2, b, d, 'completed', 1, 0, b, 'win_by_score', now() - interval '1 day');
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, scheduled_at) values
+    (t, 'league', 3, 1, a, d, 'scheduled', now() + interval '1 day'), (t, 'league', 3, 2, b, c, 'scheduled', now() + interval '1 day');
+  -- A 6, B 3, C 3, D 0 with one match each left: A needs 1 point to be sure of the title
+  perform pg_temp.ok((select status from player_stats(t) where user_id = a) = 'in_race', 'A not yet certain');
+  perform pg_temp.ok((select needs from player_stats(t) where user_id = a) = 1 and (select can_secure from player_stats(t) where user_id = a), 'A needs 1 point and can do it alone');
+  perform pg_temp.ok((select status from player_stats(t) where user_id = d) = 'eliminated', 'D cannot win the league');
+  perform pg_temp.ok((select status from player_stats(t) where user_id = b) = 'in_race' and not (select can_secure from player_stats(t) where user_id = b), 'B can still win, but needs help');
+end $$;
+
+-- knockout statuses and the finished tournament
+do $$
+declare t uuid; r record; champ uuid;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Stat Cup', 'stat-cup', 'football-1v1', 'knockout', 4);
+  perform set_tournament_status(t, 'open');
+  insert into tournament_entries (tournament_id, user_id) values (t, pg_temp.u('g11')), (t, pg_temp.u('g12')), (t, pg_temp.u('g13')), (t, pg_temp.u('g14'));
+  perform publish_tournament(t);
+  perform pg_temp.ok((select count(*) from player_stats(t) where status = 'in') = 4, 'everyone is "still in" at the start of a knockout');
+  perform pg_temp.play_round(t, 'knockout', 1);
+  perform pg_temp.ok((select count(*) from player_stats(t) where status = 'eliminated') = 2 and (select count(*) from player_stats(t) where status = 'in') = 2, 'semi-final losers are out');
+  perform pg_temp.play_round(t, 'knockout', 2);
+  select champion_id into champ from tournaments where id = t;
+  perform pg_temp.ok((select status from player_stats(t) where user_id = champ) = 'champion', 'champion status');
+  perform pg_temp.ok((select count(*) from player_stats(t) where status = 'finished') = 3, 'everyone else finished');
+  perform pg_temp.ok(((career_stats(champ)) ->> 'titles')::int >= 1 and ((career_stats(champ)) ->> 'won')::int >= 2, 'career numbers count titles and wins');
+end $$;
+
+-- footballer leaderboards: cross-checked goals, the same star for two teams, misreads ignored
+do $$
+declare t uuid; f1 fixtures; f2 fixtures; a uuid := pg_temp.u('g15'); b uuid := pg_temp.u('g16'); r jsonb; blocked boolean := false;
+begin
+  perform pg_temp.as_user(pg_temp.u('admin1'));
+  t := create_tournament('Scorer Cup', 'scorer-cup', 'football-1v1', 'league', 8);
+  update tournaments set status = 'live' where id = t;
+  insert into tournament_entries (tournament_id, user_id) values (t, a), (t, b);
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, kickoff_at) values
+    (t, 'league', 1, 1, a, b, 'active', now()) returning * into f1;
+  insert into fixtures (tournament_id, stage, round, slot, player_a_id, player_b_id, status, kickoff_at) values
+    (t, 'league', 2, 1, b, a, 'active', now()) returning * into f2;
+
+  -- match 1, A wins 2-1. Reports arrive before the result is settled.
+  perform pg_temp.as_user(a);
+  r := submit_match_report(f1.id, '{"my_team":"DREAM FC","opp_team":"HARMOU",
+    "goals":[{"player":"Messi","minute":12,"team":"me"},{"player":"Messi","minute":70,"team":"me","pen":true},{"player":"Haaland","minute":40,"team":"opp"}],
+    "assists":[{"player":"Pedri","minute":12,"team":"me"}],
+    "potm":{"player":"Messi","team":"me","rating":"8.9"}}'::jsonb);
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'report stored');
+  -- B's phone misread one of A's goals: its list for DREAM FC does not match the official score
+  perform pg_temp.as_user(b);
+  perform submit_match_report(f1.id, '{"my_team":"HARMOU","opp_team":"DREAM FC",
+    "goals":[{"player":"Messl","minute":12,"team":"opp"},{"player":"Haaland","minute":40,"team":"me"}],
+    "potm":{"player":"Messi","team":"opp","rating":"8.9"}}'::jsonb);
+  perform pg_temp.terminal(f1.id, a, 'result', 2, 1, null, null, 5400);
+  perform pg_temp.terminal(f1.id, b, 'result', 1, 2, null, null, 5400);
+  perform _finalize(f1.id, null);
+  perform pg_temp.ok((select team_a || ' v ' || team_b from fixtures where id = f1.id) = 'DREAM FC v HARMOU', 'team names recorded');
+  perform pg_temp.ok((select total from footballer_leaders(t, 'goal') where footballer = 'Messi' and team_name = 'DREAM FC') = 2, 'Messi (DREAM FC): 2 goals, taken from the report that matches the score');
+  perform pg_temp.ok((select pens from footballer_leaders(t, 'goal') where team_name = 'DREAM FC') = 1, 'penalty goals counted');
+  perform pg_temp.ok(not exists (select 1 from footballer_leaders(t, 'goal') where footballer = 'Messl'), 'the misread name is not counted');
+  perform pg_temp.ok((select total from footballer_leaders(t, 'assist') where footballer = 'Pedri') = 1, 'assists counted');
+  perform pg_temp.ok((select avg_rating from footballer_leaders(t, 'potm') where footballer = 'Messi') = 8.9, 'player of the match with rating');
+
+  -- match 2: B (HARMOU) also fields Messi. He must appear separately: "Messi (HARMOU)"
+  perform pg_temp.as_user(b);
+  perform submit_match_report(f2.id, '{"my_team":"HARMOU","opp_team":"DREAM FC","goals":[{"player":"Messi","minute":30,"team":"me"}]}'::jsonb);
+  perform pg_temp.terminal(f2.id, b, 'result', 1, 0, null, null, 5400);
+  perform pg_temp.terminal(f2.id, a, 'result', 0, 1, null, null, 5400);
+  perform _finalize(f2.id, null);
+  perform pg_temp.ok((select count(*) from footballer_leaders(t, 'goal') where footballer = 'Messi') = 2, 'same footballer, two teams, two separate rows');
+  perform pg_temp.ok((select total from footballer_leaders(t, 'goal') where footballer = 'Messi' and team_name = 'HARMOU') = 1, 'Messi (HARMOU): 1 goal');
+
+  -- a report arriving after the result is processed too, through the app's match pass
+  -- and a report cannot be rewritten later
+  perform pg_temp.as_user(a);
+  r := submit_match_report(f2.id, '{"my_team":"DREAM FC","opp_team":"HARMOU","goals":[{"player":"Messi","minute":30,"team":"opp"}]}'::jsonb);
+  perform pg_temp.ok((r ->> 'ok')::boolean, 'late report accepted');
+  perform submit_match_report(f2.id, '{"my_team":"DREAM FC","opp_team":"HARMOU","goals":[{"player":"Fake","minute":1,"team":"opp"}]}'::jsonb);
+  perform pg_temp.ok(not exists (select 1 from footballer_leaders(t, 'goal') where footballer = 'Fake'), 'a second report from the same phone is ignored');
+  perform pg_temp.ok(submit_match_report(f2.id, '"not an object"'::jsonb) ->> 'reason' = 'bad_report', 'malformed report rejected');
+  perform pg_temp.as_user(pg_temp.u('p5'));
+  perform pg_temp.ok(submit_match_report(f2.id, '{}'::jsonb) ->> 'reason' = 'not_a_participant', 'outsiders cannot report');
+  perform pg_temp.ok(submit_match_report_pass('nope', '{}'::jsonb) ->> 'reason' = 'invalid_pass', 'app reports need a valid pass');
+  perform pg_temp.ok((career_stats(a) ->> 'goals')::int = 2, 'career goals count the footballers of my team');
+
+  set local role authenticated;
+  begin perform 1 from match_reports limit 1; exception when insufficient_privilege then blocked := true; end;
+  reset role;
+  perform pg_temp.ok(blocked, 'raw reports are private');
+end $$;
+
 -- ============================================================ existing accounts, no age gate
 do $$
 declare t uuid; r jsonb; v int;

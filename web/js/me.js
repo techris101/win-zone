@@ -1,6 +1,7 @@
 import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, chooseCountryAndSave, toast } from "./ui.js";
-import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush } from "./api.js";
+import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush } from "./api.js";
 import { CONFIG } from "./config.js";
+import { statusText } from "./bracket.js";
 
 await mountChrome();
 const user = await getUser().catch(() => null);
@@ -117,3 +118,27 @@ if (user) {
   renderPushControl();
   renderNotifications().catch((e) => { $("#notif-list").innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; });
 }
+
+// ---------------------------------------------------------------- my stats
+async function renderMyStats() {
+  const c = await careerStats(user.id);
+  if (c) {
+    const rate = c.played ? Math.round((100 * c.won) / c.played) + "%" : "—";
+    $("#career").innerHTML = `<div class="career">
+      <div><b>${c.played}</b><span>${esc(t("me.played"))}</span></div><div><b>${c.won}</b><span>${esc(t("me.won"))}</span></div>
+      <div><b>${rate}</b><span>${esc(t("me.winrate"))}</span></div><div><b>${c.goals_for}</b><span>${esc(t("me.goals"))}</span></div>
+      <div><b>${c.titles}</b><span>${esc(t("me.titles"))}</span></div></div>`;
+  }
+  const entries = (await myEntries(user.id)).filter((e) => ["live", "completed"].includes(e.tournament.status));
+  const lines = [];
+  for (const e of entries.slice(0, 6)) {
+    const rows = await playerStats(e.tournament.id).catch(() => []);
+    const me = rows.find((r) => r.user_id === user.id);
+    if (!me) continue;
+    const where = me.pos ? ` · #${me.pos}, ${me.points} pts` : "";
+    lines.push(`<div class="my-status"><a href="/t/${encodeURIComponent(e.tournament.slug)}"><b>${esc(e.tournament.name)}</b></a>
+      <span>${esc(statusText(me, e.tournament.format || ""))}${esc(where)}</span></div>`);
+  }
+  $("#my-race").innerHTML = lines.join("");
+}
+if (user) renderMyStats().catch(() => {});

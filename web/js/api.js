@@ -119,7 +119,7 @@ export async function myEntryIds(uid) {
 }
 export async function myEntries(uid) {
   const c = await sb();
-  return ok(await c.from("tournament_entries").select("status,tournament:tournaments(id,name,slug,status,starts_at)").eq("user_id", uid).neq("status", "withdrawn"));
+  return ok(await c.from("tournament_entries").select("status,tournament:tournaments(id,name,slug,status,starts_at,format)").eq("user_id", uid).neq("status", "withdrawn"));
 }
 export async function myFixtures(uid) {
   const c = await sb();
@@ -201,3 +201,8 @@ export async function onMyNotification(uid, cb) {
   const ch = c.channel(`n-${uid}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, (p) => cb(p.new)).subscribe();
   return () => c.removeChannel(ch);
 }
+
+// ------------------------------------------------------------------ statistics
+export async function playerStats(tid) { if (!LIVE) return []; return rpc("player_stats", { p_tid: tid }); }
+export async function leaders(tid, kind, limit = 10) { if (!LIVE) return []; return rpc("footballer_leaders", { p_tid: tid, p_kind: kind, p_limit: limit }); }
+export async function careerStats(uid) { if (!LIVE) return null; return rpc("career_stats", { p_user: uid }); }

@@ -391,3 +391,26 @@ details.a-set > summary { cursor: pointer; font: 700 0.85rem var(--display); let
 .b-playoff { margin-bottom: 36px; }
 .b-playoff h4 { font: 700 0.85rem/1 var(--display); letter-spacing: 0.2em; color: var(--mute); margin: 0 0 18px; }
 .b-playoff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+
+/* ---------------------------------------------------------------- statistics */
+.stats-h { margin: 32px 0 0; font-size: 1.4rem; }
+table.race td.frm i { font-style: normal; display: inline-block; width: 20px; text-align: center; font: 700 0.8rem/20px var(--display); margin-left: 2px; }
+.f-W { background: var(--accent-text); color: var(--bg); } .f-D { background: var(--line); color: var(--fg); } .f-L { background: var(--fg); color: var(--bg); }
+table.race td.st { text-align: right; }
+.tag { font: 700 0.75rem/1 var(--display); letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 8px; border: 1px solid var(--line); white-space: nowrap; }
+.tag.ok { border-color: var(--accent-text); color: var(--accent-text); } .tag.out { color: var(--mute); } .tag.race { border-color: var(--fg); }
+.leaders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 24px 32px; margin: 36px 0 48px; }
+.leaders h4 { font: 700 0.9rem/1 var(--display); letter-spacing: 0.18em; margin: 0 0 12px; }
+.leaders ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); counter-reset: l; }
+.leaders li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); counter-increment: l; }
+.leaders li::before { content: counter(l); font: 700 0.9rem var(--display); color: var(--mute); }
+.leaders .team { color: var(--accent-text); font-weight: 600; }
+.leaders small { display: block; color: var(--mute); }
+.leaders .val { font: 800 1.3rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.career { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 16px 0 8px; }
+.career div { padding: 16px 0; } .career b { display: block; font: 800 2rem/1 var(--display); } .career span { font: 600 0.75rem var(--display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.my-status { padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 600px) { .career { grid-template-columns: repeat(3, 1fr); } }
+table.race td.frm { white-space: nowrap; text-align: left; }
+table.race td.frm { min-width: 120px; }
+table.race th:nth-child(5) { text-align: left; }

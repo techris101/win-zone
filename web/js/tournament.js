@@ -1,6 +1,6 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n, chooseCountryAndSave } from "./ui.js";
-import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds } from "./api.js";
-import { renderBracket, renderTable, renderFixtures, renderPlayers, renderGroups, phaseZones } from "./bracket.js";
+import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, playerStats, leaders } from "./api.js";
+import { renderBracket, renderTable, renderFixtures, renderPlayers, renderGroups, phaseZones, renderRace, renderLeaders } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
 await mountChrome();
@@ -45,7 +45,7 @@ function tabsFor() {
   if (tour.format === "groups_knockout") out.push(["groups", "t.groups"]);
   if (tour.format !== "league") out.push(["bracket", "t.bracket"]);
   if (["league", "league_knockout", "league_phase"].includes(tour.format)) out.push(["table", "t.table"]);
-  out.push(["fixtures", "t.fixtures"], ["players", "t.players"]);
+  out.push(["stats", "t.stats"], ["fixtures", "t.fixtures"], ["players", "t.players"]);
   return out;
 }
 
@@ -121,11 +121,26 @@ function renderBody() {
   }
   const adv = tour.format === "league_knockout" ? tour.league_advance : 0;
   const zones = tour.format === "league_phase" ? phaseZones(data.entries.length) : null;
+  if (tab === "stats") { renderStats(body); return; }
   body.innerHTML = tab === "bracket" ? renderBracket(data.fixtures, data.profiles)
     : tab === "groups" ? renderGroups(data.table, data.profiles)
     : tab === "table" ? renderTable(data.table, data.profiles, adv, zones)
     : tab === "fixtures" ? renderFixtures(data.fixtures, data.profiles)
     : renderPlayers(data.entries, data.profiles);
+  applyI18n(body);
+}
+
+async function renderStats(body) {
+  body.innerHTML = `<div class="empty" style="margin:28px 0">${esc(t("c.loading"))}</div>`;
+  try {
+    const [race, goals, assists, potm] = await Promise.all([playerStats(tour.id), leaders(tour.id, "goal"), leaders(tour.id, "assist"), leaders(tour.id, "potm")]);
+    body.innerHTML = `<h3 class="stats-h">${esc(t("s.race"))}</h3>${renderRace(race, data.profiles, tour.format)}
+      <div class="leaders-grid">
+        ${renderLeaders(t("s.scorers"), goals, (r) => r.pens ? `${r.total} (${r.pens} ${t("s.pen")})` : r.total)}
+        ${renderLeaders(t("s.assists"), assists, (r) => r.total)}
+        ${renderLeaders(t("s.potm"), potm, (r) => r.avg_rating ? `${r.total} · ${r.avg_rating}` : r.total)}
+      </div>`;
+  } catch (e) { body.innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; }
   applyI18n(body);
 }
 

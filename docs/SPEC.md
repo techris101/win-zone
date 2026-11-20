@@ -61,6 +61,20 @@ Every notification is stored (site inbox on "My matches", always works) and, if 
 **Knocked out / not qualified:** one last notification with **Keep following** / **Stop**. No answer means stop. Followers keep getting tournament-wide updates (round finished, champion); personal ones end with their last match. Players can change their choice and turn phone notifications on or off at any time.
 Plumbing: database triggers create notifications; a database hook calls the `send-push` server function, which signs and encrypts the push (VAPID keys stored only as Supabase secrets) and removes phones that no longer exist. A 1-minute job sends reminders. A push failure never blocks a result or a registration.
 
+### Statistics
+- **Player standing** (`player_stats`, public): position, points, matches left, best possible points, form (last 5), next match, and a status: `qualified` / `playoff_sure` / `in_race` (with "needs N more points to be sure", or "needs other results") / `eliminated`, then `in` / `eliminated` in knockouts and `champion` / `finished` at the end. "Qualified" and "eliminated" are shown only when mathematically certain (fewer than K players can still reach your points; K players are already out of your reach).
+- **Career** (`career_stats`): tournaments, titles, played, won, drawn, lost, goals for/against, goals by your footballers.
+- **Footballer leaderboards** (`footballer_leaders`: goals, assists, player of the match), always shown as **Footballer (Team)** plus the WIN ZONE player, because the same footballer can play for many teams. Built from the result screens both phones read; a team's goals are counted only from a report whose goal count matches the official score (both phones agreeing, else the team owner's phone, else the opponent's). Reports are stored once per phone and cannot be rewritten. Statistics never affect results.
+
+**Result-screen report the app sends** (`submit_match_report_pass(pass, report)`), `team` is relative to the reporting phone:
+```json
+{ "my_team": "DREAM FC", "opp_team": "HARMOU",
+  "goals":   [{ "player": "Messi", "minute": 12, "team": "me", "pen": false }],
+  "assists": [{ "player": "Pedri", "minute": 12, "team": "me" }],
+  "cards":   [{ "player": "Rivaldo", "minute": 65, "team": "opp", "type": "red" }],
+  "potm":    { "player": "Messi", "team": "me", "rating": "8.9" } }
+```
+
 ## 4. Verification pipeline
 Foreground service (`mediaProjection`), persistent notification, ML Kit OCR on device, frame every 2 s, no frames uploaded. Only extracted fields are sent.
 
@@ -100,7 +114,7 @@ The v1 game's Private Match screen has one box, "Match Code". Both players type 
 ## 6. Data model
 Tables: `profiles`, `user_roles`, `games`, `game_profiles` (private), `tournaments`, `tournament_entries`, `fixtures`, `matchrooms` (private), `match_latest_state`, `match_state_log` (private), `match_events`, `disputes`, `sponsors`, `sponsor_private`, `sponsor_placements`, `organizer_tenants`, `audit_logs`.
 
-Not in the schema: wallets, holds, settlements, commission, payment providers, FX, manual result reports, escrow. If prizes ever become cash, a `prize_awards` table and payout rail return as a separate project with its own legal opinion.
+**No money anywhere:** WIN ZONE has no payments, fees, stakes, wallets or payment providers, and none are planned.
 
 RLS summary: public (anon) reads published tournaments, entries, fixtures, usernames and sponsors. A participant reads both `match_latest_state` rows of their fixture. All writes go through SECURITY DEFINER RPCs; admin checks read `user_roles` server-side. Internal helpers and the sweep are not callable by API roles.
 
@@ -111,7 +125,7 @@ RLS summary: public (anon) reads published tournaments, entries, fixtures, usern
 | Database, auth, realtime | Supabase free | pauses after ~1 week idle; 500 MB; 200 realtime connections |
 | Keep-alive | scheduled GitHub Action (daily ping) | needs the two public repo secrets |
 | Migrations | GitHub Action `Deploy database` | needs three repo secrets |
-| Image storage (later) | Supabase Storage (1 GB) | R2 needs a payment card, so it is not used |
+| Image storage (later) | Supabase Storage (1 GB) | free tier only |
 | App build and releases | GitHub Actions + GitHub Releases | APK is sideloaded |
 
 Existing Supabase project: the old staking tables are removed once, by hand, with `supabase/reset/legacy_reset.sql` (it removes only the old app's objects, leaves extensions such as `pg_net` alone, and refuses to run on a live WIN ZONE database). Login accounts are kept and get profiles through migration `0005`.
@@ -122,19 +136,19 @@ Not used in v1: Cloudflare R2, Workers, D1, Durable Objects. Ads wait for a real
 Min SDK 24 (Android 7.0 and above). `foregroundServiceType="mediaProjection"` and `FOREGROUND_SERVICE_MEDIA_PROJECTION`; FGS started from a foreground Activity. `REQUEST_INSTALL_PACKAGES`. Room database offline queue; exponential backoff with jitter; honor 429 Retry-After; one in-flight submission per match. Fail-closed certificate pinning with a backup pin. Ed25519-signed `version.json`. Block rotation and picture-in-picture during capture. Android 14+ single-app capture where offered; a foreground-app check where permitted. Regions read by percentage of the frame, not pixels (tested at 1280x576 and 1080x486). English, French and Kinyarwanda strings. No login in the app: it receives a one-time handoff code from the website and exchanges it for a single-match pass (section 5). Deep link carries the match id and that code only. Capture does not start if notifications are denied.
 
 ## 9. Compliance posture
-No entry fee, stake or subscription, so no consideration. Required: Terms, Privacy, responsible-play baseline, data protection, geo-fence, tax disclosure. Prize-eligible players need identity verification before any prize of material value. Spectator prediction and tipping are out of scope. Open legal items before launch: per-market skill opinion for the specific game, prize structure (non-cash is safer), geo-fence map, B2B contract. This document is an engineering spec, not legal advice; every legal question needs a qualified advisor.
+Free to enter, no money features. Required: Terms, Privacy, responsible-play baseline, data protection, geo-fence, tax disclosure. Prize-eligible players need identity verification before any prize of material value. Spectator prediction and tipping are out of scope. Open legal items before launch: per-market skill opinion for the specific game, prize structure (non-cash is safer), geo-fence map, B2B contract. This document is an engineering spec, not legal advice; every legal question needs a qualified advisor.
 
 ## 10. Monetization
 Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
 
 ## 11. Decisions
-1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 25 Formats, tie-breaks and speeds as in section 3 (owner approved the recommended options). 24 Notifications: inbox always, phone push when turned on; full information while playing; one last notification with a keep/stop choice when eliminated; no answer = stop. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
+1 Tournament OS. 2 No money features of any kind. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Deep link carries the match id and a single-use 60-second code, never a login or token (the app has no login; see section 5). 10 Both room-code models supported, per game; the v1 game is platform-issued. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 18 Codes: letters and digits, both required, 3-5 long (default 5), with a copy button. 19 No age confirmation in the product (owner decision, see section 9). 20 Country chosen by each player decides the time zone they see. 21 The system sets match times automatically; admins can change any of them. 22 Full tournament: registration closes, a hidden draft is prepared, an admin reviews and publishes. 23 Admins can add and remove admins. 25 Formats, tie-breaks and speeds as in section 3 (owner approved the recommended options). 24 Notifications: inbox always, phone push when turned on; full information while playing; one last notification with a keep/stop choice when eliminated; no answer = stop. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`. The site is white by default with a light/dark switch (saved per visitor); in light mode the black bands and lime highlights keep the identity.
 
 ## 12. Open items
 | # | Item | Blocks |
 |---|---|---|
 | O1 | Confirm the v1 game's room-code model and verify capture works in the real app | Phase 2 |
-| O2 | Prize structure: non-cash or sponsored cash | legal |
+| O2 | Prize structure (non-cash prizes only) | legal |
 | O3 | Per-market skill opinion | public launch |
 | O4 | Geo-fence map | launch scope |
 | O5 | B2B contract template | B2B sales |
@@ -143,8 +157,8 @@ Sponsorship, advertising (after a domain), media and data, B2B licensing, option
 | O8 | Real contact email and APK link in `web/js/config.js` | launch |
 | O9 | Research done and proposals A, B, C approved and built (migration 0010) | done |
 | O10 | Admin brief box: describe a tournament in words, review a draft summary, publish | next |
-| O12 | Old app's four server functions, eight MTN/FX keys and one scheduled job deleted (2026-11-20). Owner to revoke/rotate the MTN MoMo API key and user at MTN | owner |
-| O11 | Player statistics (rank, points, what is needed to qualify) in the app and on the website | Phase 2 |
+| O12 | Old app's leftovers removed from the live project (2026-11-20); nothing money-related remains | done |
+| O11 | Player statistics: website done (migration 0011); app screens in Phase 2 | partly done |
 
 ## 13. Build order
 - **Phase 1 (done):** schema, rules, bracket and league logic, tests, public site, organizer panel, CI, deploy workflows.

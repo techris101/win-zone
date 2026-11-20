@@ -95,3 +95,33 @@ export function phaseZones(players) {
   const s = players >= 32 ? 16 : players >= 16 ? 8 : 4;
   return players >= s + s / 2 ? { direct: s / 2, playoff: s } : { direct: Math.min(s, players), playoff: 0 };
 }
+
+// plain-language status for a player's row
+export function statusText(r, format) {
+  if (r.status === "qualified") return format === "league" ? t("s.title") : t("s.qualified");
+  if (r.status === "in_race") {
+    if (r.needs != null && r.can_secure) return t("s.needs").replace("{n}", r.needs).replace("{left}", r.remaining);
+    return t("s.needs_help");
+  }
+  return t("s." + r.status);
+}
+
+export function renderRace(rows, profiles, format) {
+  if (!rows.length) return `<div class="empty">${esc(t("s.none"))}</div>`;
+  const cls = (st) => (["qualified", "champion", "playoff_sure", "in"].includes(st) ? "ok" : st === "eliminated" ? "out" : st === "finished" ? "" : "race");
+  const showTable = rows.some((r) => r.pos != null);
+  return `<div class="table-wrap"><table class="std race"><thead><tr>
+      <th>${showTable ? t("tb.rank") : ""}</th><th>${t("tb.player")}</th>${showTable ? `<th>${t("tb.pts")}</th><th>${t("s.max")}</th>` : ""}<th>${t("s.form")}</th><th>${t("s.status")}</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td>${r.pos ?? ""}</td><td>${esc(nameOf(profiles, r.user_id))}${r.group_no ? ` <span class="mute small">${esc(t("t.group"))} ${groupLetter(r.group_no)}</span>` : ""}</td>
+      ${showTable ? `<td class="pts">${r.points}</td><td>${r.max_points}</td>` : ""}
+      <td class="frm">${(r.form || "").split("").map((c) => `<i class="f-${c}">${c}</i>`).join("")}</td>
+      <td class="st"><span class="tag ${cls(r.status)}">${esc(statusText(r, format))}</span></td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+// "Footballer (Team)" leaderboards: the same star can play for many teams
+export function renderLeaders(title, rows, valueOf) {
+  return `<section class="leaders"><h4>${esc(title)}</h4>${rows.length ? `<ol>${rows.map((r) => `<li>
+      <span class="who"><b>${esc(r.footballer)}</b> <span class="team">(${esc(r.team_name || "?")})</span><small>${esc(r.owner_name || "")}</small></span>
+      <span class="val">${esc(valueOf(r))}</span></li>`).join("")}</ol>` : `<div class="mute small">${esc(t("s.nodata"))}</div>`}</section>`;
+}
