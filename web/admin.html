@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — WIN ZONE</title>
+<meta name="description" content="Organizer panel.">
+<meta name="theme-color" content="#0b0d0c">
+<meta property="og:title" content="Admin — WIN ZONE">
+<meta property="og:description" content="Organizer panel.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<main id="main">
+<div class="wrap">
+  <div style="padding-top:48px"><span class="eyebrow">Organizer</span><h1 style="font-size:clamp(3rem,8vw,5rem)">Control room</h1></div>
+  <div id="admin-gate" class="empty" data-i18n="c.loading"></div>
+  <div class="admin-grid" id="admin-main" hidden>
+    <aside>
+      <div class="a-card"><header><b>New tournament</b></header>
+        <form id="new-t" class="a-body">
+          <div class="field"><label for="n-name">Name</label><input id="n-name" required maxlength="60"></div>
+          <div class="field"><label for="n-slug">Link name</label><input id="n-slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*"><div class="hint" id="n-url"></div></div>
+          <div class="field"><label for="n-format">Format</label>
+            <select id="n-format"><option value="knockout">Knockout</option><option value="league">League</option><option value="league_knockout">League + knockout</option></select></div>
+          <div class="row2">
+            <div class="field"><label for="n-size">Max players</label><input id="n-size" type="number" min="2" max="128" value="8" required></div>
+            <div class="field" id="n-adv-w" hidden><label for="n-adv">Advance</label><select id="n-adv"><option>2</option><option selected>4</option><option>8</option><option>16</option></select></div>
+          </div>
+          <div class="field"><label for="n-start">Starts (optional)</label><input id="n-start" type="datetime-local"></div>
+          <div class="field"><label for="n-prize">Prize (non-cash)</label><input id="n-prize" maxlength="120"></div>
+          <div id="n-msg" role="alert"></div>
+          <button class="btn" type="submit">Create</button>
+        </form></div>
+    </aside>
+    <section>
+      <div class="a-card" id="attention-card" hidden><header><b>Needs attention</b><span class="pill">Disputes and stalls</span></header><div id="attention"></div></div>
+      <div id="managed"></div>
+    </section>
+  </div>
+</div>
+</main>
+<script type="module" src="/js/admin.js"></script>
+</body>
+</html>

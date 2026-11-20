@@ -1,0 +1,115 @@
+# WIN ZONE — Canonical Specification (v3)
+
+Single source of truth. Supersedes every earlier WIN ZONE document. Where this file is silent, nothing is decided.
+Corrections against the v2 draft are listed in section 14. The v1 game is never named in public files, in the app, or in this repo; its technical details live only in the backend (`game_profiles`).
+
+## 1. What WIN ZONE is
+A tournament operating system for 1v1 mobile football. Organizers create tournaments, players register free, the system builds the bracket or league, schedules fixtures, and opens a matchroom per fixture. Players tap Play in the Android app, which reads the match screen on the phone (OCR, every 2 s) and reports state. The server reconciles both phones and decides the result. There is no entry fee, no stake and no subscription. Revenue comes from sponsorship, advertising (after a domain is bought), media/data and B2B licensing of the engine.
+
+## 2. Surfaces
+| Surface | Job | Never does |
+|---|---|---|
+| Android app | login, register, next fixture, matchroom, Play, capture + OCR, report state, show own result | money, public brackets, deciding results |
+| Web | public tournament pages, registration, matchroom fallback, organizer/admin panel, legal pages | match experience, business logic |
+| Backend (Supabase) | auth, tables, RLS, all rules as RPCs | UI |
+
+Logic lives once, in the backend. If a rule appears in two places it is a bug.
+
+## 3. Formats and match rules
+- **Formats:** `knockout`, `league`, `league_knockout` (league then top N, N in 2/4/8/16, knockout seeded by table rank).
+- **League:** single round robin. Points 3/1/0. Tie-break order: goal difference, goals scored, head-to-head points among the tied teams, then username. A forfeit or no-show win counts 3-0 in the table. A fixture that is `disputed` blocks completion of the league until an admin resolves it.
+- **Knockout:** standard seeding, byes to top seeds, winner advances through `next_fixture_id`. A slot fills once; a second fill raises an error.
+- **Clocks:** regulation 90:00, knockout extra time 120:00, with 5 s of tolerance. Penalty scores appear in brackets beside the score on the result screen.
+
+## 4. Verification pipeline
+Foreground service (`mediaProjection`), persistent notification, ML Kit OCR on device, frame every 2 s, no frames uploaded. Only extracted fields are sent.
+
+Layouts the phone reports: `in_play`, `result` (the game's end-of-match screen), `opponent_quit` (the "Opponent Quit" popup, which may already be dismissed), `menu`, `unknown`.
+Scores are reported from the phone's own perspective (`score_me`, `score_opp`), because the player can be on either side of the screen. A phone latches a result only after reading the same values twice in a row.
+
+### Server rules (implemented in `0003_match_logic.sql`)
+1. **Kickoff:** both phones `in_play` for 5 consecutive seconds with match clock at most 5:00. Sets `kickoff_at`. A fixture cannot finalize before kickoff.
+2. **Terminal reports are latched.** The first `result` / `opponent_quit` a phone sends is stored in its own columns and never overwritten (tapping Continue must not erase it).
+3. **Normal result:** both phones latched `result` with a normal clock class and mirrored scores (A's `me` equals B's `opp` and vice versa, penalties too). Higher score wins; if level, higher penalties win.
+4. **Early end = forfeit:** a result screen whose clock is before full time, or an `opponent_quit` popup, means the opponent left. The phone showing it wins, whatever the score. Conditions: 20 s grace, the other phone has no terminal report, and the other phone sent no `in_play` after the claim. Otherwise the fixture is disputed.
+5. **Disputes (never auto-decided):** both phones claim a forfeit, one claims a forfeit while the other shows a result, scores not mirrored, clocks disagree, impossible clock, knockout level with no penalty winner, knockout level at 90:00.
+6. **League draws** are valid results (1 point each). Knockout draws cannot occur in the game; if one is reported it is a dispute.
+7. **Idempotent finalize.** `finalize_fixture` re-checks everything server-side; it never trusts the caller. A 1-minute sweep finalizes decided fixtures even if both apps are closed.
+8. **Silence:** never auto-forfeit mid-match. After 10 minutes of silence the fixture is flagged `stalled` for an admin.
+9. **Overrides:** only `resolve_fixture` (admin): win A/B, forfeit A/B, replay, cancel. Audited. Reversal of a finished fixture is refused once downstream play has started.
+10. **No manual result entry** exists anywhere. Screenshots are dispute evidence only.
+
+## 5. Room codes
+One `matchrooms` row per fixture. Both players read the same value through `app_join_fixture`, the only read path. Room codes are never in Realtime, logs, events or public pages. RLS gives clients no access to `matchrooms`.
+
+| Model | Code origin | Per-game setting |
+|---|---|---|
+| Platform-issued | generated by the server when the fixture is created (6-8 chars, no ambiguous characters, at least one letter and one digit) | `room_code_model = platform_issued` |
+| Host-issued | created in the game by the host (`player_a` unless swapped), read by the app or typed, submitted via `submit_room_code` | `room_code_model = host_issued` |
+
+The v1 game's model is provisionally `host_issued` and is confirmed against real setup screens in Phase 2.
+
+- **Reveal:** 2 minutes before `scheduled_at` (per-game `reveal_buffer_seconds`). The matchroom then stays accessible until the fixture ends, so a crashed app can re-enter.
+- **Check-in:** opening the matchroom is the check-in. Deadline is `scheduled_at` + 5 minutes (per-game).
+- **Platform-issued:** one player checked in, other not: the present player wins by forfeit. Neither: fixture cancelled, organizer re-seeds.
+- **Host-issued:** host never submits a code: host forfeits if the opponent was present, cancelled if nobody was, disputed if the host reported being blocked. Code submitted but the opponent never joins: the opponent forfeits.
+- A code is immutable once set. Admins can regenerate platform codes or set a host code; both are audited.
+
+## 6. Data model
+Tables: `profiles`, `user_roles`, `games`, `game_profiles` (private), `tournaments`, `tournament_entries`, `fixtures`, `matchrooms` (private), `match_latest_state`, `match_state_log` (private), `match_events`, `disputes`, `sponsors`, `sponsor_private`, `sponsor_placements`, `organizer_tenants`, `audit_logs`.
+
+Not in the schema: wallets, holds, settlements, commission, payment providers, FX, manual result reports, escrow. If prizes ever become cash, a `prize_awards` table and payout rail return as a separate project with its own legal opinion.
+
+RLS summary: public (anon) reads published tournaments, entries, fixtures, usernames and sponsors. A participant reads both `match_latest_state` rows of their fixture. All writes go through SECURITY DEFINER RPCs; admin checks read `user_roles` server-side. Internal helpers and the sweep are not callable by API roles.
+
+## 7. Stack and cost (zero spend)
+| Need | Service | Limit to watch |
+|---|---|---|
+| Web hosting | Cloudflare Pages (free), `win-zone.pages.dev`, static files, no build | none relevant |
+| Database, auth, realtime | Supabase free | pauses after ~1 week idle; 500 MB; 200 realtime connections |
+| Keep-alive | scheduled GitHub Action (daily ping) | needs the two public repo secrets |
+| Migrations | GitHub Action `Deploy database` | needs three repo secrets |
+| Image storage (later) | Supabase Storage (1 GB) | R2 needs a payment card, so it is not used |
+| App build and releases | GitHub Actions + GitHub Releases | APK is sideloaded |
+
+Not used in v1: Cloudflare R2, Workers, D1, Durable Objects. Ads wait for a real domain (ad networks reject `pages.dev`). Supabase's built-in email is rate-limited, so the demo runs without email confirmation.
+
+## 8. Android app (Phase 2) requirements
+Min SDK 24 (Android 7.0 and above). `foregroundServiceType="mediaProjection"` and `FOREGROUND_SERVICE_MEDIA_PROJECTION`; FGS started from a foreground Activity. `REQUEST_INSTALL_PACKAGES`. Room database offline queue; exponential backoff with jitter; honor 429 Retry-After; one in-flight submission per match. Fail-closed certificate pinning with a backup pin. Ed25519-signed `version.json`. Block rotation and picture-in-picture during capture. Android 14+ single-app capture where offered; a foreground-app check where permitted. Regions read by percentage of the frame, not pixels (tested at 1280x576 and 1080x486). English, French and Kinyarwanda strings. Deep link carries the fixture id only, never tokens. Capture does not start if notifications are denied.
+
+## 9. Compliance posture
+No entry fee, stake or subscription, so no consideration. Required: 18+ gate (stored as `age_confirmed_at`, enforced in `register_for_tournament`), Terms, Privacy, responsible-play baseline, data protection, geo-fence, tax disclosure. Prize-eligible players need identity verification before any prize of material value. Spectator prediction and tipping are out of scope. Open legal items before launch: per-market skill opinion for the specific game, prize structure (non-cash is safer), geo-fence map, B2B contract. This document is an engineering spec, not legal advice; every legal question needs a qualified advisor.
+
+## 10. Monetization
+Sponsorship, advertising (after a domain), media and data, B2B licensing, optional cosmetics that never buy advantage. Out of scope: entry fees, subscriptions, paid priority, spectator wagers.
+
+## 11. Decisions
+1 Tournament OS, no stakes. 2 No crypto or fiat in v1. 3 One backend, two surfaces. 4 Live OCR primary, screenshots dispute-only. 5 Supabase + Cloudflare Pages + GitHub, zero spend. 6 Kickoff rule (5 s in play, first 5 minutes). 7 Forfeit rule in 4.4 above. 8 No manual result entry. 9 Token-free deep link. 10 Both room-code models, per game. 11 Room codes only through `app_join_fixture`. 12 Reveal 2 minutes before. 13 Check-in deadline 5 minutes. 14 League draws valid, knockout draws disputed. 15 Never auto-forfeit mid-match. 16 League points 3/1/0 with the tie-breaks in section 3. 17 Brand: black `#0B0D0C`, bone `#F2EFE8`, volt `#C8F43A`.
+
+## 12. Open items
+| # | Item | Blocks |
+|---|---|---|
+| O1 | Confirm the v1 game's room-code model and verify capture works in the real app | Phase 2 |
+| O2 | Prize structure: non-cash or sponsored cash | legal |
+| O3 | Per-market skill opinion | public launch |
+| O4 | Geo-fence map | launch scope |
+| O5 | B2B contract template | B2B sales |
+| O6 | Keep-alive secrets set and monitored | free-tier viability |
+| O7 | Kinyarwanda strings reviewed by a native speaker | launch |
+| O8 | Real contact email and APK link in `web/js/config.js` | launch |
+
+## 13. Build order
+- **Phase 1 (done):** schema, rules, bracket and league logic, tests, public site, organizer panel, CI, deploy workflows.
+- **Phase 2:** Android app (login, fixtures, matchroom, Play, capture, OCR of the end screens, agreement), then in-play and penalty readers.
+- **Phase 3:** demo simulator (replays recorded screens for a clearly labelled demo tournament only), sponsor placements UI, dispute evidence upload (Supabase Storage), legal review, language review.
+
+## 14. Corrections made to the v2 draft
+1. `determine_winner_from_full_time` compared one phone's `score_a` with the other phone's `score_a`, so every agreed match read as a draw. Replaced by a mirrored-perspective comparison.
+2. `match_latest_state` was overwritten on every submission, so tapping Continue erased the result. Terminal reports are now latched.
+3. Fixed A/B sides replaced by `me`/`opp` perspective (the player can be on either side of the screen).
+4. Separate "disconnected" and "conceded" layouts replaced by one `opponent_quit` popup plus the early-clock rule, because the popup may be dismissed before capture.
+5. A disconnect claim was accepted while the opponent still reported `in_play`, which let a modified app fake a win. It now needs the opponent's play reports to have stopped.
+6. `format` lives on tournaments, not fixtures; the draft's SQL read it from the wrong table. `submit_room_code` used an undeclared variable and `app_join_fixture` had no host-issued branch.
+7. The matchroom no longer closes 30 minutes after kickoff.
+8. R2, Workers and the Worker bracket cache removed (card required, zero-spend rule). Keep-alive moved to GitHub Actions; storage to Supabase Storage.
+9. League and league-then-knockout formats, stage-specific clock rules and tie-breaks added.

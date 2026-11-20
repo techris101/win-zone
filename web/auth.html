@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — WIN ZONE</title>
+<meta name="description" content="Sign in or create your WIN ZONE account.">
+<meta name="theme-color" content="#0b0d0c">
+<meta property="og:title" content="Sign in — WIN ZONE">
+<meta property="og:description" content="Sign in or create your WIN ZONE account.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<main id="main">
+<div class="wrap"><div class="auth-wrap">
+  <div class="tabs" role="tablist" style="margin-bottom:28px">
+    <button type="button" role="tab" id="tab-in" aria-selected="true" data-i18n="a.signin"></button>
+    <button type="button" role="tab" id="tab-up" aria-selected="false" data-i18n="a.signup"></button>
+  </div>
+  <div class="panel">
+    <form id="form-in" class="form" novalidate>
+      <div class="field"><label for="in-email" data-i18n="a.email"></label><input id="in-email" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="in-pass" data-i18n="a.password"></label><input id="in-pass" type="password" autocomplete="current-password" required></div>
+      <div id="in-msg" role="alert"></div>
+      <button class="btn" type="submit" data-i18n="a.signin"></button>
+    </form>
+    <form id="form-up" class="form" novalidate hidden>
+      <div class="field"><label for="up-user" data-i18n="a.username"></label><input id="up-user" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required>
+        <div class="hint">3–20 letters, numbers or _</div></div>
+      <div class="field"><label for="up-email" data-i18n="a.email"></label><input id="up-email" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="up-pass" data-i18n="a.password"></label><input id="up-pass" type="password" autocomplete="new-password" minlength="8" required>
+        <div class="hint">8+ characters</div></div>
+      <label class="check"><input id="up-age" type="checkbox" required><span data-i18n="a.age"></span></label>
+      <label class="check"><input id="up-agree" type="checkbox" required><span><span data-i18n="a.agree"></span> <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></span></label>
+      <div id="up-msg" role="alert"></div>
+      <button class="btn" type="submit" data-i18n="a.signup"></button>
+    </form>
+  </div>
+</div></div>
+</main>
+<script type="module" src="/js/auth.js"></script>
+</body>
+</html>

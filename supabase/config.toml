@@ -1,0 +1,2 @@
+# Minimal Supabase CLI config. The project itself is created in the Supabase dashboard.
+project_id = "win-zone"
