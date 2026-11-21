@@ -25,3 +25,24 @@ Sponsors, dispute evidence upload, demo mode with bots, responsible-play / count
 - Deploy again after changes: `python3 tools/build_worker.py` packs `web/` into `dist/_worker.js`, then upload it to the Pages project (see `tools/build_worker.py`). Connecting the GitHub repo in Cloudflare later makes this automatic.
 - Sign-in emails now link to the live site (Supabase site address updated).
 - Revoke the Cloudflare token when you no longer need me to deploy.
+
+## Update — 21 Nov 2026: skipped features, new logo, full check
+**Done and live**
+- Trust and safety: player reports (player page and match room), admin review, suspensions (7 days to permanent), delete my account (results kept as "Deleted player").
+- Dispute evidence: result screenshots attached in the match room, private to the uploader and admins, shown in the admin "Needs attention" list.
+- Responsible play: take a break (cannot be shortened), limit on tournaments at once, blocked countries (admin), new Responsible play page.
+- Sponsors: admin adds sponsors (link or uploaded logo), places them on tournaments (title, bracket, round, prize) and optionally the home page.
+- Demo mode: admin creates a demo tournament filled with bots that play a match every few minutes; labelled "Demo", real players cannot join, kept out of rankings and notifications. One demo ("WIN ZONE Demo Cup") is running now; delete it from the admin page whenever you like.
+- Also: change password, add match to calendar, robots.txt + sitemap, terms/privacy updated.
+- New logo: football pitch seen from above + plain wordmark, on the site, favicon, app icon and notification icon.
+- Android app 0.2.0: new icon, 23 MB (was 46 MB). Public download: https://jfniylmbogodgozcczln.supabase.co/storage/v1/object/public/downloads/winzone.apk (linked from the site footer and My matches).
+- Fixed during the check: Terms, Privacy, Organizers and 404 pages had no header/footer; a match status label read "ST.SCHEDULED"; the Admin button wrapped on phones.
+
+**Checked**: 2 test suites (all pass, 40 new checks), reset test, reader tests, code checks, game-name check, every live page (200), real browser on desktop and phone with no errors, signed-in pages with stand-in data, live account deletion rehearsal (undone), live demo bots playing.
+
+**Not done (needs you)**
+1. Email service (Brevo, free): sign-up and reset emails are limited to 2 per hour until this is connected.
+2. Bot protection on sign-up (Cloudflare Turnstile): possible with the saved Cloudflare key, but switching it on blocks every sign-in if anything is wrong, and it cannot be fully tested from here. Say the word and I will set it up with you testing on your phone.
+3. Daily database backup: a safety check stopped me from copying player data out automatically. If you want it, approve it and add a `SUPABASE_ACCESS_TOKEN` secret in GitHub.
+4. Public contact email: not shown yet; tell me if bigmin00001@gmail.com should appear on the Contact page.
+5. Download limit: the free database plan allows about 5 GB of downloads a month (~200 app downloads). Fine for testing.
