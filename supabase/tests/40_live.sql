@@ -18,7 +18,11 @@ begin
   reset role;
   perform pg_temp.ok(not blocked, 'visitors can read the live score');
   update match_latest_state set updated_at = now() - interval '5 minutes' where fixture_id = f;
-  perform pg_temp.ok(not exists (select 1 from live_scores(tid)), 'old readings are not shown as live');
+  perform pg_temp.ok((select score_a is null and phase = 'live' from live_scores(tid)), 'old readings are not shown as a score, the match still shows as live');
+  update fixtures set kickoff_at = null where id = f;
+  perform pg_temp.ok((select phase from live_scores(tid)) = 'waiting', 'without kick-off: waiting');
+  update match_latest_state set terminal_kind = 'result' where fixture_id = f and user_id = a;
+  perform pg_temp.ok((select phase from live_scores(tid)) = 'checking', 'after an end report: checking the result');
 end $$;
 do $$
 declare a uuid; b uuid; tid uuid; f uuid; pass text; r jsonb;

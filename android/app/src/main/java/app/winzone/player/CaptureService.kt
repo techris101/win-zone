@@ -201,10 +201,12 @@ class CaptureService : Service() {
             val s = Api.rpc("match_status_pass", JSONObject().put("p_pass", store.pass))
             val st = s.optString("status")
             lastStatus = st
-            if (st == "completed" || st == "disputed" || st == "void") {
+            // Only a finished or cancelled match stops recording from here. "Under review" does not: a match can be
+            // under review from an earlier attempt and then be replayed; this phone stops on its own end screen.
+            if (st == "completed" || st == "cancelled") {
                 finished = true
                 val msg = when {
-                    st == "disputed" -> "Result under review by the organisers"
+                    st == "cancelled" -> "Match cancelled by the organisers"
                     s.optBoolean("winner_is_me") -> "Result confirmed: you won ${s.opt("score_me")}–${s.opt("score_opp")}"
                     else -> "Result confirmed: ${s.opt("score_me")}–${s.opt("score_opp")}"
                 }

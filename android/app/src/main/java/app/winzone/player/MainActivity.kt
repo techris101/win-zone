@@ -198,7 +198,7 @@ class MainActivity : Activity() {
             try {
                 val s = Api.rpc("match_status_pass", JSONObject().put("p_pass", store.pass))
                 val st = s.optString("status")
-                if (st == "completed" || st == "disputed") { store.ended = true; ui.post { if (!CaptureService.running) render() }; return@thread }
+                if (st == "completed" || (st == "disputed" && s.optBoolean("my_result_sent"))) { store.ended = true; ui.post { if (!CaptureService.running) render() }; return@thread }
                 val msg = when (st) {
                     "completed" -> "Result confirmed: ${s.opt("score_me")}–${s.opt("score_opp")}" + if (s.optBoolean("winner_is_me")) " · you won" else ""
                     "disputed" -> "The two phones disagree. The organisers will check the result."

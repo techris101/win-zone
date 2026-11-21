@@ -51,6 +51,15 @@ async function loadLive(rerender = true) {
   liveTimer = setTimeout(() => loadLive(true), 10000);
 }
 
+// what the phones say about the match right now
+function phaseText(f) {
+  const l = f.live;
+  if (l && l.phase === "checking") return t("t.checking");
+  if (l && l.minute && l.score_a != null) return `${l.minute}'`;
+  if ((l && l.phase === "live") || f.kickoff_at) return t("t.playing");
+  return t("t.waitkick");
+}
+
 function renderLivePanel() {
   const host = $("#live-now");
   if (!host) return;
@@ -59,9 +68,9 @@ function renderLivePanel() {
   host.innerHTML = `<div class="live-now"><h3><span class="pill live"><i class="dot"></i>${esc(t("t.livenow"))}</span></h3>
     ${act.map((f) => `<div class="ln-row">
       <span class="ln-p r">${esc(nameOf(data.profiles, f.player_a_id))}</span>
-      <span class="ln-sc">${f.live ? `${f.live.score_a}–${f.live.score_b}` : "–"}</span>
+      <span class="ln-sc">${f.live && f.live.score_a != null ? `${f.live.score_a}–${f.live.score_b}` : "–"}</span>
       <span class="ln-p">${esc(nameOf(data.profiles, f.player_b_id))}</span>
-      <span class="ln-min">${f.live && f.live.minute ? `${esc(f.live.minute)}'` : f.kickoff_at ? "" : esc(t("t.waitkick"))}</span></div>`).join("")}</div>`;
+      <span class="ln-min">${esc(phaseText(f))}</span></div>`).join("")}</div>`;
 }
 
 const hasKnockout = () => data.fixtures.some((f) => f.stage === "knockout" || f.stage === "playoff");

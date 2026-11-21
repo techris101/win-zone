@@ -66,6 +66,7 @@ async function load() {
         <button class="btn ghost" type="button" id="copy-code">Copy code</button>
         <button class="btn" type="button" id="play-btn">Play game</button>
       </div>
+      <p class="small mute" style="margin-top:14px">${esc(t("mr.appver"))} ${CONFIG.APK_URL ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener">${esc(t("mr.getapp"))}</a>` : ""}</p>
       <ol class="how-to">
         <li><b>Copy the code</b> above.</li>
         <li>Tap <b>Play game</b>. The WIN ZONE app opens and asks permission to record the screen.</li>
