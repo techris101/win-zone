@@ -61,8 +61,9 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
     private val clockSearch = Regex("(?<![0-9])(\\d{1,3})[:.](\\d{2})(?![0-9])")
 
     // lines: whole text lines (names, keywords). words: single words with their own boxes (scores, clock).
-    fun parse(lines: List<TextLine>, words: List<TextLine> = emptyList()): Frame {
+    fun parse(lines: List<TextLine>, words: List<TextLine> = emptyList(), deviceTimes: Set<String> = emptySet()): Frame {
         val tokens = if (words.isNotEmpty()) words else lines
+        val notDeviceTime = { t: String -> clockSearch.find(t.replace('O', '0'))?.value?.let { it !in deviceTimes } ?: true }
         val all = lines.joinToString(" ") { it.text.uppercase() }
         val hits = { keys: List<String> -> keys.count { all.contains(it) } }
         val quit = hits(quitKeys) > 0
@@ -70,10 +71,10 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         val menu = hits(menuKeys) >= 2
 
         // the clock: a word like 34:49 near the top, ideally in the middle; during play it may sit in a corner
-        val isClock = { t: TextLine -> clockRe.matches(t.text.trim().replace('O', '0')) }
+        val isClock = { t: TextLine -> clockRe.matches(t.text.trim().replace('O', '0')) && notDeviceTime(t.text) }
         val clockLine = tokens.filter { it.cy in header.first..header.second && it.cx in 0.30f..0.70f }.firstOrNull(isClock)
             ?: (if (clockAnywhere) tokens.filter { it.cy in inplayTop.first..inplayTop.second }.firstOrNull(isClock) else null)
-            ?: lines.filter { it.cy in inplayTop.first..inplayTop.second && it.text.length <= 16 }.firstOrNull { clockSearch.containsMatchIn(it.text) }
+            ?: lines.filter { it.cy in inplayTop.first..inplayTop.second && it.text.length <= 16 }.firstOrNull { clockSearch.containsMatchIn(it.text) && notDeviceTime(it.text) }
         val clock = clockLine?.let { (clockSearch.find(it.text.replace('O', '0')))?.groupValues?.let { g -> g[1].toInt() * 60 + g[2].toInt() } }
 
         val layout = when {

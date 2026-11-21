@@ -215,7 +215,12 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY); return
         }
         val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        startActivityForResult(mpm.createScreenCaptureIntent(), REQ_CAPTURE)
+        // Android 14+ offers "A single app" by default; that recording goes blank once the game is opened.
+        // Asking for the default display makes Android offer only "Entire screen".
+        val ask = if (Build.VERSION.SDK_INT >= 34) mpm.createScreenCaptureIntent(android.media.projection.MediaProjectionConfig.createConfigForDefaultDisplay())
+                  else mpm.createScreenCaptureIntent()
+        Toast.makeText(this, "Choose \"Entire screen\" if Android asks.", Toast.LENGTH_LONG).show()
+        startActivityForResult(ask, REQ_CAPTURE)
     }
 
     override fun onRequestPermissionsResult(code: Int, perms: Array<out String>, res: IntArray) {

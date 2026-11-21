@@ -80,4 +80,11 @@ class ScreenParserTest {
         val f = ScreenParser(rules, "NANGANI UNITED", null).parse(lines, playWords("2", "90:00", "1"))
         assertEquals("in_play", f.layout); assertEquals(true, f.fullTime); assertEquals(2, f.scoreMe)
     }
+
+    @Test fun phoneClockIsNotTheMatchClock() {
+        // the phone's own clock (17:15) in the status bar while the game menu is open
+        val lines = listOf(t("17:15", 30, 2, 80, 14), t("PRIVATE MATCH", 494, 60, 586, 74))
+        val f = ScreenParser(rules, "NANGANI UNITED", null).parse(lines, listOf(t("17:15", 30, 2, 80, 14)), setOf("17:15"))
+        assertEquals("unknown", f.layout)
+    }
 }

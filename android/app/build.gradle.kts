@@ -11,8 +11,8 @@ android {
         applicationId = "app.winzone.player"
         minSdk = 21   // Android 5.0: the first version that allows screen recording by apps
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.4.1"
+        versionCode = 7
+        versionName = "0.4.2"
         // phones only (ARM); leaves out emulator code and keeps the download small
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }

@@ -54,6 +54,13 @@ class CaptureService : Service() {
     private var sawInPlay = false
     private var startedAt = 0L
     private var lastUnknownAt = 0L
+    private var lastFrameAt = 0L
+    private var lastBlankReportAt = 0L
+    private var busySince = 0L
+    private var lastNoteAt = 0L
+    private var capW = 0
+    private var capH = 0
+    private var frames = 0
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -81,11 +88,13 @@ class CaptureService : Service() {
         val dm = resources.displayMetrics
         val scale = minOf(1f, 1280f / maxOf(dm.widthPixels, dm.heightPixels))
         val w = (dm.widthPixels * scale).toInt(); val h = (dm.heightPixels * scale).toInt()
+        capW = w; capH = h
         reader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 2)
         display = projection?.createVirtualDisplay("winzone", w, h, dm.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader!!.surface, null, main)
         wake = (getSystemService(Context.POWER_SERVICE) as PowerManager).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "winzone:capture").apply { acquire(3 * 60 * 60 * 1000L) }
         running = true
         startedAt = SystemClock.elapsedRealtime()
+        lastFrameAt = startedAt
         main.postDelayed(tick, interval)
         return START_NOT_STICKY
     }
@@ -94,14 +103,46 @@ class CaptureService : Service() {
         override fun run() {
             if (!running) return
             if (SystemClock.elapsedRealtime() - startedAt > MAX_MINUTES * 60_000) { endCapture("Recording stopped after ${MAX_MINUTES / 60} hours."); return }
+            val now = SystemClock.elapsedRealtime()
+            followRotation()
+            if (busy && now - busySince > 10_000) busy = false            // the reader never answered: try again
             if (!busy) grab()
+            // no picture for 20 s (screen sharing stopped or blank): tell the server, so it is visible at once
+            if (now - lastFrameAt > 20_000 && now - lastBlankReportAt > 30_000) {
+                lastBlankReportAt = now
+                val secs = (now - lastFrameAt) / 1000
+                io.execute { send("submit_screen_state_pass", JSONObject().put("p_pass", store.pass).put("p_layout", "unknown")
+                    .put("p_client_seq", store.nextSeq()).put("p_raw", JSONObject().put("app", Config.VERSION).put("no_picture_seconds", secs))) }
+                note("No picture from the screen for $secs s. Is the game open?")
+            }
             main.postDelayed(this, interval)
         }
+    }
+
+    // games turn the phone sideways: the capture follows, so the picture is not shrunk into a portrait frame
+    private fun followRotation() {
+        val dm = android.util.DisplayMetrics()
+        @Suppress("DEPRECATION") (getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.getRealMetrics(dm)
+        val landscape = dm.widthPixels > dm.heightPixels
+        if (capW == 0 || landscape == (capW > capH)) return
+        val scale = minOf(1f, 1280f / maxOf(dm.widthPixels, dm.heightPixels))
+        val w = (dm.widthPixels * scale).toInt(); val h = (dm.heightPixels * scale).toInt()
+        try {
+            val old = reader
+            val next = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 2)
+            display?.resize(w, h, dm.densityDpi)
+            display?.surface = next.surface
+            reader = next; capW = w; capH = h
+            try { old?.close() } catch (_: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun grab() {
         val img = reader?.acquireLatestImage() ?: return
         busy = true
+        busySince = SystemClock.elapsedRealtime()
+        lastFrameAt = busySince
+        frames++
         val bmp: Bitmap
         try {
             val plane = img.planes[0]
@@ -124,7 +165,7 @@ class CaptureService : Service() {
                         words.add(TextLine(e.text, q.left / W, q.top / H, q.right / W, q.bottom / H))
                     }
                 }
-                val frame = parser.parse(lines, words)
+                val frame = parser.parse(lines, words, deviceTimes())
                 io.execute { handle(frame, lines) }
             }
             .addOnCompleteListener { bmp.recycle(); busy = false }
@@ -151,6 +192,7 @@ class CaptureService : Service() {
             if (terminalCount < confirmFrames) return
         }
         if (f.layout == "unknown") {
+            note("Reading the game… (screen not recognised yet)")
             if (now - lastUnknownAt > 15000) {
                 lastUnknownAt = now
                 val sample = JSONArray(lines.take(40).map { l ->
@@ -161,6 +203,11 @@ class CaptureService : Service() {
             return
         }
         if (f.layout == "in_play") sawInPlay = true
+        note(when (f.layout) {
+            "in_play" -> "Match on" + (f.clock?.let { " · ${it / 60 + 1}'" } ?: "") + (if (f.scoreMe != null) " · ${f.scoreMe}–${f.scoreOpp}" else "")
+            "menu" -> "Waiting for the match to start"
+            else -> "Reading the game"
+        })
         val dup = f.sameAs(lastSent) && now - lastSentAt < 15000
         if (!dup || (isEnd && terminalCount == confirmFrames)) {
             val raw = JSONObject().put("app", Config.VERSION)
@@ -215,18 +262,44 @@ class CaptureService : Service() {
         } catch (_: Exception) {}
     }
 
+    // the phone's own clock (status bar) in the usual formats, so it is never taken for the match clock
+    private fun deviceTimes(): Set<String> {
+        val c = java.util.Calendar.getInstance()
+        val out = HashSet<String>()
+        for (d in -1..1) {
+            val x = c.clone() as java.util.Calendar; x.add(java.util.Calendar.MINUTE, d)
+            val h = x.get(java.util.Calendar.HOUR_OF_DAY); val m = x.get(java.util.Calendar.MINUTE); val h12 = if (h % 12 == 0) 12 else h % 12
+            out += "%d:%02d".format(h, m); out += "%02d:%02d".format(h, m); out += "%d:%02d".format(h12, m); out += "%02d:%02d".format(h12, m)
+        }
+        return out
+    }
+
+    // what the app is reading right now, shown in its notification (at most every 5 s)
+    private fun note(text: String) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastNoteAt < 5000) return
+        lastNoteAt = now
+        main.post { try { (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(NOTE_ID, buildNote(text)) } catch (_: Exception) {} }
+    }
+
     private fun startInForeground(text: String) {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "Match capture", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
-        val stop = PendingIntent.getService(this, 1, Intent(this, CaptureService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
-        @Suppress("DEPRECATION")
-        val n = b.setContentTitle("WIN ZONE — recording your match").setContentText(text)
-            .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setContentIntent(open)
-            .addAction(Notification.Action.Builder(R.drawable.ic_notify, "Stop recording", stop).build()).build()
+        val n = buildNote(text)
         if (Build.VERSION.SDK_INT >= 29) startForeground(NOTE_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         else startForeground(NOTE_ID, n)
+    }
+
+    private fun buildNote(text: String): Notification {
+        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val stop = PendingIntent.getService(this, 1, Intent(this, CaptureService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
+        val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
+        @Suppress("DEPRECATION")
+        return b.setContentTitle("WIN ZONE — recording your match").setContentText(text)
+            .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setOnlyAlertOnce(true).setContentIntent(open)
+            .addAction(Notification.Action.Builder(R.drawable.ic_notify, "Stop recording", stop).build()).build()
     }
 
     // stops the screen recording, removes the "recording" notification and leaves a short one that can be swiped away
