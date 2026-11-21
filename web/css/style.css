@@ -74,13 +74,10 @@ p { margin: 0 0 1em; }
   font: 700 1.5rem/1 var(--display); letter-spacing: 0.07em; text-transform: uppercase;
 }
 .logo:hover { color: var(--fg); }
-.logo-mark { width: 28px; height: 28px; flex: none; display: block; }
-.lm-bg { fill: var(--ink); }
-.lm-line { stroke: var(--bone); }
+.logo-mark { height: 24px; width: auto; flex: none; display: block; overflow: hidden; }
+.lm-line { stroke: var(--fg); }
 .lm-dot { fill: var(--volt); }
-:root[data-theme="dark"] .lm-bg { fill: var(--volt); }
-:root[data-theme="dark"] .lm-line { stroke: var(--ink); }
-:root[data-theme="dark"] .lm-dot { fill: var(--ink); }
+:root[data-theme="light"] .lm-dot { fill: #9fc41a; }   /* a touch deeper on light backgrounds so the point stays visible */
 .logo-text { white-space: nowrap; }
 
 /* ---------------------------------------------------------------- header */
@@ -346,7 +343,7 @@ table.std { width: 100%; border-collapse: collapse; min-width: 560px; }
   .nav { gap: 6px; }
   .nav-end { gap: 6px; }
   .logo { font-size: 1.2rem; gap: 7px; }
-  .logo-mark { width: 22px; height: 22px; }
+  .logo-mark { height: 19px; }
   .nav-end .btn { padding: 8px 9px; font-size: 0.72rem; letter-spacing: 0.08em; }
   .menu-btn { padding: 8px 9px; font-size: 0.72rem; letter-spacing: 0.08em; }
   .theme-btn { width: 34px; height: 34px; }
@@ -495,3 +492,7 @@ a.sp-logo:hover { opacity: 0.8; color: var(--fg); }
   .nav-admin-d { display: none; }
   .nav-links.open .nav-admin-m { display: block; }
 }
+
+.push-banner { display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  margin-top: 18px; padding: 16px 20px; border: 1px solid var(--accent-text); background: var(--bg2); max-width: 920px; }
+.push-banner p { margin: 0; max-width: 46em; }

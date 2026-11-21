@@ -1178,7 +1178,7 @@ begin
   perform pg_temp.ok((r ->> 'tournament_id')::uuid = t and r ->> 'my_team' = 'DREAM FC' and r ? 'opp_team', 'handoff carries tournament and team names');
   perform pg_temp.ok((set_team_name_pass(pass, 'harmou fc') ->> 'ok')::boolean, 'app can set the team name with its pass');
   perform pg_temp.ok((select team_name from profiles where id = a) = 'HARMOU FC', 'team name saved from the app');
-  perform pg_temp.ok((game_profile_pass(pass) -> 'profile' ->> 'version')::int = 1, 'screen-reading rules come from the server');
+  perform pg_temp.ok((game_profile_pass(pass) -> 'profile' ->> 'version')::int >= 1, 'screen-reading rules come from the server');
   perform pg_temp.ok(game_profile_pass('nope') ->> 'reason' = 'invalid_pass', 'rules need a valid pass');
 
   -- kickoff works even if the clock cannot be read

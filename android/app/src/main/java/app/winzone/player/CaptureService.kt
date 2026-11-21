@@ -115,11 +115,16 @@ class CaptureService : Service() {
         recognizer.process(InputImage.fromBitmap(bmp, 0))
             .addOnSuccessListener { text ->
                 val lines = ArrayList<TextLine>()
+                val words = ArrayList<TextLine>()
                 for (b in text.textBlocks) for (l in b.lines) {
                     val r = l.boundingBox ?: continue
                     lines.add(TextLine(l.text, r.left / W, r.top / H, r.right / W, r.bottom / H))
+                    for (e in l.elements) {
+                        val q = e.boundingBox ?: continue
+                        words.add(TextLine(e.text, q.left / W, q.top / H, q.right / W, q.bottom / H))
+                    }
                 }
-                val frame = parser.parse(lines)
+                val frame = parser.parse(lines, words)
                 io.execute { handle(frame, lines) }
             }
             .addOnCompleteListener { bmp.recycle(); busy = false }

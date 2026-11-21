@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="brand_ink">#0B0D0C</color>
+    <color name="brand_volt">#C8F43A</color>
 </resources>

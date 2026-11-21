@@ -148,7 +148,9 @@ Object.assign(D.en, {
   "ev.note": "What happened", "ev.files": "Screenshots: PNG, JPG or WEBP, up to 5 MB each, 5 at most", "ev.send": "Send to review", "ev.sent": "Sent. An admin will review it.",
   "ev.yours": "Your screenshots", "ev.uploading": "Uploading…",
   "cal.add": "Add to calendar", "t.demo": "Demo", "t.demonote": "Demo tournament played by bots to show how WIN ZONE works. Results do not count.",
-  "sp.presented": "Presented by", "sp.partners": "Partners", "f.responsible": "Responsible play", "me.getapp": "Download the Android app"
+  "sp.presented": "Presented by", "sp.partners": "Partners", "f.responsible": "Responsible play", "me.getapp": "Download the Android app",
+  "n.banner": "Turn on match alerts on this phone: when fixtures are out, 1 hour and 5 minutes before kick-off, when your code is ready, and your result.",
+  "n.bannerbtn": "Turn on alerts", "n.bannerblocked": "Alerts are blocked for this site. Open your browser's site settings, allow notifications, then reload this page."
 });
 Object.assign(D.fr, {
   "acc.title": "Compte et sécurité", "acc.pw": "Changer le mot de passe", "acc.pwcur": "Mot de passe actuel", "acc.pwnew": "Nouveau mot de passe", "acc.pwrep": "Répétez le nouveau mot de passe",
@@ -174,7 +176,9 @@ Object.assign(D.fr, {
   "ev.note": "Ce qui s'est passé", "ev.files": "Captures : PNG, JPG ou WEBP, 5 Mo max chacune, 5 au maximum", "ev.send": "Envoyer pour examen", "ev.sent": "Envoyé. Un administrateur va l'examiner.",
   "ev.yours": "Vos captures", "ev.uploading": "Envoi…",
   "cal.add": "Ajouter au calendrier", "t.demo": "Démo", "t.demonote": "Tournoi de démonstration joué par des robots pour montrer le fonctionnement de WIN ZONE. Les résultats ne comptent pas.",
-  "sp.presented": "Présenté par", "sp.partners": "Partenaires", "f.responsible": "Jeu responsable", "me.getapp": "Télécharger l'application Android"
+  "sp.presented": "Présenté par", "sp.partners": "Partenaires", "f.responsible": "Jeu responsable", "me.getapp": "Télécharger l'application Android",
+  "n.banner": "Activez les alertes de match sur ce téléphone : calendrier publié, 1 heure et 5 minutes avant le coup d'envoi, code prêt et résultat.",
+  "n.bannerbtn": "Activer les alertes", "n.bannerblocked": "Les alertes sont bloquées pour ce site. Ouvrez les paramètres du site dans votre navigateur, autorisez les notifications, puis rechargez la page."
 });
 Object.assign(D.rw, {
   "acc.title": "Konti n'umutekano", "acc.pw": "Hindura ijambobanga", "acc.pwcur": "Ijambobanga usanzwe ukoresha", "acc.pwnew": "Ijambobanga rishya", "acc.pwrep": "Ongera wandike ijambobanga rishya",
@@ -200,7 +204,9 @@ Object.assign(D.rw, {
   "ev.note": "Ibyabaye", "ev.files": "Amafoto: PNG, JPG cyangwa WEBP, atarenze MB 5 buri imwe, atarenze 5", "ev.send": "Ohereza ngo bisuzumwe", "ev.sent": "Byoherejwe. Umuyobozi azabisuzuma.",
   "ev.yours": "Amafoto yawe", "ev.uploading": "Biroherezwa…",
   "cal.add": "Shyira kuri kalendari", "t.demo": "Igerageza", "t.demonote": "Irushanwa ryo kwerekana rikinwa na robo kugira ngo werekwe uko WIN ZONE ikora. Ibyavuyemo ntibibarwa.",
-  "sp.presented": "Ritewe inkunga na", "sp.partners": "Abafatanyabikorwa", "f.responsible": "Gukina mu rugero", "me.getapp": "Kuramo porogaramu ya Android"
+  "sp.presented": "Ritewe inkunga na", "sp.partners": "Abafatanyabikorwa", "f.responsible": "Gukina mu rugero", "me.getapp": "Kuramo porogaramu ya Android",
+  "n.banner": "Fungura amatangazo y'imikino kuri iyi telefoni: iyo imikino isohotse, isaha 1 n'iminota 5 mbere y'umukino, iyo kode iteguye, n'ibyavuye mu mukino.",
+  "n.bannerbtn": "Fungura amatangazo", "n.bannerblocked": "Amatangazo arafunze kuri uru rubuga. Fungura igenamiterere ry'urubuga muri mushakisha yawe, wemere amatangazo, hanyuma usubize uru rupapuro."
 });
 
 let lang = "en";

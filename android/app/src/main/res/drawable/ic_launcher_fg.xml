@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Adaptive icon foreground: the pitch inside the 72dp safe zone of a 108dp canvas -->
+<!-- Adaptive icon foreground: the WZ monogram inside the 72dp safe zone of a 108dp canvas -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:strokeColor="#F2EFE8" android:strokeWidth="3" android:fillColor="#00000000"
-        android:pathData="M34,40h40a2,2 0,0 1,2 2v24a2,2 0,0 1,-2 2h-40a2,2 0,0 1,-2 -2v-24a2,2 0,0 1,2 -2z"/>
-    <path android:strokeColor="#F2EFE8" android:strokeWidth="3" android:pathData="M54,40v6.5M54,61.5v6.5"/>
-    <path android:strokeColor="#F2EFE8" android:strokeWidth="3" android:fillColor="#00000000"
-        android:pathData="M54,46.5a7.5,7.5 0,1 1,0 15a7.5,7.5 0,1 1,0 -15z"/>
-    <path android:fillColor="#C8F43A" android:pathData="M54,51a3,3 0,1 1,0 6a3,3 0,1 1,0 -6z"/>
+    <group android:translateX="23.561" android:translateY="33.187" android:scaleX="0.5203" android:scaleY="0.5203">
+        <clip-path android:pathData="M-3,1.5h123v77h-123z"/>
+        <path android:strokeColor="#0B0D0C" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M2.12,-4.41 L26,72 L46,32 L66,72"/>
+        <path android:strokeColor="#0B0D0C" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M60,8 L104,8 L66,72 L114,72"/>
+        <path android:fillColor="#0B0D0C" android:pathData="M84.80,61.30 L94.89,44.30 L104.30,61.30Z"/>
+    </group>
 </vector>

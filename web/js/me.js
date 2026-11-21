@@ -88,6 +88,18 @@ async function renderPushControl() {
   }
 }
 
+// A clear prompt near the top until this phone receives alerts.
+async function renderPushBanner() {
+  const host = $("#push-banner");
+  if (!host || !pushSupported() || !CONFIG.VAPID_PUBLIC_KEY) return;
+  const sub = await currentSub().catch(() => null);
+  if (sub && Notification.permission === "granted") { host.hidden = true; return; }
+  host.hidden = false;
+  if (Notification.permission === "denied") { host.innerHTML = `<p>${esc(t("n.bannerblocked"))}</p>`; return; }
+  host.innerHTML = `<p>${esc(t("n.banner"))}</p><button class="btn sm" type="button" id="push-banner-on">${esc(t("n.bannerbtn"))}</button>`;
+  $("#push-banner-on").onclick = () => { const on = $("#push-on"); if (on) on.click(); setTimeout(() => renderPushBanner(), 2500); };
+}
+
 async function renderNotifications() {
   const host = $("#notif-list");
   if (!host) return;
@@ -122,7 +134,7 @@ if (user) {
     chooseFollow(q.get("t"), q.get("follow") === "1");
     history.replaceState(null, "", "/me.html#notifications");
   }
-  renderPushControl();
+  renderPushControl().then(renderPushBanner);
   renderNotifications().catch((e) => { $("#notif-list").innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; });
 }
 

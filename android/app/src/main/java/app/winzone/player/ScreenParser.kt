@@ -46,16 +46,33 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
     private val eventRe = Regex("^(.{2,40}?)\\s*\\(([0-9 ,'+pen]+)\\)$", RegexOption.IGNORE_CASE)
     private val ratingRe = Regex("^\\d{1,2}[.,]\\d$")
 
-    fun parse(lines: List<TextLine>): Frame {
+    // Reading mistakes seen with this kind of font: the letter O for zero, I or l for one.
+    private fun digitish(t: String): String? {
+        val x = t.trim().map { c -> when (c) { 'O', 'o', 'Q', 'D' -> '0'; 'I', 'l', '|', '!' -> '1'; else -> c } }.joinToString("")
+        return if (digitsRe.matches(x)) x else null
+    }
+    private fun penOf(t: String): Int? {
+        val x = t.trim().replace('O', '0').replace('o', '0')
+        return penRe.find(x)?.groupValues?.get(1)?.toIntOrNull()
+    }
+    private val clockAnywhere = rules.optBoolean("inplay_clock_anywhere", true)
+    private val clockSearch = Regex("(?<![0-9])(\\d{1,3})[:.](\\d{2})(?![0-9])")
+
+    // lines: whole text lines (names, keywords). words: single words with their own boxes (scores, clock).
+    fun parse(lines: List<TextLine>, words: List<TextLine> = emptyList()): Frame {
+        val tokens = if (words.isNotEmpty()) words else lines
         val all = lines.joinToString(" ") { it.text.uppercase() }
         val hits = { keys: List<String> -> keys.count { all.contains(it) } }
         val quit = hits(quitKeys) > 0
         val result = hits(resultKeys) >= minHits
         val menu = hits(menuKeys) >= 2
 
-        val clockLine = lines.filter { it.cy in header.first..header.second && it.cx in 0.30f..0.70f }
-            .firstOrNull { clockRe.matches(it.text.trim()) }
-        val clock = clockLine?.let { clockRe.find(it.text.trim())!!.groupValues.let { g -> g[1].toInt() * 60 + g[2].toInt() } }
+        // the clock: a word like 34:49 near the top, ideally in the middle; during play it may sit in a corner
+        val isClock = { t: TextLine -> clockRe.matches(t.text.trim().replace('O', '0')) }
+        val clockLine = tokens.filter { it.cy in header.first..header.second && it.cx in 0.30f..0.70f }.firstOrNull(isClock)
+            ?: (if (clockAnywhere) tokens.filter { it.cy in inplayTop.first..inplayTop.second }.firstOrNull(isClock) else null)
+            ?: lines.filter { it.cy in inplayTop.first..inplayTop.second && it.text.length <= 16 }.firstOrNull { clockSearch.containsMatchIn(it.text) }
+        val clock = clockLine?.let { (clockSearch.find(it.text.replace('O', '0')))?.groupValues?.let { g -> g[1].toInt() * 60 + g[2].toInt() } }
 
         val layout = when {
             quit -> "opponent_quit"
@@ -69,10 +86,12 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         // the score banner: digits left and right of the clock, penalties in brackets, team names on top
         val midX = clockLine?.cx ?: 0.5f
         val head = lines.filter { it.cy in header.first..header.second }
-        val leftScore = head.filter { digitsRe.matches(it.text.trim()) && it.cx < midX }.maxByOrNull { it.cx }?.text?.trim()?.toInt()
-        val rightScore = head.filter { digitsRe.matches(it.text.trim()) && it.cx > midX }.minByOrNull { it.cx }?.text?.trim()?.toInt()
-        val leftPen = head.filter { penRe.matches(it.text.trim()) && it.cx < midX }.maxByOrNull { it.cx }?.let { penRe.find(it.text.trim())!!.groupValues[1].toInt() }
-        val rightPen = head.filter { penRe.matches(it.text.trim()) && it.cx > midX }.minByOrNull { it.cx }?.let { penRe.find(it.text.trim())!!.groupValues[1].toInt() }
+        // scores sit on the clock's row, either side of it
+        val row = tokens.filter { it.cy in header.first..header.second && (clockLine == null || abs(it.cy - clockLine.cy) < 0.06f) }
+        val leftScore = row.filter { it.cx < midX && digitish(it.text) != null }.maxByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
+        val rightScore = row.filter { it.cx > midX && digitish(it.text) != null }.minByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
+        val leftPen = row.filter { it.cx < midX && penOf(it.text) != null }.maxByOrNull { it.cx }?.let { penOf(it.text) }
+        val rightPen = row.filter { it.cx > midX && penOf(it.text) != null }.minByOrNull { it.cx }?.let { penOf(it.text) }
         val names = head.filter { isName(it.text) }
         val leftTeam = names.filter { it.cx < midX - 0.08f }.minByOrNull { it.cy }?.text?.trim()
         val rightTeam = names.filter { it.cx > midX + 0.08f }.minByOrNull { it.cy }?.text?.trim()

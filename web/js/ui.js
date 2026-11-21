@@ -95,8 +95,8 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
-// The brand: a football pitch seen from above, and a plain wordmark.
-export const LOGO_INNER = `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" class="lm-bg"/><g class="lm-line" fill="none" stroke-width="1.9"><rect x="5.5" y="8.5" width="21" height="15" rx="1"/><path d="M16 8.5v3.4M16 20.1v3.4"/><circle cx="16" cy="16" r="4.1"/></g><circle cx="16" cy="16" r="1.7" class="lm-dot"/></svg><span class="logo-text">WIN ZONE</span>`;
+// The brand: the WZ monogram (W and Z sharing one stroke) with the volt "winning point", and a plain wordmark.
+export const LOGO_INNER = `<svg class="logo-mark" viewBox="-3 1.5 123 77.0" aria-hidden="true" focusable="false"><g class="lm-line" fill="none" stroke-width="13" stroke-miterlimit="10"><path d="M2.12,-4.41 L26,72 L46,32 L66,72"/><path d="M60,8 L104,8 L66,72 L114,72"/></g><path class="lm-dot" d="M84.80,61.30 L94.89,44.30 L104.30,61.30Z"/></svg><span class="logo-text">WIN ZONE</span>`;
 
 export async function mountChrome(active = "") {
   document.documentElement.lang = getLang();
