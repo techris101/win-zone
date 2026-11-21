@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon: white WZ monogram (Android tints it) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <group android:translateX="1.061" android:translateY="4.520" android:scaleX="0.1870" android:scaleY="0.1870">
+        <clip-path android:pathData="M-3,1.5h123v77h-123z"/>
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M2.12,-4.41 L26,72 L46,32 L66,72"/>
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M60,8 L104,8 L66,72 L114,72"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M84.80,61.30 L94.89,44.30 L104.30,61.30Z"/>
+    </group>
+</vector>

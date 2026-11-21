@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reset password — WIN ZONE</title>
+<meta name="description" content="Choose a new password for your WIN ZONE account.">
+<meta name="theme-color" content="#0b0d0c">
+<meta property="og:title" content="Reset password — WIN ZONE">
+<meta property="og:description" content="Choose a new password for your WIN ZONE account.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="/js/theme.js"></script>
+</head>
+<body>
+<main id="main">
+<div class="wrap"><div class="auth-wrap">
+  <div class="panel">
+    <form id="form-new" class="form" novalidate hidden>
+      <h2 class="form-title" data-i18n="a.resettitle"></h2>
+      <div class="field"><label for="np-1" data-i18n="a.newpass"></label><input id="np-1" type="password" autocomplete="new-password" minlength="8" required>
+        <div class="hint">8+ characters</div></div>
+      <div class="field"><label for="np-2" data-i18n="a.newpass2"></label><input id="np-2" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div id="np-msg" role="alert"></div>
+      <button class="btn" type="submit" data-i18n="a.setpass"></button>
+    </form>
+    <div id="np-wait" role="status"></div>
+  </div>
+</div></div>
+</main>
+<script type="module" src="/js/reset.js"></script>
+</body>
+</html>
