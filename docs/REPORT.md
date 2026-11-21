@@ -46,3 +46,25 @@ Sponsors, dispute evidence upload, demo mode with bots, responsible-play / count
 3. Daily database backup: a safety check stopped me from copying player data out automatically. If you want it, approve it and add a `SUPABASE_ACCESS_TOKEN` secret in GitHub.
 4. Public contact email: not shown yet; tell me if bigmin00001@gmail.com should appear on the Contact page.
 5. Download limit: the free database plan allows about 5 GB of downloads a month (~200 app downloads). Fine for testing.
+
+## Update — 21 Nov 2026 (evening): state at hand-over
+**Live and checked**
+- Website https://win-zone.pages.dev — all 20 pages load, no errors on phone and computer (real browser check).
+- App 0.5.0 (Android 5+): https://jfniylmbogodgozcczln.supabase.co/storage/v1/object/public/downloads/winzone.apk
+  - the whole site inside the app; Play game opens the match screen directly; sign in once
+  - records the entire screen (Android 14+), follows rotation, ignores the phone's own clock, shows what it reads
+    in its notification, reports a blank picture to the server
+  - strict kick-off (0-0 at 00:01 on both phones); recording stops on a final full time, the result screen or an
+    opponent disconnecting; "Match ended" screen with the result and statistics; text-reading model checked inside
+- Database: migrations 0001–0022 live; 4 automatic jobs (results every minute, alerts, demo, nightly cleanup) with no
+  failures; phone alerts delivered (15 in the last 6 hours); 17 MB of 500 MB.
+- Tests: 5 database suites, reset test, 16 describe-box tests, 11 app reader tests, Android version checker — all pass;
+  GitHub checks green.
+
+**Not yet proven:** a full match read by both phones with 0.5.0. Next test: both phones on 0.5.0 → Play game → Start →
+"Entire screen" → play; pull down the notification during the match (it should say "Match on" with the minute).
+The test match KIGALI GOATS is "Under review": replay it from the admin page for the test.
+
+**Waiting for the owner:** in-play screenshots (one with FULL TIME), phone models and Android versions; Firebase for
+alerts when the app is closed; Brevo email; contact email decision; daily backup approval; bot protection; "Watch live"
+streaming; revoke the Supabase and Cloudflare keys when building is done; change the old MTN keys.
