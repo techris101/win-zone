@@ -11,3 +11,9 @@ win-zone-production-build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Android
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/

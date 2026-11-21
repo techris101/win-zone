@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My matches — WIN ZONE</title>
+<meta name="description" content="Your tournaments and next fixtures.">
+<meta name="theme-color" content="#0b0d0c">
+<meta property="og:title" content="My matches — WIN ZONE">
+<meta property="og:description" content="Your tournaments and next fixtures.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="/js/theme.js"></script>
+</head>
+<body>
+<main id="main">
+<div class="wrap" style="padding-top:56px;padding-bottom:90px">
+  <span class="eyebrow">WIN ZONE</span><h1 style="font-size:clamp(3rem,8vw,5.6rem)" data-i18n="me.title"></h1>
+  <p class="mute" id="tz-line" style="margin-top:14px"></p>
+  <div id="acct-banner"></div>
+  <div id="push-banner" class="push-banner" hidden></div>
+  <div class="notice" id="app-note"><b data-i18n="me.app"></b> <span id="app-link"></span></div>
+  <form id="team-form" class="row2" style="align-items:end;margin-top:28px;max-width:640px">
+    <div class="field"><label for="team-name" data-i18n="me.team"></label><input id="team-name" maxlength="30" autocomplete="off" style="text-transform:uppercase">
+      <div class="hint" data-i18n="me.teamhint"></div></div>
+    <div><button class="btn sm" type="submit" data-i18n="c.save"></button></div>
+  </form>
+  <section id="my-stats" style="margin-top:36px"><h3 data-i18n="me.stats" style="margin:0"></h3><div id="career"></div><div id="my-race"></div></section>
+  <h3 data-i18n="me.next" style="margin-top:40px"></h3>
+  <div id="me-fx" class="t-list"><div class="empty" data-i18n="c.loading"></div></div>
+  <h3 data-i18n="me.entries" style="margin-top:48px"></h3>
+  <div id="me-ent" class="t-list"></div>
+  <section id="notifications" style="margin-top:56px">
+    <div class="section-head" style="margin-bottom:18px"><h3 style="margin:0" data-i18n="n.title"></h3><div id="push-ctl" class="a-actions"></div></div>
+    <div id="notif-list" class="notif-list"><div class="empty" data-i18n="c.loading"></div></div>
+  </section>
+  <section id="account" class="acct" style="margin-top:64px">
+    <h3 data-i18n="acc.title" style="margin:0 0 22px"></h3>
+    <div class="acct-grid">
+      <form id="pw-form" class="panel form" novalidate>
+        <h4 class="form-title" data-i18n="acc.pw"></h4>
+        <div class="field"><label for="pw-cur" data-i18n="acc.pwcur"></label><input id="pw-cur" type="password" autocomplete="current-password" required></div>
+        <div class="field"><label for="pw-new" data-i18n="acc.pwnew"></label><input id="pw-new" type="password" autocomplete="new-password" minlength="8" required></div>
+        <div class="field"><label for="pw-rep" data-i18n="acc.pwrep"></label><input id="pw-rep" type="password" autocomplete="new-password" minlength="8" required></div>
+        <div id="pw-msg" role="alert"></div>
+        <button class="btn sm" type="submit" data-i18n="acc.pw"></button>
+      </form>
+      <div class="panel form" id="rp">
+        <h4 class="form-title" data-i18n="rp.title"></h4>
+        <p class="mute small" data-i18n="rp.lede"></p>
+        <div class="field"><label for="rp-limit" data-i18n="rp.limit"></label>
+          <select id="rp-limit"><option value="" data-i18n="rp.nolimit"></option><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option></select>
+          <div class="hint" data-i18n="rp.limithint"></div></div>
+        <div class="field"><label for="rp-days" data-i18n="rp.break"></label>
+          <div class="inline-ctl"><select id="rp-days"><option value="1" data-i18n="rp.d1"></option><option value="7" data-i18n="rp.d7"></option><option value="30" data-i18n="rp.d30"></option><option value="90" data-i18n="rp.d90"></option><option value="180" data-i18n="rp.d180"></option><option value="365" data-i18n="rp.d365"></option></select>
+          <button class="btn sm ghost" type="button" id="rp-break" data-i18n="rp.breakbtn"></button></div>
+          <div class="hint" data-i18n="rp.breakhint"></div></div>
+        <a class="small" href="/responsible.html" data-i18n="rp.more"></a>
+      </div>
+      <form id="del-form" class="panel form danger-zone" novalidate>
+        <h4 class="form-title" data-i18n="del.title"></h4>
+        <p class="mute small" data-i18n="del.lede"></p>
+        <div class="field"><label for="del-user" data-i18n="del.type"></label><input id="del-user" autocomplete="off" required></div>
+        <div id="del-msg" role="alert"></div>
+        <button class="btn sm danger" type="submit" data-i18n="del.btn"></button>
+      </form>
+    </div>
+  </section>
+</div>
+</main>
+<script type="module" src="/js/me.js"></script>
+</body>
+</html>
