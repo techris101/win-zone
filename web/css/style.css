@@ -508,3 +508,6 @@ a.sp-logo:hover { opacity: 0.8; color: var(--fg); }
 .ln-min { color: var(--accent-text); font: 700 0.95rem/1 var(--display); letter-spacing: 0.08em; text-align: right; }
 .live-sc { color: var(--accent-text); }
 @media (max-width: 560px) { .ln-row { grid-template-columns: 1fr auto 1fr; } .ln-min { grid-column: 1 / -1; text-align: center; } .ln-p { font-size: 1rem; } }
+
+/* inside the Android app: no download prompts, no browser-only alert controls */
+.in-app .not-in-app { display: none !important; }

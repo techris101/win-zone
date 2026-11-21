@@ -22,17 +22,25 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
 
+        <!-- home: the WIN ZONE site inside the app -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:resizeableActivity="false"
-            android:supportsPictureInPicture="false">
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- opened by the website's Play game button: winzone://play?f=<fixture>&c=<one-time code> -->
+        </activity>
+
+        <!-- the match screen: opened by "Play game" (in the app, or from a browser: winzone://play?f=<fixture>&c=<one-time code>) -->
+        <activity
+            android:name=".MatchActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:supportsPictureInPicture="false">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

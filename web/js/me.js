@@ -1,4 +1,4 @@
-import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, chooseCountryAndSave, toast } from "./ui.js";
+import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, chooseCountryAndSave, toast, IN_APP } from "./ui.js";
 import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, setMyTeamName, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush,
          changePassword, takeBreak, setPlayLimit, deleteMyAccount, signOut } from "./api.js";
 import { CONFIG } from "./config.js";
@@ -17,6 +17,7 @@ else {
     $("#chg-country").addEventListener("click", async (e) => { e.preventDefault(); try { if (await chooseCountryAndSave()) location.reload(); } catch (err) { errMsg(err); } });
   }
   showTz();
+  if (IN_APP) $("#app-note").hidden = true;
   $("#app-link").innerHTML = CONFIG.APK_URL ? `<a class="btn sm" href="${esc(CONFIG.APK_URL)}" rel="noopener">${esc(t("me.getapp"))}</a>` : "";
   try {
     const [fx, en] = await Promise.all([myFixtures(user.id), myEntries(user.id)]);
@@ -61,6 +62,7 @@ async function currentSub() {
 async function renderPushControl() {
   const host = $("#push-ctl");
   if (!host) return;
+  if (IN_APP) { host.innerHTML = `<span class="mute small">${esc(t("n.inapp"))}</span>`; return; }
   if (!pushSupported() || !CONFIG.VAPID_PUBLIC_KEY) { host.innerHTML = `<span class="mute small">${esc(t("n.unsupported"))}</span>`; return; }
   if (Notification.permission === "denied") { host.innerHTML = `<span class="mute small">${esc(t("n.blocked"))}</span>`; return; }
   const sub = await currentSub().catch(() => null);
@@ -91,7 +93,7 @@ async function renderPushControl() {
 // A clear prompt near the top until this phone receives alerts.
 async function renderPushBanner() {
   const host = $("#push-banner");
-  if (!host || !pushSupported() || !CONFIG.VAPID_PUBLIC_KEY) return;
+  if (!host || IN_APP || !pushSupported() || !CONFIG.VAPID_PUBLIC_KEY) return;
   const sub = await currentSub().catch(() => null);
   if (sub && Notification.permission === "granted") { host.hidden = true; return; }
   host.hidden = false;
@@ -177,6 +179,11 @@ if (user) {
 
 // ---------------------------------------------------------------- calendar file for one match (opens in any calendar app)
 function downloadIcs(f, oppName) {
+  if (IN_APP) {   // inside the app: the phone's calendar, filled in
+    const start = new Date(f.scheduled_at).getTime();
+    window.WinZoneApp.addToCalendar(`WIN ZONE: vs ${oppName}`, start, start + 30 * 60000, `${f.tournament?.name || ""} - ${location.origin}/matchroom.html?f=${f.id}`);
+    return;
+  }
   const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const start = new Date(f.scheduled_at), end = new Date(start.getTime() + 30 * 60000);
   const clean = (x) => String(x || "").replace(/[\\,;]/g, (m) => "\\" + m).replace(/\n/g, " ");

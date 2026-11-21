@@ -2,6 +2,10 @@ import { t, applyI18n, setLang, getLang, LANGS } from "./i18n.js";
 import { LIVE, getUser, signOut, isOrganizer, myProfile, listCountries, setMyCountry, unreadCount, onMyNotification, setMyLang } from "./api.js";
 import { CONFIG } from "./config.js";
 
+// true when the site runs inside the WIN ZONE Android app (the app adds a small bridge object)
+export const IN_APP = typeof window !== "undefined" && typeof window.WinZoneApp !== "undefined";
+if (IN_APP) document.documentElement.classList.add("in-app");
+
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -138,7 +142,7 @@ export async function mountChrome(active = "") {
         <div><h4 data-i18n="f.legal"></h4>
           <a href="/terms.html" data-i18n="f.terms"></a><a href="/privacy.html" data-i18n="f.privacy"></a><a href="/responsible.html" data-i18n="f.responsible"></a><a href="/contact.html" data-i18n="f.contact"></a></div>
         <div><h4>Free to play</h4><p class="mute small">Free to enter. Skill-based. Play responsibly.</p>
-          ${CONFIG.APK_URL ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener" data-i18n="me.getapp"></a>` : ""}</div>
+          ${CONFIG.APK_URL && !IN_APP ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener" data-i18n="me.getapp"></a>` : ""}</div>
       </div>
       <div class="foot-base"><span>© ${new Date().getFullYear()} WIN ZONE. <span data-i18n="f.rights"></span></span><span>win-zone.pages.dev</span></div>
     </div>`;

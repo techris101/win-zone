@@ -1,4 +1,4 @@
-import { mountChrome, esc, $, fmtDate, toast, errMsg, applyI18n, t } from "./ui.js";
+import { mountChrome, esc, $, fmtDate, toast, errMsg, applyI18n, t, IN_APP } from "./ui.js";
 import { getUser, joinFixture, submitRoomCode, reportHostBlocked, openDispute, createHandoff, LIVE, fixtureBasics, getProfiles,
          uploadEvidence, myEvidence, evidenceUrl, reportPlayer } from "./api.js";
 import { CONFIG } from "./config.js";
@@ -37,7 +37,7 @@ async function copyCode(code) {
 // "Play game": ask the server for a one-time code, then open the app with it.
 // The link carries the match id and that single-use 60-second code, never a login.
 async function playGame(btn) {
-  if (!/Android/i.test(navigator.userAgent)) { toast("Open this page on your Android phone to play.", "err"); return; }
+  if (!IN_APP && !/Android/i.test(navigator.userAgent)) { toast("Open this page on your Android phone to play.", "err"); return; }
   btn.disabled = true;
   try {
     const r = await createHandoff(fid);
@@ -45,6 +45,7 @@ async function playGame(btn) {
       toast(({ too_early: "The room opens 2 minutes before kickoff.", fixture_closed: "This match is closed.", waiting_for_code: "The code is not ready yet." })[r.reason] || r.reason, "err");
       return;
     }
+    if (IN_APP) { window.WinZoneApp.play(r.code); return; }   // inside the app: open the match screen directly
     const fallback = CONFIG.APK_URL || location.href;
     location.href = `intent://play?f=${encodeURIComponent(r.fixture_id)}&c=${encodeURIComponent(r.code)}#Intent;scheme=${CONFIG.APP_SCHEME};package=${CONFIG.APP_PACKAGE};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
   } catch (err) { toast(errMsg(err), "err"); }
@@ -66,7 +67,7 @@ async function load() {
         <button class="btn ghost" type="button" id="copy-code">Copy code</button>
         <button class="btn" type="button" id="play-btn">Play game</button>
       </div>
-      <p class="small mute" style="margin-top:14px">${esc(t("mr.appver"))} ${CONFIG.APK_URL ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener">${esc(t("mr.getapp"))}</a>` : ""}</p>
+      <p class="small mute not-in-app" style="margin-top:14px">${esc(t("mr.appver"))} ${CONFIG.APK_URL ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener">${esc(t("mr.getapp"))}</a>` : ""}</p>
       <ol class="how-to">
         <li><b>Copy the code</b> above.</li>
         <li>Tap <b>Play game</b>. The WIN ZONE app opens and asks permission to record the screen.</li>
