@@ -19,6 +19,7 @@ data class Frame(
     val clock: Int? = null,
     val myTeam: String? = null, val oppTeam: String? = null,
     val report: JSONObject? = null,     // scorers etc. from the result screen
+    val fullTime: Boolean = false,      // "FULL TIME" shown under the clock during the match
 ) {
     // two frames are "the same" for duplicate suppression and for confirming a result
     fun sameAs(o: Frame?) = o != null && o.layout == layout && o.scoreMe == scoreMe && o.scoreOpp == scoreOpp &&
@@ -34,6 +35,7 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
     private val resultKeys = list("result_keywords")
     private val quitKeys = list("quit_keywords")
     private val menuKeys = list("menu_keywords")
+    private val fullTimeKeys = list("full_time_keywords").ifEmpty { listOf("FULL TIME", "FULL-TIME", "FULLTIME") }
     private val oppLabels = list("opponent_labels").ifEmpty { listOf("OPPONENT") }
     private val potmLabel = rules.optString("potm_label", "PLAYER OF THE MATCH").uppercase()
     private val header = band("header_band", 0f, 0.30f)
@@ -82,6 +84,9 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
             else -> "unknown"
         }
         if (layout == "menu" || layout == "unknown") return Frame(layout)
+        // "FULL TIME" written near the clock (under it) while the match screen is still shown
+        val fullTime = layout == "in_play" && clockLine != null &&
+            lines.any { l -> fullTimeKeys.any { l.text.uppercase().contains(it) } && abs(l.cx - clockLine.cx) < 0.25f && abs(l.cy - clockLine.cy) < 0.12f }
 
         // the score banner: digits left and right of the clock, penalties in brackets, team names on top
         val midX = clockLine?.cx ?: 0.5f
@@ -93,8 +98,16 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         val leftPen = row.filter { it.cx < midX && penOf(it.text) != null }.maxByOrNull { it.cx }?.let { penOf(it.text) }
         val rightPen = row.filter { it.cx > midX && penOf(it.text) != null }.minByOrNull { it.cx }?.let { penOf(it.text) }
         val names = head.filter { isName(it.text) }
-        val leftTeam = names.filter { it.cx < midX - 0.08f }.minByOrNull { it.cy }?.text?.trim()
-        val rightTeam = names.filter { it.cx > midX + 0.08f }.minByOrNull { it.cy }?.text?.trim()
+        var leftTeam = names.filter { it.cx < midX - 0.08f }.minByOrNull { it.cy }?.text?.trim()
+        var rightTeam = names.filter { it.cx > midX + 0.08f }.minByOrNull { it.cy }?.text?.trim()
+        // during play the game often shows short team names (for example NAN for NANGANI UNITED) beside the score
+        if (layout == "in_play" && clockLine != null && (leftTeam == null || rightTeam == null)) {
+            val shorts = tokens.filter { abs(it.cy - clockLine.cy) < 0.06f && Regex("^[A-Z]{2,4}$").matches(it.text.trim()) }
+            val l = shorts.filter { it.cx < midX }.maxByOrNull { it.cx }?.text?.trim()
+            val r = shorts.filter { it.cx > midX }.minByOrNull { it.cx }?.text?.trim()
+            if (leftTeam == null) leftTeam = l
+            if (rightTeam == null) rightTeam = r
+        }
 
         // which side is mine: my team name first, then the "Opponent" label under the other team
         val iAmLeft: Boolean? = when {
@@ -106,8 +119,12 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
             head.any { l -> oppLabels.contains(l.text.trim().uppercase()) && l.cx < midX } -> false
             else -> null
         }
-        // without knowing my side, reporting a score could flip it: report the screen type only
-        if (iAmLeft == null) return Frame(layout, clock = clock)
+        // without knowing my side, reporting a score could flip it: report the screen type only.
+        // 0-0 is the same from both sides, so it is safe to send (it is what kick-off needs).
+        if (iAmLeft == null) {
+            return if (leftScore == 0 && rightScore == 0) Frame(layout, 0, 0, clock = clock, fullTime = fullTime)
+                   else Frame(layout, clock = clock, fullTime = fullTime)
+        }
 
         val me = if (iAmLeft) leftScore else rightScore
         val opp = if (iAmLeft) rightScore else leftScore
@@ -116,7 +133,7 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         val myT = if (iAmLeft) leftTeam else rightTeam
         val opT = if (iAmLeft) rightTeam else leftTeam
         val report = if (layout == "result" || layout == "opponent_quit") buildReport(lines, iAmLeft, myT, opT) else null
-        return Frame(layout, me, opp, pm, po, clock, myT, opT, report)
+        return Frame(layout, me, opp, pm, po, clock, myT, opT, report, fullTime)
     }
 
     private fun isName(s: String): Boolean {
@@ -164,9 +181,15 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         fun same(a: String, b: String): Boolean {
             val x = norm(a); val y = norm(b)
             if (x.isEmpty() || y.isEmpty()) return false
+            // short names: NAN for NANGANI UNITED, NU (initials), SUP for SUPERBOYS UNITED
+            if (y.length in 2..4 && x.length > 4 && (x.startsWith(y) || initials(a) == y)) return true
+            if (x.length in 2..4 && y.length > 4 && (y.startsWith(x) || initials(b) == x)) return true
+            if (x.length in 2..4 || y.length in 2..4) return x == y
             if (x == y || (x.length >= 4 && y.contains(x)) || (y.length >= 4 && x.contains(y))) return true
             return lev(x, y) <= 2
         }
+
+        private fun initials(s: String) = s.trim().split(Regex("\\s+")).mapNotNull { w -> norm(w).firstOrNull() }.joinToString("")
 
         private fun lev(a: String, b: String): Int {
             val d = IntArray(b.length + 1) { it }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The WIN ZONE logo as used on the website: volt rounded square with the black WZ monogram -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#C8F43A" android:pathData="M24,0h60a24,24 0 0 1 24,24v60a24,24 0 0 1 -24,24h-60a24,24 0 0 1 -24,-24v-60a24,24 0 0 1 24,-24z"/>
+    <group android:translateX="20.707" android:translateY="31.236" android:scaleX="0.5691" android:scaleY="0.5691">
+        <clip-path android:pathData="M-3,1.5h123v77h-123z"/>
+        <path android:strokeColor="#0B0D0C" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M2.12,-4.41 L26,72 L46,32 L66,72"/>
+        <path android:strokeColor="#0B0D0C" android:strokeWidth="13" android:strokeMiterLimit="10" android:fillColor="#00000000" android:pathData="M60,8 L104,8 L66,72 L114,72"/>
+        <path android:fillColor="#0B0D0C" android:pathData="M84.80,61.30 L94.89,44.30 L104.30,61.30Z"/>
+    </group>
+</vector>

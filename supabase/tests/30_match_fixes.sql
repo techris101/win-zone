@@ -32,14 +32,14 @@ begin
   perform pg_temp.ok((select status from fixtures where id = f1) <> 'completed', 'one phone without kick-off is not enough');
   perform pg_temp.term(f1, b, 'result', 1, 2, 5400);
   r := _finalize(f1, null);
-  perform pg_temp.ok((select status = 'completed' and score_a = 2 and score_b = 1 and winner_id = a from fixtures where id = f1),
-                     'both phones agreeing settle the match even when kick-off was missed');
+  perform pg_temp.ok((select status from fixtures where id = f1) not in ('completed'),
+                     'strict kick-off: even two agreeing phones are not enough without a confirmed kick-off');
 
   -- kick-off missed, only one phone reported, 30 minutes on: goes to the admins
   perform pg_temp.term(f2, c, 'result', 0, 3, 843);
   perform sweep_fixtures();
-  perform pg_temp.ok((select status from fixtures where id = f2) = 'disputed', 'a played match with one result goes to the admins');
-  perform pg_temp.ok(exists (select 1 from match_events where fixture_id = f2 and details ->> 'reason' = 'result_from_one_phone'), 'with a clear reason');
+  perform pg_temp.ok((select status from fixtures where id = f2) = 'disputed', 'a match played without a confirmed kick-off goes to the admins');
+  perform pg_temp.ok(exists (select 1 from match_events where fixture_id = f2 and details ->> 'reason' = 'no_kickoff_confirmed'), 'with a clear reason');
 
   -- the 5-minute reminder
   perform _notify_reminders();

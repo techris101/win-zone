@@ -52,8 +52,8 @@ class CaptureService : Service() {
     private var reported = false
     private var finished = false
     private var sawInPlay = false
-    private var menuStreak = 0
     private var startedAt = 0L
+    private var lastUnknownAt = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -74,7 +74,7 @@ class CaptureService : Service() {
         val data: Intent? = if (Build.VERSION.SDK_INT >= 33) intent?.getParcelableExtra(EXTRA_DATA, Intent::class.java)
             else @Suppress("DEPRECATION") intent?.getParcelableExtra(EXTRA_DATA)
         if (data == null || store.pass == null) { stopSelf(); return START_NOT_STICKY }
-        val mpm = getSystemService(MediaProjectionManager::class.java)
+        val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         projection = mpm.getMediaProjection(code, data)
         projection?.registerCallback(object : MediaProjection.Callback() { override fun onStop() { if (running) stopAll() } }, main)
 
@@ -131,22 +131,36 @@ class CaptureService : Service() {
     }
 
     // runs on the io thread
-    private fun handle(f: Frame, lines: List<TextLine>) {
+    // "FULL TIME" ends the match only when nothing more will be played: always in a league or group match,
+    // in a knockout only when the score is not level (a level knockout goes on to extra time, then penalties).
+    private fun fullTimeIsFinal(f: Frame): Boolean {
+        if (!f.fullTime || f.scoreMe == null || f.scoreOpp == null) return false
+        val stage = store.match?.optString("stage") ?: ""
+        return if (stage == "knockout" || stage == "playoff") f.scoreMe != f.scoreOpp else true
+    }
+
+    private fun handle(frame: Frame, lines: List<TextLine>) {
         if (finished) return
         val now = SystemClock.elapsedRealtime()
+        // a final "FULL TIME" counts as the result screen
+        val f = if (fullTimeIsFinal(frame)) frame.copy(layout = "result") else frame
         val isEnd = f.layout == "result" || f.layout == "opponent_quit"
         if (isEnd) {
             // a result screen must be seen the same way on several frames before it counts
             if (f.sameAs(terminal)) terminalCount++ else { terminal = f; terminalCount = 1 }
             if (terminalCount < confirmFrames) return
         }
-        if (f.layout == "unknown") return
-        if (f.layout == "in_play") { sawInPlay = true; menuStreak = 0 }
-        // back in the game's menus after playing: the match is over even if the result screen was missed
-        if (f.layout == "menu" && sawInPlay) {
-            menuStreak++
-            if (menuStreak >= 3) { flushQueue(); main.post { endCapture("Match ended. Recording stopped.") }; return }
+        if (f.layout == "unknown") {
+            if (now - lastUnknownAt > 15000) {
+                lastUnknownAt = now
+                val sample = JSONArray(lines.take(40).map { l ->
+                    JSONArray().put(l.text).put((l.x0 * 100).toInt()).put((l.y0 * 100).toInt()).put((l.x1 * 100).toInt()).put((l.y1 * 100).toInt()) })
+                send("submit_screen_state_pass", JSONObject().put("p_pass", store.pass).put("p_layout", "unknown")
+                    .put("p_client_seq", store.nextSeq()).put("p_raw", JSONObject().put("app", Config.VERSION).put("lines", sample)))
+            }
+            return
         }
+        if (f.layout == "in_play") sawInPlay = true
         val dup = f.sameAs(lastSent) && now - lastSentAt < 15000
         if (!dup || (isEnd && terminalCount == confirmFrames)) {
             val raw = JSONObject().put("app", Config.VERSION)
@@ -167,7 +181,7 @@ class CaptureService : Service() {
             reported = true
             finished = true
             // the end screen is confirmed and sent: stop recording now, the server settles the result
-            main.post { endCapture("Match ended. Result sent, recording stopped.") }
+            main.post { endCapture(if (f.layout == "opponent_quit") "Opponent left the match. Result sent, recording stopped." else "Full time. Result sent, recording stopped.") }
             return
         }
         if (now - lastStatusAt > 10000) { lastStatusAt = now; checkStatus() }
@@ -200,7 +214,7 @@ class CaptureService : Service() {
     }
 
     private fun startInForeground(text: String) {
-        val nm = getSystemService(NotificationManager::class.java)
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "Match capture", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
@@ -208,17 +222,18 @@ class CaptureService : Service() {
         @Suppress("DEPRECATION")
         val n = b.setContentTitle("WIN ZONE — recording your match").setContentText(text)
             .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setContentIntent(open)
-            .addAction(Notification.Action.Builder(null, "Stop recording", stop).build()).build()
+            .addAction(Notification.Action.Builder(R.drawable.ic_notify, "Stop recording", stop).build()).build()
         if (Build.VERSION.SDK_INT >= 29) startForeground(NOTE_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         else startForeground(NOTE_ID, n)
     }
 
     // stops the screen recording, removes the "recording" notification and leaves a short one that can be swiped away
     private fun endCapture(message: String) {
+        if (finished || reported) store.ended = true
         if (!running && projection == null) { stopSelf(); return }
         stopAll()
         try {
-            val nm = getSystemService(NotificationManager::class.java)
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val open = PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
             val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
             nm.notify(DONE_ID, b.setContentTitle("WIN ZONE").setContentText(message).setSmallIcon(R.drawable.ic_notify)

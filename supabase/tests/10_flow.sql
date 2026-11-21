@@ -162,12 +162,10 @@ begin
   r := submit_screen_state(f, 'in_play', 0, 0, null, null, 5, 1);
   perform pg_temp.ok(not (r ->> 'kickoff_ready')::boolean, 'no kickoff after one phone');
   perform pg_temp.as_user(b);
-  r := submit_screen_state(f, 'in_play', 0, 0, null, null, 6, 1);
-  perform pg_temp.ok(not (r ->> 'kickoff_ready')::boolean, 'no kickoff before 5 s of play');
-
-  update match_latest_state set in_play_since = now() - interval '8 seconds' where fixture_id = f;
-  r := submit_screen_state(f, 'in_play', 0, 0, null, null, 12, 2);
-  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff after 5 s on both phones');
+  r := submit_screen_state(f, 'in_play', 1, 0, null, null, 6, 1);
+  perform pg_temp.ok(not (r ->> 'kickoff_ready')::boolean, 'no kickoff unless both phones show 0-0');
+  r := submit_screen_state(f, 'in_play', 0, 0, null, null, 7, 2);
+  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff when both phones show 0-0 with the clock just started');
   perform pg_temp.as_user(a);
   r := submit_screen_state(f, 'in_play', 0, 0, null, null, 14, 2);
   perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff stays set');
@@ -1181,12 +1179,15 @@ begin
   perform pg_temp.ok((game_profile_pass(pass) -> 'profile' ->> 'version')::int >= 1, 'screen-reading rules come from the server');
   perform pg_temp.ok(game_profile_pass('nope') ->> 'reason' = 'invalid_pass', 'rules need a valid pass');
 
-  -- kickoff works even if the clock cannot be read
+  -- strict kick-off: the clock must be read on both phones, at 00:01-02:00, with 0-0
   perform pg_temp.as_user(a); perform submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 1);
-  perform pg_temp.as_user(b); perform submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 1);
-  update match_latest_state set in_play_since = now() - interval '8 seconds' where fixture_id = fx.id;
-  r := submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 2);
-  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff without a readable clock');
+  perform pg_temp.as_user(b); r := submit_screen_state(fx.id, 'in_play', 0, 0, null, null, null, 1);
+  perform pg_temp.ok(not (r ->> 'kickoff_ready')::boolean, 'no kickoff without a readable clock');
+  r := submit_screen_state(fx.id, 'in_play', 0, 0, null, null, 300, 2);
+  perform pg_temp.ok(not (r ->> 'kickoff_ready')::boolean, 'no kickoff when the clock is already past 2 minutes');
+  perform pg_temp.as_user(a); perform submit_screen_state(fx.id, 'in_play', 0, 0, null, null, 2, 2);
+  perform pg_temp.as_user(b); r := submit_screen_state(fx.id, 'in_play', 0, 0, null, null, 3, 3);
+  perform pg_temp.ok((r ->> 'kickoff_ready')::boolean, 'kickoff at 0-0 with the clock just started on both phones');
 
 end $$;
 

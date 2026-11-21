@@ -223,6 +223,7 @@ export async function onMyNotification(uid, cb) {
 }
 
 // ------------------------------------------------------------------ statistics
+export async function liveScores(tid) { if (!LIVE) return []; return rpc("live_scores", { p_tid: tid }); }
 export async function playerStats(tid) { if (!LIVE) return []; return rpc("player_stats", { p_tid: tid }); }
 export async function leaders(tid, kind, limit = 10) { if (!LIVE) return []; return rpc("footballer_leaders", { p_tid: tid, p_kind: kind, p_limit: limit }); }
 export async function careerStats(uid) { if (!LIVE) return null; return rpc("career_stats", { p_user: uid }); }

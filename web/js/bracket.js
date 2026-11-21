@@ -16,17 +16,20 @@ function side(f, which, profiles) {
   const score = which === "A" ? f.score_a : f.score_b;
   const pen = which === "A" ? f.pen_a : f.pen_b;
   const win = done && id && f.winner_id === id;
-  const showScore = f.status === "completed" && score != null;
+  const liveScore = f.status === "active" && f.live ? (which === "A" ? f.live.score_a : f.live.score_b) : null;
+  const showScore = (f.status === "completed" && score != null) || liveScore != null;
   const showPen = showScore && f.pen_a != null && f.pen_b != null && f.score_a === f.score_b;
   const bye = f.status === "bye" && !id;
   return `<div class="side ${win ? "win" : ""}">
     <span class="who ${name ? "" : "tbd"}">${name ? esc(name) : bye ? "BYE" : "TBD"}</span>
-    <span>${showPen ? `<span class="pen">(${pen})</span>` : ""}<span class="sc">${showScore ? esc(score) : ""}</span></span></div>`;
+    <span>${showPen ? `<span class="pen">(${pen})</span>` : ""}<span class="sc">${showScore ? esc(liveScore ?? score) : ""}</span></span></div>`;
 }
+
+const liveFoot = (f) => `<span class="live-t">● ${esc(t("fx.active"))}${f.live && f.live.minute ? ` ${esc(f.live.minute)}'` : ""}</span>`;
 
 function matchCard(f, profiles) {
   const live = f.status === "active";
-  const foot = live ? `<span class="live-t">● ${esc(t("fx.active"))}</span>` : f.status === "scheduled" && f.scheduled_at ? esc(fmtDate(f.scheduled_at)) : f.status === "bye" ? "" : esc(t("fx." + f.status));
+  const foot = live ? liveFoot(f) : f.status === "scheduled" && f.scheduled_at ? esc(fmtDate(f.scheduled_at)) : f.status === "bye" ? "" : esc(t("fx." + f.status));
   return `<article class="match ${live ? "live" : ""}">${side(f, "A", profiles)}${side(f, "B", profiles)}<div class="match-foot"><span>${foot}</span></div></article>`;
 }
 
@@ -41,7 +44,7 @@ export function renderBracket(fixtures, profiles) {
     const list = ko.filter((f) => f.round === r).sort((a, b) => a.slot - b.slot);
     cols.push(`<div class="b-round"><h4>${esc(roundLabel(r, rounds))}</h4><div class="b-matches">${list.map((f) => {
       const live = f.status === "active";
-      const foot = live ? `<span class="live-t">● ${esc(t("fx.active"))}</span>` : f.status === "scheduled" && f.scheduled_at ? esc(fmtDate(f.scheduled_at)) : f.status === "bye" ? "" : esc(t("fx." + f.status));
+      const foot = live ? liveFoot(f) : f.status === "scheduled" && f.scheduled_at ? esc(fmtDate(f.scheduled_at)) : f.status === "bye" ? "" : esc(t("fx." + f.status));
       return `<article class="match ${live ? "live" : ""}">${side(f, "A", profiles)}${side(f, "B", profiles)}
         <div class="match-foot"><span>${foot}</span><span>${f.player_a_id && f.player_b_id ? "" : ""}</span></div></article>`;
     }).join("")}</div></div>`);
@@ -69,9 +72,9 @@ export function renderFixtures(fixtures, profiles) {
     const done = f.status === "completed";
     return `<div class="fx"><span class="when">${esc(f.scheduled_at ? fmtDate(f.scheduled_at) : "—")}</span>
       <span class="p r ${done && f.winner_id === f.player_a_id ? "w" : ""}">${playerLink(profiles, f.player_a_id)}</span>
-      <span class="score">${done ? `${f.score_a}–${f.score_b}` : "v"}</span>
+      <span class="score">${done ? `${f.score_a}–${f.score_b}` : f.status === "active" && f.live ? `<b class="live-sc">${f.live.score_a}–${f.live.score_b}</b>` : "v"}</span>
       <span class="p ${done && f.winner_id === f.player_b_id ? "w" : ""}">${playerLink(profiles, f.player_b_id)}</span>
-      <span class="st"><span class="pill ${f.status === "active" ? "live" : ""}">${esc(t("fx." + f.status))}</span></span></div>`;
+      <span class="st"><span class="pill ${f.status === "active" ? "live" : ""}">${esc(t("fx." + f.status))}${f.status === "active" && f.live && f.live.minute ? ` ${esc(f.live.minute)}'` : ""}</span></span></div>`;
   }).join("")}</div>`;
 }
 

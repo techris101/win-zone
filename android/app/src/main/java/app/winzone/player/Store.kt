@@ -18,6 +18,8 @@ class Store(ctx: Context) {
     var seq: Long get() = p.getLong("seq", 0); set(v) = p.edit().putLong("seq", v).apply()
     var queue: String get() = p.getString("queue", "[]")!!; set(v) = p.edit().putString("queue", v).apply()
 
+    var ended: Boolean get() = p.getBoolean("ended", false); set(v) = p.edit().putBoolean("ended", v).apply()
+
     fun nextSeq(): Long { val s = seq + 1; seq = s; return s }
 
     @Synchronized fun enqueue(rpc: String, body: JSONObject) {
@@ -29,6 +31,6 @@ class Store(ctx: Context) {
     @Synchronized fun takeQueue(): org.json.JSONArray { val q = org.json.JSONArray(queue); queue = "[]"; return q }
 
     fun clearMatch() {
-        p.edit().remove("pass").remove("match").remove("queue").putLong("seq", 0).apply()
+        p.edit().remove("pass").remove("match").remove("queue").remove("ended").putLong("seq", 0).apply()
     }
 }

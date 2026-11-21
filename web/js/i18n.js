@@ -150,6 +150,7 @@ Object.assign(D.en, {
   "cal.add": "Add to calendar", "t.demo": "Demo", "t.demonote": "Demo tournament played by bots to show how WIN ZONE works. Results do not count.",
   "sp.presented": "Presented by", "sp.partners": "Partners", "f.responsible": "Responsible play", "me.getapp": "Download the Android app",
   "n.banner": "Turn on match alerts on this phone: when fixtures are out, 1 hour and 5 minutes before kick-off, when your code is ready, and your result.",
+  "t.livenow": "Live now", "t.waitkick": "Waiting for kick-off",
   "n.bannerbtn": "Turn on alerts", "n.bannerblocked": "Alerts are blocked for this site. Open your browser's site settings, allow notifications, then reload this page."
 });
 Object.assign(D.fr, {
@@ -178,6 +179,7 @@ Object.assign(D.fr, {
   "cal.add": "Ajouter au calendrier", "t.demo": "Démo", "t.demonote": "Tournoi de démonstration joué par des robots pour montrer le fonctionnement de WIN ZONE. Les résultats ne comptent pas.",
   "sp.presented": "Présenté par", "sp.partners": "Partenaires", "f.responsible": "Jeu responsable", "me.getapp": "Télécharger l'application Android",
   "n.banner": "Activez les alertes de match sur ce téléphone : calendrier publié, 1 heure et 5 minutes avant le coup d'envoi, code prêt et résultat.",
+  "t.livenow": "En direct", "t.waitkick": "En attente du coup d'envoi",
   "n.bannerbtn": "Activer les alertes", "n.bannerblocked": "Les alertes sont bloquées pour ce site. Ouvrez les paramètres du site dans votre navigateur, autorisez les notifications, puis rechargez la page."
 });
 Object.assign(D.rw, {
@@ -206,6 +208,7 @@ Object.assign(D.rw, {
   "cal.add": "Shyira kuri kalendari", "t.demo": "Igerageza", "t.demonote": "Irushanwa ryo kwerekana rikinwa na robo kugira ngo werekwe uko WIN ZONE ikora. Ibyavuyemo ntibibarwa.",
   "sp.presented": "Ritewe inkunga na", "sp.partners": "Abafatanyabikorwa", "f.responsible": "Gukina mu rugero", "me.getapp": "Kuramo porogaramu ya Android",
   "n.banner": "Fungura amatangazo y'imikino kuri iyi telefoni: iyo imikino isohotse, isaha 1 n'iminota 5 mbere y'umukino, iyo kode iteguye, n'ibyavuye mu mukino.",
+  "t.livenow": "Imikino iri kuba", "t.waitkick": "Bategereje gutangira",
   "n.bannerbtn": "Fungura amatangazo", "n.bannerblocked": "Amatangazo arafunze kuri uru rubuga. Fungura igenamiterere ry'urubuga muri mushakisha yawe, wemere amatangazo, hanyuma usubize uru rupapuro."
 });
 

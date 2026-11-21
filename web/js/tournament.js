@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n, chooseCountryAndSave } from "./ui.js";
-import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, playerStats, leaders, sponsorsFor } from "./api.js";
+import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, playerStats, leaders, sponsorsFor, liveScores } from "./api.js";
 import { renderBracket, renderTable, renderFixtures, renderPlayers, renderGroups, phaseZones, renderRace, renderLeaders } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
@@ -9,7 +9,7 @@ const root = $("#t-root");
 const params = new URLSearchParams(location.search);
 const slug = decodeURIComponent((location.pathname.match(/^\/t\/([^/]+)/) || [])[1] || params.get("s") || "");
 
-let tour = null, data = null, user = null, joined = false, tab = null, sponsors = [];
+let tour = null, data = null, user = null, joined = false, tab = null, sponsors = [], live = {}, liveTimer = null;
 
 async function boot() {
   if (!slug) return notFound();
@@ -36,8 +36,32 @@ async function refresh(first) {
     const fresh = await getTournament(slug);
     if (fresh) tour = fresh;
     data = await getTournamentData(tour);
+    await loadLive(false);
   } catch (e) { if (first) toast(errMsg(e), "err"); return; }
   render(first);
+}
+
+// live score: read every 10 seconds while a match is being played
+async function loadLive(rerender = true) {
+  clearTimeout(liveTimer);
+  if (!data || !data.fixtures.some((f) => f.status === "active")) { live = {}; return; }
+  try { live = Object.fromEntries((await liveScores(tour.id)).map((x) => [x.fixture_id, x])); } catch (_) {}
+  data.fixtures.forEach((f) => { f.live = live[f.id] || null; });
+  if (rerender) { renderLivePanel(); renderBody(); }
+  liveTimer = setTimeout(() => loadLive(true), 10000);
+}
+
+function renderLivePanel() {
+  const host = $("#live-now");
+  if (!host) return;
+  const act = data.fixtures.filter((f) => f.status === "active" && f.player_a_id && f.player_b_id);
+  if (!act.length) { host.innerHTML = ""; return; }
+  host.innerHTML = `<div class="live-now"><h3><span class="pill live"><i class="dot"></i>${esc(t("t.livenow"))}</span></h3>
+    ${act.map((f) => `<div class="ln-row">
+      <span class="ln-p r">${esc(nameOf(data.profiles, f.player_a_id))}</span>
+      <span class="ln-sc">${f.live ? `${f.live.score_a}–${f.live.score_b}` : "–"}</span>
+      <span class="ln-p">${esc(nameOf(data.profiles, f.player_b_id))}</span>
+      <span class="ln-min">${f.live && f.live.minute ? `${esc(f.live.minute)}'` : f.kickoff_at ? "" : esc(t("t.waitkick"))}</span></div>`).join("")}</div>`;
 }
 
 const hasKnockout = () => data.fixtures.some((f) => f.stage === "knockout" || f.stage === "playoff");
@@ -83,6 +107,7 @@ function render() {
       ${champ ? `<div class="champion"><div><div class="k">${t("t.champion")}</div><div class="v">${esc(champ)}</div></div></div>` : ""}
     </div></section>
     <div class="wrap">
+      <div id="live-now"></div>
       <div class="tabs" role="tablist">${tabs.map(([k, label]) => `<button role="tab" data-tab="${k}" aria-selected="${k === tab}">${t(label)}</button>`).join("")}</div>
       <div id="tab-body"></div>
     </div>`;
@@ -117,6 +142,7 @@ function render() {
     try { await navigator.clipboard.writeText(url); toast(t("t.copied")); } catch (_) { toast(url); }
   });
   $$("[data-tab]").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.tab; render(); }));
+  renderLivePanel();
   renderBody();
 }
 

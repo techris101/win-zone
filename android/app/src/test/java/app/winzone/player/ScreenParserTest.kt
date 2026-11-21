@@ -54,4 +54,30 @@ class ScreenParserTest {
         val f = ScreenParser(rules, null, null).parse(resultLines.filter { it.text != "NANGANI UNITED" && it.text != "SUPERBOYS UNITED" }, resultWords)
         assertEquals("result", f.layout); assertNull(f.scoreMe)
     }
+
+    // a match screen during play: short names and the clock in the top bar
+    private val playLines = listOf(t("NAN", 380, 18, 420, 40), t("SUP", 640, 18, 680, 40), t("PRIVATE MATCH", 494, 60, 586, 74))
+    private fun playWords(a: String, clock: String, b: String) = listOf(t("NAN", 380, 18, 420, 40), t(a, 440, 18, 460, 40),
+        t(clock, 515, 20, 565, 38), t(b, 600, 18, 620, 40), t("SUP", 640, 18, 680, 40))
+
+    @Test fun kickoffFrameIsZeroZeroAtOneSecond() {
+        val f = ScreenParser(rules, "NANGANI UNITED", null).parse(playLines, playWords("0", "00:01", "0"))
+        assertEquals("in_play", f.layout); assertEquals(1, f.clock); assertEquals(0, f.scoreMe); assertEquals(0, f.scoreOpp)
+    }
+
+    @Test fun shortNamesGiveMySide() {
+        val f = ScreenParser(rules, "SUPERBOYS UNITED", null).parse(playLines, playWords("2", "63:10", "1"))
+        assertEquals(1, f.scoreMe); assertEquals(2, f.scoreOpp)
+    }
+
+    @Test fun zeroZeroIsSentEvenWithoutKnowingMySide() {
+        val f = ScreenParser(rules, null, null).parse(playLines, playWords("0", "00:02", "0"))
+        assertEquals(0, f.scoreMe); assertEquals(0, f.scoreOpp)
+    }
+
+    @Test fun fullTimeUnderTheClockIsSeen() {
+        val lines = playLines + t("FULL TIME", 505, 42, 575, 56)
+        val f = ScreenParser(rules, "NANGANI UNITED", null).parse(lines, playWords("2", "90:00", "1"))
+        assertEquals("in_play", f.layout); assertEquals(true, f.fullTime); assertEquals(2, f.scoreMe)
+    }
 }

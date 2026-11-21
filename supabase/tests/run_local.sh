@@ -11,4 +11,5 @@ for f in ../migrations/*.sql; do echo "migrate $f"; run "$f"; done
 run 10_flow.sql
 run 20_safety.sql
 run 30_match_fixes.sql
+run 40_live.sql
 echo "ALL TESTS PASSED"

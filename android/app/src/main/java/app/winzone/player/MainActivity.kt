@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -88,6 +89,11 @@ class MainActivity : Activity() {
             addButton("Open website") { open("${Config.SITE}/me.html") }
             return
         }
+        // an old app version may misread the game: ask to update (the newest version is named by the server)
+        store.profile?.optString("min_app")?.takeIf { it.isNotBlank() && older(Config.VERSION, it) }?.let { need ->
+            text("Update needed: this is version ${Config.VERSION}, matches need $need or newer.", 0xFFFF5A4F.toInt(), 15f, bold = true)
+            addButton("Download the new version", primary = true) { open(Config.APK_URL) }
+        }
         label("YOUR MATCH")
         text("${m.optString("my_team").ifBlank { "You" }}  vs  ${m.optString("opponent")}", BONE, 22f, bold = true)
         text("${m.optString("stage")} · ${if (m.optInt("extra_time_seconds") > 0) "extra time and penalties if level" else "ends at full time"}", 0xFF9A9A94.toInt(), 14f)
@@ -96,7 +102,7 @@ class MainActivity : Activity() {
             label("PRIVATE MATCH CODE")
             text(c, VOLT, 34f, bold = true)
             addButton("Copy code") {
-                getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("code", c))
+                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("code", c))
                 Toast.makeText(this, "Code copied", Toast.LENGTH_SHORT).show()
             }
             text("Both players type this same code in Private Match and press Search.", 0xFF9A9A94.toInt(), 14f)
@@ -116,6 +122,8 @@ class MainActivity : Activity() {
             }
         }
 
+        if (store.ended) { renderEnded(); return }
+
         label("STATUS")
         val status = text(if (CaptureService.running) "Watching your match. Play normally; the result is sent by itself." else "Ready. Press Start, allow screen capture, then open the game.", BONE, 16f)
         if (!CaptureService.running) addButton("Start", primary = true) { start() }
@@ -130,11 +138,67 @@ class MainActivity : Activity() {
         pollStatus(status)
     }
 
+    // "Match ended": the result (or that it is waiting for the other phone) and the player's statistics
+    private fun renderEnded() {
+        label("MATCH ENDED")
+        val head = text("Result sent. Waiting for the result to be confirmed…", BONE, 18f, bold = true)
+        val sub = text("", 0xFF9A9A94.toInt(), 14f)
+        val statsBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        root.addView(statsBox)
+        addButton("Open the tournament") { open("${Config.SITE}/t/${store.match?.optString("slug") ?: ""}") }
+        addButton("My matches on the website") { open("${Config.SITE}/me.html") }
+        fun load() {
+            thread {
+                val s = try { Api.rpc("match_status_pass", JSONObject().put("p_pass", store.pass)) } catch (_: Exception) { null }
+                ui.post {
+                    if (s == null) { sub.text = "No connection. The result is sent as soon as you are online."; return@post }
+                    s.optString("slug").takeIf { it.isNotBlank() }?.let { slug -> store.match = store.match?.put("slug", slug) }
+                    val me = s.opt("score_me"); val opp = s.opt("score_opp")
+                    val pens = if (!s.isNull("pen_me") && !s.isNull("pen_opp")) " (pens ${s.opt("pen_me")}–${s.opt("pen_opp")})" else ""
+                    when (s.optString("status")) {
+                        "completed" -> {
+                            head.text = when {
+                                s.isNull("winner_is_me") -> "Draw $me–$opp"
+                                s.optBoolean("winner_is_me") -> "You won $me–$opp$pens"
+                                else -> "You lost $me–$opp$pens"
+                            }
+                            head.setTextColor(VOLT)
+                            sub.text = "vs ${s.optString("opponent")} · ${s.optString("tournament")} · confirmed"
+                        }
+                        "disputed", "stalled" -> { head.text = "Result under review"; sub.text = "The organisers will check this match and confirm the result." }
+                        else -> { sub.text = "vs ${s.optString("opponent")} · ${s.optString("tournament")}"; ui.postDelayed({ load() }, 8000) }
+                    }
+                    s.optJSONObject("stats")?.let { st -> showStats(statsBox, st) }
+                }
+            }
+        }
+        load()
+    }
+
+    private fun showStats(box: LinearLayout, st: JSONObject) {
+        box.removeAllViews()
+        val played = st.optInt("played"); val won = st.optInt("won")
+        val rows = listOf("Played" to "$played", "Won" to "$won", "Win rate" to (if (played > 0) "${100 * won / played}%" else "—"),
+            "Goals" to "${st.optInt("goals_for")}", "Titles" to "${st.optInt("titles")}")
+        val head = TextView(this).apply { text = "YOUR STATISTICS"; setTextColor(0xFF9A9A94.toInt()); textSize = 12f; letterSpacing = 0.12f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD); setPadding(0, dp(22), 0, dp(8)) }
+        box.addView(head)
+        val grid = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        for ((k, v) in rows) {
+            val cell = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, dp(4), dp(4), dp(4)) }
+            cell.addView(TextView(this).apply { text = v; setTextColor(BONE); textSize = 24f; typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD) })
+            cell.addView(TextView(this).apply { text = k.uppercase(); setTextColor(0xFF9A9A94.toInt()); textSize = 10f; letterSpacing = 0.1f })
+            grid.addView(cell, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        box.addView(grid)
+    }
+
     private fun pollStatus(view: TextView) {
         thread {
             try {
                 val s = Api.rpc("match_status_pass", JSONObject().put("p_pass", store.pass))
                 val st = s.optString("status")
+                if (st == "completed" || st == "disputed") { store.ended = true; ui.post { if (!CaptureService.running) render() }; return@thread }
                 val msg = when (st) {
                     "completed" -> "Result confirmed: ${s.opt("score_me")}–${s.opt("score_opp")}" + if (s.optBoolean("winner_is_me")) " · you won" else ""
                     "disputed" -> "The two phones disagree. The organisers will check the result."
@@ -150,7 +214,7 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY); return
         }
-        val mpm = getSystemService(MediaProjectionManager::class.java)
+        val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         startActivityForResult(mpm.createScreenCaptureIntent(), REQ_CAPTURE)
     }
 
@@ -184,10 +248,27 @@ class MainActivity : Activity() {
         else -> e.message?.takeIf { it.length < 120 && !it.contains("Exception") } ?: "No connection. Check your internet and try again."
     }
 
+    private fun older(have: String, need: String): Boolean {
+        val h = have.split(".").map { it.toIntOrNull() ?: 0 }; val n = need.split(".").map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(h.size, n.size)) { val x = h.getOrElse(i) { 0 }; val y = n.getOrElse(i) { 0 }; if (x != y) return x < y }
+        return false
+    }
+
     private fun open(url: String) = startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
     private fun show(msg: String) { root.removeAllViews(); title("WIN ZONE"); text(msg, BONE, 16f) }
-    private fun title(s: String) = text(s, VOLT, 28f, bold = true).also { it.setPadding(0, 0, 0, dp(20)) }
+    // the brand row: the same volt square logo as the website and the phone's home screen, then the name
+    private fun title(s: String): TextView {
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, 0, 0, dp(22)) }
+        row.addView(ImageView(this).apply { setImageResource(R.drawable.logo_square); contentDescription = null }, LinearLayout.LayoutParams(dp(40), dp(40)))
+        val name = TextView(this).apply {
+            text = s; setTextColor(BONE); textSize = 24f; letterSpacing = 0.06f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD); setPadding(dp(12), 0, 0, 0)
+        }
+        row.addView(name)
+        root.addView(row)
+        return name
+    }
     private fun label(s: String) = text(s, 0xFF9A9A94.toInt(), 12f, bold = true).also { it.setPadding(0, dp(22), 0, dp(4)); it.letterSpacing = 0.12f }
 
     private fun text(s: String, color: Int, size: Float, bold: Boolean = false): TextView =
