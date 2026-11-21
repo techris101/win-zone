@@ -12,4 +12,5 @@ run 10_flow.sql
 run 20_safety.sql
 run 30_match_fixes.sql
 run 40_live.sql
+run 50_cleanup.sql
 echo "ALL TESTS PASSED"
