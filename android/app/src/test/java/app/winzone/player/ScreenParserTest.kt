@@ -97,4 +97,64 @@ class ScreenParserTest {
         val k = ScreenParser(rules, null, null).parse(lines, listOf(t("NAN", 20, 10, 60, 34), t("0-0", 90, 10, 130, 34), t("SUP", 160, 10, 200, 34), t("00:01", 210, 12, 260, 32)))
         assertEquals(0, k.scoreMe); assertEquals(0, k.scoreOpp); assertEquals(1, k.clock)
     }
+
+    // the real match screen (1080 x 462): "FCB 3 - 0 PLA" top left, clock "45:00" with "+1", "TAP TO SKIP (1 / 2)" at the bottom
+    private fun hud(w: Float = 1080f, h: Float = 462f) = Pair(
+        listOf(TextLine("FCB 3 - 0 PLA", 88 / w, 12 / h, 228 / w, 34 / h), TextLine("45:00", 286 / w, 12 / h, 334 / w, 34 / h),
+               TextLine("+1", 344 / w, 12 / h, 364 / w, 34 / h), TextLine("ULTIMATE CLASH SOCCER", 460 / w, 110 / h, 712 / w, 126 / h),
+               TextLine("TAP TO SKIP (1 / 2)", 462 / w, 425 / h, 618 / w, 442 / h)),
+        listOf(TextLine("FCB", 88 / w, 12 / h, 118 / w, 34 / h), TextLine("3", 138 / w, 12 / h, 150 / w, 34 / h), TextLine("-", 156 / w, 12 / h, 162 / w, 34 / h),
+               TextLine("0", 168 / w, 12 / h, 182 / w, 34 / h), TextLine("PLA", 196 / w, 12 / h, 228 / w, 34 / h),
+               TextLine("45:00", 286 / w, 12 / h, 334 / w, 34 / h), TextLine("+1", 344 / w, 12 / h, 364 / w, 34 / h)))
+
+    @Test fun realMatchScreenHomeSide() {
+        val (lines, words) = hud()
+        val f = ScreenParser(rules, "FC BARCELONA", null).parse(lines, words)
+        assertEquals("in_play", f.layout); assertEquals(45 * 60, f.clock); assertEquals(3, f.scoreMe); assertEquals(0, f.scoreOpp)
+    }
+
+    @Test fun realMatchScreenAwaySide() {
+        val (lines, words) = hud()
+        val f = ScreenParser(rules, "PLAYMAKERS", null).parse(lines, words)
+        assertEquals(0, f.scoreMe); assertEquals(3, f.scoreOpp)
+    }
+
+    @Test fun realMatchScreenOnlyTheLine() {
+        // when the phone reader gives the score bar as one line only
+        val (lines, _) = hud()
+        val f = ScreenParser(rules, "FC BARCELONA", null).parse(lines, emptyList())
+        assertEquals("in_play", f.layout); assertEquals(3, f.scoreMe); assertEquals(0, f.scoreOpp)
+    }
+
+    @Test fun realMatchScreenKickoff() {
+        val w = 1080f; val h = 462f
+        val lines = listOf(TextLine("FCB 0 - 0 PLA", 88 / w, 12 / h, 228 / w, 34 / h), TextLine("00:01", 286 / w, 12 / h, 334 / w, 34 / h))
+        val f = ScreenParser(rules, null, null).parse(lines, emptyList())
+        assertEquals(1, f.clock); assertEquals(0, f.scoreMe); assertEquals(0, f.scoreOpp)
+    }
+
+    private fun hudWith(label: String, score: String, clock: String): Pair<List<TextLine>, List<TextLine>> {
+        val w = 1080f; val h = 462f
+        return Pair(listOf(TextLine("FCB $score PLA", 88 / w, 12 / h, 228 / w, 34 / h), TextLine(clock, 286 / w, 12 / h, 334 / w, 34 / h),
+                           TextLine(label, 100 / w, 40 / h, 210 / w, 56 / h)), emptyList())
+    }
+
+    @Test fun fullTimeBelowTheScoreBar() {
+        val (l, w) = hudWith("FULL TIME", "2 - 1", "90:00")
+        val f = ScreenParser(rules, "FC BARCELONA", null).parse(l, w)
+        assertEquals(true, f.fullTime); assertEquals(2, f.scoreMe); assertEquals(1, f.scoreOpp)
+    }
+
+    @Test fun halfTimeAndExtraTimeDoNotEndTheMatch() {
+        for ((label, clock) in listOf("HALF TIME" to "45:00", "EXTRA TIME" to "90:00", "EXTRA TIME HALF TIME" to "105:00")) {
+            val (l, w) = hudWith(label, "1 - 1", clock)
+            assertEquals(label, false, ScreenParser(rules, "FC BARCELONA", null).parse(l, w).fullTime)
+        }
+    }
+
+    @Test fun fullTimeAfterExtraTimeIsSeen() {
+        val (l, w) = hudWith("FULL TIME", "2 - 2", "120:00")
+        val f = ScreenParser(rules, "FC BARCELONA", null).parse(l, w)
+        assertEquals(true, f.fullTime); assertEquals(120 * 60, f.clock)
+    }
 }

@@ -87,43 +87,42 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         if (layout == "menu" || layout == "unknown") return Frame(layout)
         // "FULL TIME" written near the clock (under it) while the match screen is still shown
         val fullTime = layout == "in_play" && clockLine != null &&
-            lines.any { l -> fullTimeKeys.any { l.text.uppercase().contains(it) } && abs(l.cx - clockLine.cx) < 0.25f && abs(l.cy - clockLine.cy) < 0.12f }
+            // the label sits just below the score bar (left part of the screen, under the bar and the clock);
+            // HALF TIME and EXTRA TIME are written there too and never end the match
+            lines.any { l -> fullTimeKeys.any { l.text.uppercase().contains(it) } && l.cy > clockLine.cy - 0.03f && l.cy < clockLine.cy + 0.18f &&
+                l.cx < clockLine.cx + 0.25f }
 
         // the score banner: digits left and right of the clock, penalties in brackets, team names on top
-        var midXOverride: Float? = null
         val midX = clockLine?.cx ?: 0.5f
         val head = lines.filter { it.cy in header.first..header.second }
         // scores sit on the clock's row, either side of it
         val row = tokens.filter { it.cy in header.first..header.second && (clockLine == null || abs(it.cy - clockLine.cy) < 0.06f) }
         var leftScore = row.filter { it.cx < midX && digitish(it.text) != null }.maxByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
         var rightScore = row.filter { it.cx > midX && digitish(it.text) != null }.minByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
-        // during play the score is often one word like 0-0 or 1–2 (or inside a short line such as "NAN 1-0 SUP")
-        if (leftScore == null || rightScore == null) {
-            val joined = Regex("(?<![0-9:])([0-9OoIl]{1,2})\\s*[-–—]\\s*([0-9OoIl]{1,2})(?![0-9:])")
-            val hit = (row + lines.filter { it.cy in header.first..header.second && it.text.length <= 24 })
-                .firstNotNullOfOrNull { l -> joined.find(l.text)?.let { m -> l to m } }
-            if (hit != null) {
-                val a = digitish(hit.second.groupValues[1]); val b = digitish(hit.second.groupValues[2])
+        var barLeft: String? = null; var barRight: String? = null
+        // During play the score bar sits beside the clock: "FCB 3 - 0 PLA". The words of that row are put back together
+        // in reading order (or the row's lines are used), then read as: short name, score - score, short name.
+        if (layout == "in_play" || leftScore == null || rightScore == null) {
+            val bar = Regex("(?:([A-Z]{2,5})\\s+)?([0-9OoIl]{1,2})\\s*[-–—]\\s*([0-9OoIl]{1,2})(?![0-9:])(?:\\s+([A-Z]{2,5})\\b)?")
+            val rowLines = lines.filter { it.cy in header.first..header.second && (clockLine == null || abs(it.cy - clockLine.cy) < 0.06f) && it.text.length <= 30 }
+            val texts = listOf(row.sortedBy { it.x0 }.joinToString(" ") { it.text.trim() }) + rowLines.map { it.text } +
+                lines.filter { it.cy in header.first..header.second && it.text.length <= 24 }.map { it.text }
+            val m = texts.firstNotNullOfOrNull { t -> bar.find(t) }
+            if (m != null) {
+                val a = digitish(m.groupValues[2]); val b = digitish(m.groupValues[3])
                 if (a != null && b != null) {
                     leftScore = a.toInt(); rightScore = b.toInt()
-                    midXOverride = hit.first.cx   // the joined score splits the two team names
+                    barLeft = m.groupValues[1].ifBlank { null }; barRight = m.groupValues[4].ifBlank { null }
                 }
             }
         }
         val leftPen = row.filter { it.cx < midX && penOf(it.text) != null }.maxByOrNull { it.cx }?.let { penOf(it.text) }
         val rightPen = row.filter { it.cx > midX && penOf(it.text) != null }.minByOrNull { it.cx }?.let { penOf(it.text) }
-        val names = head.filter { isName(it.text) }
-        var leftTeam = names.filter { it.cx < midX - 0.08f }.minByOrNull { it.cy }?.text?.trim()
-        var rightTeam = names.filter { it.cx > midX + 0.08f }.minByOrNull { it.cy }?.text?.trim()
-        // during play the game often shows short team names (for example NAN for NANGANI UNITED) beside the score
-        if (layout == "in_play" && clockLine != null && (leftTeam == null || rightTeam == null)) {
-            val shorts = tokens.filter { abs(it.cy - clockLine.cy) < 0.06f && Regex("^[A-Z]{2,4}$").matches(it.text.trim()) }
-            val split = midXOverride ?: midX
-            val l = shorts.filter { it.cx < split }.maxByOrNull { it.cx }?.text?.trim()
-            val r = shorts.filter { it.cx > split }.minByOrNull { it.cx }?.text?.trim()
-            if (leftTeam == null) leftTeam = l
-            if (rightTeam == null) rightTeam = r
-        }
+        // team names: only those on the clock's row (stadium boards and adverts elsewhere are ignored)
+        val names = head.filter { isName(it.text) && (clockLine == null || abs(it.cy - clockLine.cy) < 0.08f) }
+        var leftTeam: String? = barLeft ?: names.filter { it.cx < midX - 0.08f }.minByOrNull { it.cy }?.text?.trim()
+        var rightTeam: String? = barRight ?: names.filter { it.cx > midX + 0.08f }.minByOrNull { it.cy }?.text?.trim()
+        if (layout == "in_play" && (barLeft != null || barRight != null)) { leftTeam = barLeft; rightTeam = barRight }
 
         // which side is mine: my team name first, then the "Opponent" label under the other team
         val iAmLeft: Boolean? = when {

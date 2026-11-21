@@ -152,7 +152,7 @@ Object.assign(D.en, {
   "n.banner": "Turn on match alerts on this phone: when fixtures are out, 1 hour and 5 minutes before kick-off, when your code is ready, and your result.",
   "n.inapp": "In the app, new alerts appear here and at the top of the screen while the app is open.",
   "t.livenow": "Live now", "t.waitkick": "Waiting for kick-off", "t.playing": "Playing", "t.checking": "Checking the result",
-  "mr.appver": "Both players need the WIN ZONE app version 0.5.1 or newer.", "mr.getapp": "Download the app",
+  "mr.appver": "Both players need the WIN ZONE app version 0.5.2 or newer.", "mr.getapp": "Download the app",
   "n.bannerbtn": "Turn on alerts", "n.bannerblocked": "Alerts are blocked for this site. Open your browser's site settings, allow notifications, then reload this page."
 });
 Object.assign(D.fr, {
@@ -183,7 +183,7 @@ Object.assign(D.fr, {
   "n.banner": "Activez les alertes de match sur ce téléphone : calendrier publié, 1 heure et 5 minutes avant le coup d'envoi, code prêt et résultat.",
   "n.inapp": "Dans l'application, les nouvelles alertes s'affichent ici et en haut de l'écran pendant qu'elle est ouverte.",
   "t.livenow": "En direct", "t.waitkick": "En attente du coup d'envoi", "t.playing": "En cours", "t.checking": "Vérification du résultat",
-  "mr.appver": "Les deux joueurs ont besoin de l'application WIN ZONE version 0.5.1 ou plus récente.", "mr.getapp": "Télécharger l'application",
+  "mr.appver": "Les deux joueurs ont besoin de l'application WIN ZONE version 0.5.2 ou plus récente.", "mr.getapp": "Télécharger l'application",
   "n.bannerbtn": "Activer les alertes", "n.bannerblocked": "Les alertes sont bloquées pour ce site. Ouvrez les paramètres du site dans votre navigateur, autorisez les notifications, puis rechargez la page."
 });
 Object.assign(D.rw, {
@@ -214,7 +214,7 @@ Object.assign(D.rw, {
   "n.banner": "Fungura amatangazo y'imikino kuri iyi telefoni: iyo imikino isohotse, isaha 1 n'iminota 5 mbere y'umukino, iyo kode iteguye, n'ibyavuye mu mukino.",
   "n.inapp": "Muri porogaramu, amatangazo mashya agaragara hano no hejuru ku rupapuro igihe porogaramu ifunguye.",
   "t.livenow": "Imikino iri kuba", "t.waitkick": "Bategereje gutangira", "t.playing": "Umukino urakomeje", "t.checking": "Ibyavuye mu mukino biri gusuzumwa",
-  "mr.appver": "Abakinnyi bombi bakeneye porogaramu ya WIN ZONE verisiyo 0.5.1 cyangwa nshya.", "mr.getapp": "Kuramo porogaramu",
+  "mr.appver": "Abakinnyi bombi bakeneye porogaramu ya WIN ZONE verisiyo 0.5.2 cyangwa nshya.", "mr.getapp": "Kuramo porogaramu",
   "n.bannerbtn": "Fungura amatangazo", "n.bannerblocked": "Amatangazo arafunze kuri uru rubuga. Fungura igenamiterere ry'urubuga muri mushakisha yawe, wemere amatangazo, hanyuma usubize uru rupapuro."
 });
 
