@@ -23,6 +23,7 @@ $("#back-in").onclick = (e) => { e.preventDefault(); show("in"); };
 // Country list for the sign-up form; preselect from the browser's language region or time zone.
 listCountries().then((list) => {
   const sel = $("#up-country");
+  list = list.filter((c) => !c.blocked);   // countries the admin has closed are not offered
   sel.append(...list.map((c) => { const o = document.createElement("option"); o.value = c.code; o.textContent = c.name; return o; }));
   const region = ((navigator.language || "").split("-")[1] || "").toUpperCase();
   let guess = list.find((c) => c.code === region);

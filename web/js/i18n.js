@@ -123,6 +123,86 @@ const D = {
   },
 };
 
+// ---- account, safety, reports, evidence, sponsors, demo (added with 0013)
+Object.assign(D.en, {
+  "acc.title": "Account and safety", "acc.pw": "Change password", "acc.pwcur": "Current password", "acc.pwnew": "New password", "acc.pwrep": "Repeat new password",
+  "acc.pwdone": "Password changed", "acc.pwwrong": "The current password is not correct.", "acc.pwshort": "The new password needs 8 or more characters.", "acc.pwsame": "The two new passwords are not the same.",
+  "rp.title": "Responsible play", "rp.lede": "WIN ZONE is free and has no money prizes. Play for fun, and take a break when you need one.",
+  "rp.break": "Take a break", "rp.breakhint": "You leave tournaments that have not started, and cannot join new ones until the break ends. A break cannot be shortened.",
+  "rp.days": "Length", "rp.d1": "1 day", "rp.d7": "1 week", "rp.d30": "1 month", "rp.d90": "3 months", "rp.d180": "6 months", "rp.d365": "1 year",
+  "rp.breakbtn": "Start break", "rp.confirm": "Start this break? It cannot be shortened.", "rp.onbreak": "You are on a break until", "rp.limit": "Tournaments at the same time",
+  "rp.limithint": "Stops you joining more tournaments than this at once.", "rp.nolimit": "No limit", "rp.limitsaved": "Limit saved", "rp.more": "Responsible play",
+  "del.title": "Delete account", "del.lede": "This removes your login and personal details. Your past results stay in tournament records as \"Deleted player\". This cannot be undone.",
+  "del.type": "Type your username to confirm", "del.btn": "Delete my account", "del.done": "Your account is deleted.",
+  "ban.until": "Your account is suspended until", "ban.perm": "Your account is suspended.", "ban.contact": "Contact WIN ZONE if you think this is a mistake.",
+  "r.account_suspended": "Your account is suspended.", "r.on_break": "You are on a break.", "r.play_limit_reached": "You reached your limit of tournaments at the same time. Change it in My matches.",
+  "r.country_not_available": "WIN ZONE tournaments are not available in your country.", "r.demo_tournament": "This is a demo tournament played by bots.",
+  "r.in_live_tournament": "You are still playing in a tournament. Finish it or ask an admin to remove you first.", "r.confirm_username": "Type your username exactly to confirm.",
+  "r.last_admin": "You are the only admin. Add another admin before deleting your account.", "r.tournament_full": "This tournament is full.", "r.registration_closed": "Registration is closed.",
+  "r.country_required": "Choose your country to register.", "r.too_many_reports": "You sent many reports today. Please try again tomorrow.", "r.player_not_found": "Player not found.",
+  "r.evidence_closed": "Screenshots can only be added up to 3 days after a match, 5 at most.", "r.not_a_participant": "You are not part of this match.",
+  "rep.title": "Report a player", "rep.reason": "Reason", "rep.cheating": "Cheating", "rep.abuse": "Abuse or insults", "rep.impersonation": "Pretending to be someone else",
+  "rep.no_show": "Did not show up", "rep.other": "Something else", "rep.details": "What happened (optional)", "rep.send": "Send report", "rep.sent": "Report sent. An admin will review it.",
+  "rep.link": "Report this player", "rep.signin": "Sign in to report a player.",
+  "ev.title": "Problem with this match?", "ev.lede": "Tell us what happened and add screenshots of the result. Only you and the admins can see them.",
+  "ev.note": "What happened", "ev.files": "Screenshots: PNG, JPG or WEBP, up to 5 MB each, 5 at most", "ev.send": "Send to review", "ev.sent": "Sent. An admin will review it.",
+  "ev.yours": "Your screenshots", "ev.uploading": "Uploading…",
+  "cal.add": "Add to calendar", "t.demo": "Demo", "t.demonote": "Demo tournament played by bots to show how WIN ZONE works. Results do not count.",
+  "sp.presented": "Presented by", "sp.partners": "Partners", "f.responsible": "Responsible play", "me.getapp": "Download the Android app"
+});
+Object.assign(D.fr, {
+  "acc.title": "Compte et sécurité", "acc.pw": "Changer le mot de passe", "acc.pwcur": "Mot de passe actuel", "acc.pwnew": "Nouveau mot de passe", "acc.pwrep": "Répétez le nouveau mot de passe",
+  "acc.pwdone": "Mot de passe changé", "acc.pwwrong": "Le mot de passe actuel n'est pas correct.", "acc.pwshort": "Le nouveau mot de passe doit avoir au moins 8 caractères.", "acc.pwsame": "Les deux nouveaux mots de passe ne sont pas identiques.",
+  "rp.title": "Jeu responsable", "rp.lede": "WIN ZONE est gratuit et sans prix en argent. Jouez pour le plaisir et faites une pause quand il le faut.",
+  "rp.break": "Faire une pause", "rp.breakhint": "Vous quittez les tournois qui n'ont pas commencé et ne pouvez pas en rejoindre de nouveaux avant la fin de la pause. Une pause ne peut pas être raccourcie.",
+  "rp.days": "Durée", "rp.d1": "1 jour", "rp.d7": "1 semaine", "rp.d30": "1 mois", "rp.d90": "3 mois", "rp.d180": "6 mois", "rp.d365": "1 an",
+  "rp.breakbtn": "Commencer la pause", "rp.confirm": "Commencer cette pause ? Elle ne pourra pas être raccourcie.", "rp.onbreak": "Vous êtes en pause jusqu'au", "rp.limit": "Tournois en même temps",
+  "rp.limithint": "Vous empêche de rejoindre plus de tournois que ce nombre à la fois.", "rp.nolimit": "Sans limite", "rp.limitsaved": "Limite enregistrée", "rp.more": "Jeu responsable",
+  "del.title": "Supprimer le compte", "del.lede": "Cela supprime votre connexion et vos données personnelles. Vos anciens résultats restent dans les tournois sous le nom « Joueur supprimé ». Action définitive.",
+  "del.type": "Tapez votre nom d'utilisateur pour confirmer", "del.btn": "Supprimer mon compte", "del.done": "Votre compte est supprimé.",
+  "ban.until": "Votre compte est suspendu jusqu'au", "ban.perm": "Votre compte est suspendu.", "ban.contact": "Contactez WIN ZONE si vous pensez que c'est une erreur.",
+  "r.account_suspended": "Votre compte est suspendu.", "r.on_break": "Vous êtes en pause.", "r.play_limit_reached": "Vous avez atteint votre limite de tournois en même temps. Modifiez-la dans Mes matchs.",
+  "r.country_not_available": "Les tournois WIN ZONE ne sont pas disponibles dans votre pays.", "r.demo_tournament": "Ceci est un tournoi de démonstration joué par des robots.",
+  "r.in_live_tournament": "Vous jouez encore dans un tournoi. Terminez-le ou demandez à un administrateur de vous retirer.", "r.confirm_username": "Tapez exactement votre nom d'utilisateur pour confirmer.",
+  "r.last_admin": "Vous êtes le seul administrateur. Ajoutez-en un autre avant de supprimer votre compte.", "r.tournament_full": "Ce tournoi est complet.", "r.registration_closed": "Les inscriptions sont fermées.",
+  "r.country_required": "Choisissez votre pays pour vous inscrire.", "r.too_many_reports": "Vous avez envoyé beaucoup de signalements aujourd'hui. Réessayez demain.", "r.player_not_found": "Joueur introuvable.",
+  "r.evidence_closed": "Les captures peuvent être ajoutées jusqu'à 3 jours après le match, 5 au maximum.", "r.not_a_participant": "Vous ne participez pas à ce match.",
+  "rep.title": "Signaler un joueur", "rep.reason": "Motif", "rep.cheating": "Triche", "rep.abuse": "Insultes ou harcèlement", "rep.impersonation": "Se fait passer pour quelqu'un d'autre",
+  "rep.no_show": "Ne s'est pas présenté", "rep.other": "Autre chose", "rep.details": "Ce qui s'est passé (facultatif)", "rep.send": "Envoyer le signalement", "rep.sent": "Signalement envoyé. Un administrateur va l'examiner.",
+  "rep.link": "Signaler ce joueur", "rep.signin": "Connectez-vous pour signaler un joueur.",
+  "ev.title": "Un problème avec ce match ?", "ev.lede": "Expliquez ce qui s'est passé et ajoutez des captures du résultat. Seuls vous et les administrateurs pouvez les voir.",
+  "ev.note": "Ce qui s'est passé", "ev.files": "Captures : PNG, JPG ou WEBP, 5 Mo max chacune, 5 au maximum", "ev.send": "Envoyer pour examen", "ev.sent": "Envoyé. Un administrateur va l'examiner.",
+  "ev.yours": "Vos captures", "ev.uploading": "Envoi…",
+  "cal.add": "Ajouter au calendrier", "t.demo": "Démo", "t.demonote": "Tournoi de démonstration joué par des robots pour montrer le fonctionnement de WIN ZONE. Les résultats ne comptent pas.",
+  "sp.presented": "Présenté par", "sp.partners": "Partenaires", "f.responsible": "Jeu responsable", "me.getapp": "Télécharger l'application Android"
+});
+Object.assign(D.rw, {
+  "acc.title": "Konti n'umutekano", "acc.pw": "Hindura ijambobanga", "acc.pwcur": "Ijambobanga usanzwe ukoresha", "acc.pwnew": "Ijambobanga rishya", "acc.pwrep": "Ongera wandike ijambobanga rishya",
+  "acc.pwdone": "Ijambobanga ryahinduwe", "acc.pwwrong": "Ijambobanga usanzwe ukoresha si ryo.", "acc.pwshort": "Ijambobanga rishya rigomba kugira nibura inyuguti 8.", "acc.pwsame": "Amajambobanga mashya yombi ntabwo ari kimwe.",
+  "rp.title": "Gukina mu rugero", "rp.lede": "WIN ZONE ni ubuntu kandi nta bihembo by'amafaranga. Kina wishimisha, kandi uruhuke igihe ubikeneye.",
+  "rp.break": "Fata ikiruhuko", "rp.breakhint": "Uva mu marushanwa ataratangira, kandi ntiwinjira mu mashya kugeza ikiruhuko kirangiye. Ikiruhuko ntigishobora kugabanywa.",
+  "rp.days": "Igihe", "rp.d1": "Umunsi 1", "rp.d7": "Icyumweru 1", "rp.d30": "Ukwezi 1", "rp.d90": "Amezi 3", "rp.d180": "Amezi 6", "rp.d365": "Umwaka 1",
+  "rp.breakbtn": "Tangira ikiruhuko", "rp.confirm": "Utangire iki kiruhuko? Ntigishobora kugabanywa.", "rp.onbreak": "Uri mu kiruhuko kugeza", "rp.limit": "Amarushanwa icyarimwe",
+  "rp.limithint": "Bikubuza kwinjira mu marushanwa arenze uyu mubare icyarimwe.", "rp.nolimit": "Nta rugero", "rp.limitsaved": "Urugero rwabitswe", "rp.more": "Gukina mu rugero",
+  "del.title": "Siba konti", "del.lede": "Ibi bisiba uburyo bwo kwinjira n'amakuru yawe bwite. Ibyavuye mu mikino yawe bisigara mu marushanwa nka \"Umukinnyi wasibwe\". Ntibisubirwaho.",
+  "del.type": "Andika izina ukoresha kugira ngo wemeze", "del.btn": "Siba konti yanjye", "del.done": "Konti yawe yasibwe.",
+  "ban.until": "Konti yawe yahagaritswe kugeza", "ban.perm": "Konti yawe yahagaritswe.", "ban.contact": "Vugana na WIN ZONE niba utekereza ko ari ikosa.",
+  "r.account_suspended": "Konti yawe yahagaritswe.", "r.on_break": "Uri mu kiruhuko.", "r.play_limit_reached": "Wageze ku rugero rw'amarushanwa icyarimwe. Ruhindure mu Mikino yanjye.",
+  "r.country_not_available": "Amarushanwa ya WIN ZONE ntaraboneka mu gihugu cyawe.", "r.demo_tournament": "Iri ni irushanwa ryo kwerekana rikinwa na robo.",
+  "r.in_live_tournament": "Uracyakina mu irushanwa. Rirangize cyangwa usabe umuyobozi kugukuramo.", "r.confirm_username": "Andika neza izina ukoresha kugira ngo wemeze.",
+  "r.last_admin": "Ni wowe muyobozi wenyine. Banza wongere undi muyobozi mbere yo gusiba konti.", "r.tournament_full": "Iri rushanwa ryuzuye.", "r.registration_closed": "Kwiyandikisha byafunzwe.",
+  "r.country_required": "Hitamo igihugu cyawe kugira ngo wiyandikishe.", "r.too_many_reports": "Watanze raporo nyinshi uyu munsi. Ongera ugerageze ejo.", "r.player_not_found": "Umukinnyi ntiyabonetse.",
+  "r.evidence_closed": "Amafoto ashobora kongerwamo mu minsi 3 nyuma y'umukino, atarenze 5.", "r.not_a_participant": "Ntabwo uri muri uyu mukino.",
+  "rep.title": "Rega umukinnyi", "rep.reason": "Impamvu", "rep.cheating": "Uburiganya", "rep.abuse": "Gutukana cyangwa guhohotera", "rep.impersonation": "Kwiyitirira undi",
+  "rep.no_show": "Ntiyaje", "rep.other": "Ikindi", "rep.details": "Ibyabaye (si ngombwa)", "rep.send": "Ohereza raporo", "rep.sent": "Raporo yoherejwe. Umuyobozi azayisuzuma.",
+  "rep.link": "Rega uyu mukinnyi", "rep.signin": "Injira kugira ngo urege umukinnyi.",
+  "ev.title": "Hari ikibazo kuri uyu mukino?", "ev.lede": "Tubwire ibyabaye kandi wongeremo amafoto y'ibyavuye mu mukino. Ni wowe n'abayobozi gusa babibona.",
+  "ev.note": "Ibyabaye", "ev.files": "Amafoto: PNG, JPG cyangwa WEBP, atarenze MB 5 buri imwe, atarenze 5", "ev.send": "Ohereza ngo bisuzumwe", "ev.sent": "Byoherejwe. Umuyobozi azabisuzuma.",
+  "ev.yours": "Amafoto yawe", "ev.uploading": "Biroherezwa…",
+  "cal.add": "Shyira kuri kalendari", "t.demo": "Igerageza", "t.demonote": "Irushanwa ryo kwerekana rikinwa na robo kugira ngo werekwe uko WIN ZONE ikora. Ibyavuyemo ntibibarwa.",
+  "sp.presented": "Ritewe inkunga na", "sp.partners": "Abafatanyabikorwa", "f.responsible": "Gukina mu rugero", "me.getapp": "Kuramo porogaramu ya Android"
+});
+
 let lang = "en";
 try { const s = localStorage.getItem("wz_lang"); if (LANGS.includes(s)) lang = s; } catch (_) {}
 if (lang === "en" && typeof navigator !== "undefined") {

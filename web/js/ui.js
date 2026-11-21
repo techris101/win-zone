@@ -42,7 +42,7 @@ export function utcToWall(ts, tz) {    // -> "2026-12-05T18:00" as seen in tz
 
 // A small accessible dialog asking for the player's country. Resolves to a code, or null if cancelled.
 export async function askCountry() {
-  const list = await listCountries();
+  const list = (await listCountries()).filter((c) => !c.blocked);
   return new Promise((resolve) => {
     const d = document.createElement("dialog");
     d.className = "dlg";
@@ -95,6 +95,9 @@ if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
+// The brand: a football pitch seen from above, and a plain wordmark.
+export const LOGO_INNER = `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" class="lm-bg"/><g class="lm-line" fill="none" stroke-width="1.9"><rect x="5.5" y="8.5" width="21" height="15" rx="1"/><path d="M16 8.5v3.4M16 20.1v3.4"/><circle cx="16" cy="16" r="4.1"/></g><circle cx="16" cy="16" r="1.7" class="lm-dot"/></svg><span class="logo-text">WIN ZONE</span>`;
+
 export async function mountChrome(active = "") {
   document.documentElement.lang = getLang();
   const header = document.createElement("header");
@@ -102,7 +105,7 @@ export async function mountChrome(active = "") {
   header.innerHTML = `
     ${LIVE ? "" : `<div class="sample-banner" data-i18n="c.sample"></div>`}
     <div class="wrap nav">
-      <a class="logo" href="/" aria-label="WIN ZONE"><span class="logo-mark"></span><span class="logo-text">WIN <b>ZONE</b></span></a>
+      <a class="logo" href="/" aria-label="WIN ZONE home">${LOGO_INNER}</a>
       <nav class="nav-links" id="nav-links" aria-label="Main">
         ${NAV.map(([href, key]) => `<a href="${href}" data-i18n="${key}" ${active === key ? 'aria-current="page"' : ""}></a>`).join("")}
         <div class="lang lang-m" role="group" aria-label="Language">
@@ -128,13 +131,14 @@ export async function mountChrome(active = "") {
   footer.innerHTML = `
     <div class="wrap">
       <div class="foot-grid">
-        <div><a class="logo" href="/"><span class="logo-mark"></span><span class="logo-text">WIN <b>ZONE</b></span></a>
+        <div><a class="logo" href="/" aria-label="WIN ZONE home">${LOGO_INNER}</a>
           <p class="mute" style="margin-top:16px;max-width:26em" data-i18n="f.tag"></p></div>
         <div><h4 data-i18n="f.product"></h4>
           <a href="/#tournaments" data-i18n="nav.tournaments"></a><a href="/#how" data-i18n="nav.how"></a><a href="/organizers.html" data-i18n="nav.organizers"></a></div>
         <div><h4 data-i18n="f.legal"></h4>
-          <a href="/terms.html" data-i18n="f.terms"></a><a href="/privacy.html" data-i18n="f.privacy"></a><a href="/contact.html" data-i18n="f.contact"></a></div>
-        <div><h4>Free to play</h4><p class="mute small">Free to enter. Skill-based. Play responsibly.</p></div>
+          <a href="/terms.html" data-i18n="f.terms"></a><a href="/privacy.html" data-i18n="f.privacy"></a><a href="/responsible.html" data-i18n="f.responsible"></a><a href="/contact.html" data-i18n="f.contact"></a></div>
+        <div><h4>Free to play</h4><p class="mute small">Free to enter. Skill-based. Play responsibly.</p>
+          ${CONFIG.APK_URL ? `<a href="${esc(CONFIG.APK_URL)}" rel="noopener" data-i18n="me.getapp"></a>` : ""}</div>
       </div>
       <div class="foot-base"><span>© ${new Date().getFullYear()} WIN ZONE. <span data-i18n="f.rights"></span></span><span>win-zone.pages.dev</span></div>
     </div>`;
@@ -184,12 +188,17 @@ async function renderAuthSlot() {
   } else {
     try { const p = await myProfile(); setTz(p && p.tz ? p.tz : null); } catch (_) {}
     const org = await isOrganizer();
-    slot.innerHTML = `${org ? `<a class="btn sm ghost" href="/admin.html" data-i18n="nav.admin"></a> ` : ""}<a class="btn sm" href="/me.html" id="me-btn"><span data-i18n="nav.me"></span><span class="badge" id="unread" hidden></span></a>`;
+    slot.innerHTML = `${org ? `<a class="btn sm ghost nav-admin-d" href="/admin.html" data-i18n="nav.admin"></a> ` : ""}<a class="btn sm" href="/me.html" id="me-btn"><span data-i18n="nav.me"></span><span class="badge" id="unread" hidden></span></a>`;
     const setBadge = (n) => { const b = $("#unread"); if (!b) return; b.hidden = !n; b.textContent = n > 9 ? "9+" : String(n); };
     unreadCount().then(setBadge).catch(() => {});
     // live: a new notification bumps the badge and shows a short message
     onMyNotification(user.id, (n) => { unreadCount().then(setBadge); toast(n.title); }).catch(() => {});
     const nav = $("#nav-links");
+    if (org) {   // on phones the Admin button lives in the menu
+      const adm = document.createElement("a");
+      adm.href = "/admin.html"; adm.dataset.i18n = "nav.admin"; adm.className = "nav-admin-m";
+      nav.append(adm);
+    }
     const out = document.createElement("a");
     out.href = "#"; out.dataset.i18n = "nav.signout";
     out.addEventListener("click", async (e) => { e.preventDefault(); await signOut(); location.href = "/"; });
@@ -201,6 +210,7 @@ async function renderAuthSlot() {
 
 export const statusPill = (status) => {
   const cls = status === "live" || status === "active" ? "live" : status === "open" ? "open" : status === "completed" ? "done" : "";
-  return `<span class="pill ${cls}"><i class="dot"></i>${esc(t((status === "active" ? "fx." : "st.") + status))}</span>`;
+  const key = ["active", "scheduled", "disputed", "stalled", "bye"].includes(status) ? "fx." + status : "st." + status;   // match states vs tournament states
+  return `<span class="pill ${cls}"><i class="dot"></i>${esc(t(key))}</span>`;
 };
 export { t, applyI18n, CONFIG };

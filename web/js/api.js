@@ -24,7 +24,7 @@ const ok = ({ data, error }) => {
 const NOT_CONNECTED = () => { throw new Error("not_connected"); };
 
 // ------------------------------------------------------------------ public reads
-const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,schedule_tz,slot_hour,round_gap_hours,schedule_speed,phase_rounds,game:games(name),entries:tournament_entries(count)";
+const TSEL = "id,slug,name,format,size,league_advance,status,starts_at,prize_description,champion_id,schedule_tz,slot_hour,round_gap_hours,schedule_speed,phase_rounds,is_demo,game:games(name),entries:tournament_entries(count)";
 
 export async function listTournaments() {
   if (!LIVE) return DEMO.tournaments;
@@ -114,7 +114,7 @@ export async function isAdmin() { if (!LIVE) return false; try { return Boolean(
 export async function listCountries() {
   if (!LIVE) return DEMO.countries;
   const c = await sb();
-  return ok(await c.from("countries").select("code,name,tz").order("name"));
+  return ok(await c.from("countries").select("code,name,tz,blocked").order("name"));
 }
 export const myProfile = () => rpc("my_profile");
 export const setMyCountry = (code) => rpc("set_my_country", { p_code: code });
@@ -162,13 +162,22 @@ export const resolveFixture = (fid, outcome, notes) => rpc("resolve_fixture", { 
 
 export async function listAttention() {
   const c = await sb();
-  const fx = ok(await c.from("fixtures").select("id,stage,round,status,player_a_id,player_b_id,tournament:tournaments(name,slug)").in("status", ["disputed", "stalled"]));
-  if (!fx.length) return { fixtures: [], reasons: {}, profiles: {} };
+  const FXSEL = "id,stage,round,status,score_a,score_b,player_a_id,player_b_id,tournament:tournaments(name,slug)";
+  const fx = ok(await c.from("fixtures").select(FXSEL).in("status", ["disputed", "stalled"]));
+  // finished matches that a player has asked to be checked
+  const open = ok(await c.from("disputes").select("fixture_id,note,user_id,created_at").eq("status", "open"));
+  const extra = [...new Set(open.map((d) => d.fixture_id))].filter((id) => !fx.some((x) => x.id === id));
+  if (extra.length) fx.push(...ok(await c.from("fixtures").select(FXSEL).in("id", extra)));
+  if (!fx.length) return { fixtures: [], reasons: {}, profiles: {}, notes: {}, evidence: {} };
+  const evid = ok(await c.from("dispute_evidence").select("fixture_id,user_id,path,note,created_at").in("fixture_id", fx.map((x) => x.id)));
+  const evidence = {}, notes = {};
+  for (const e of evid) (evidence[e.fixture_id] ||= []).push(e);
+  for (const d of open) (notes[d.fixture_id] ||= []).push(d);
   const ev = ok(await c.from("match_events").select("fixture_id,event_type,details,created_at").in("fixture_id", fx.map((x) => x.id)).order("created_at", { ascending: false }));
   const reasons = {};
   for (const e of ev) if (!reasons[e.fixture_id] && (e.details?.reason || e.event_type === "stalled")) reasons[e.fixture_id] = e.details?.reason || e.event_type;
   const profiles = await getProfiles(fx.flatMap((x) => [x.player_a_id, x.player_b_id]));
-  return { fixtures: fx, reasons, profiles };
+  return { fixtures: fx, reasons, profiles, notes, evidence };
 }
 
 export const publishTournament = (tid) => rpc("publish_tournament", { p_tid: tid });
@@ -222,3 +231,77 @@ export async function careerStats(uid) { if (!LIVE) return null; return rpc("car
 export async function rankings(search = null, limit = 200) { if (!LIVE) return []; return rpc("rankings", { p_limit: limit, p_search: search || null }); }
 export async function publicPlayer(username) { if (!LIVE) return { ok: false, reason: "not_connected" }; return rpc("public_player", { p_username: username }); }
 export const setMyTeamName = (name) => rpc("set_my_team_name", { p_name: name });
+
+// ------------------------------------------------------------------ account and safety
+export async function changePassword(email, current, next) {
+  const c = await sb();
+  const check = await c.auth.signInWithPassword({ email, password: current });
+  if (check.error) throw new Error("wrong_current_password");
+  return ok(await c.auth.updateUser({ password: next }));
+}
+export const takeBreak = (days) => rpc("take_break", { p_days: days });
+export const setPlayLimit = (max) => rpc("set_play_limit", { p_max: max });
+export const deleteMyAccount = (confirm) => rpc("delete_my_account", { p_confirm: confirm });
+export const reportPlayer = (username, reason, details, fixtureId) =>
+  rpc("report_player", { p_username: username, p_reason: reason, p_details: details || null, p_fixture_id: fixtureId || null });
+export async function fixtureBasics(fid) {
+  const c = await sb();
+  return ok(await c.from("fixtures").select("id,status,completed_at,player_a_id,player_b_id,tournament_id").eq("id", fid).maybeSingle());
+}
+export async function uploadEvidence(fid, uid, file, note) {
+  const c = await sb();
+  const ext = ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" })[file.type];
+  if (!ext) throw new Error("Use a PNG, JPG or WEBP screenshot.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("The file is larger than 5 MB.");
+  const path = `${fid}/${uid}/${Date.now()}.${ext}`;
+  ok(await c.storage.from("evidence").upload(path, file, { contentType: file.type, upsert: false }));
+  return rpc("add_dispute_evidence", { p_fixture_id: fid, p_path: path, p_note: note || null });
+}
+export async function myEvidence(fid) {
+  const c = await sb();
+  return ok(await c.from("dispute_evidence").select("path,note,created_at").eq("fixture_id", fid).order("created_at"));
+}
+export async function evidenceUrl(path) {
+  const c = await sb();
+  const r = ok(await c.storage.from("evidence").createSignedUrl(path, 600));
+  return r.signedUrl;
+}
+
+// ------------------------------------------------------------------ sponsors
+export async function sponsorsFor(tid) {
+  if (!LIVE) return [];
+  const c = await sb();
+  const rows = ok(await c.from("sponsor_placements").select("placement_type,display_order,sponsor:sponsors(id,name,logo_url,website,active)").eq("tournament_id", tid).order("display_order"));
+  return rows.filter((r) => r.sponsor && r.sponsor.active);
+}
+export async function homeSponsors() {
+  if (!LIVE) return [];
+  const c = await sb();
+  return ok(await c.from("sponsors").select("id,name,logo_url,website").eq("show_on_home", true).eq("active", true).order("name"));
+}
+export async function allSponsors() {
+  const c = await sb();
+  return ok(await c.from("sponsors").select("id,name,logo_url,website,active,show_on_home,placements:sponsor_placements(tournament_id,placement_type)").order("name"));
+}
+export const saveSponsor = (s) => rpc("save_sponsor", { p_id: s.id || null, p_name: s.name, p_logo_url: s.logo_url || null, p_website: s.website || null, p_active: s.active, p_show_on_home: s.show_on_home });
+export const setSponsorPlacement = (tid, sid, type, on) => rpc("set_sponsor_placement", { p_tid: tid, p_sponsor: sid, p_type: type, p_on: on });
+export const deleteSponsor = (id) => rpc("delete_sponsor", { p_id: id });
+export async function uploadSponsorLogo(file) {
+  const c = await sb();
+  const ext = ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" })[file.type];
+  if (!ext) throw new Error("Use a PNG, JPG or WEBP logo.");
+  if (file.size > 1024 * 1024) throw new Error("The logo must be 1 MB or smaller.");
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  ok(await c.storage.from("sponsor-logos").upload(path, file, { contentType: file.type }));
+  return c.storage.from("sponsor-logos").getPublicUrl(path).data.publicUrl;
+}
+
+// ------------------------------------------------------------------ admin: safety and demo
+export const listReports = (status = "open") => rpc("list_reports", { p_status: status });
+export const reviewReport = (id, status) => rpc("review_report", { p_id: id, p_status: status });
+export const banPlayer = (username, days, reason) => rpc("ban_player", { p_username: username, p_days: days, p_reason: reason });
+export const unbanPlayer = (username) => rpc("unban_player", { p_username: username });
+export const listBanned = () => rpc("list_banned");
+export const setCountryBlocked = (code, blocked) => rpc("set_country_blocked", { p_code: code, p_blocked: blocked });
+export const createDemo = (name, size, format) => rpc("create_demo_tournament", { p_name: name, p_size: size, p_format: format || null });
+export const deleteDemo = (tid) => rpc("delete_demo_tournament", { p_tid: tid });

@@ -1,4 +1,12 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
-  <path android:fillColor="#0B0D0C" android:pathData="M0,0h48v48h-48z"/>
-  <path android:fillColor="#C8F43A" android:pathData="M11,11h26v16l-10,10h-16z"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- WIN ZONE mark: a football pitch seen from above -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#0B0D0C" android:pathData="M0,0h48v48h-48z"/>
+    <path android:strokeColor="#F2EFE8" android:strokeWidth="2" android:fillColor="#00000000"
+        android:pathData="M12.5,15.5h23a1,1 0,0 1,1 1v15a1,1 0,0 1,-1 1h-23a1,1 0,0 1,-1 -1v-15a1,1 0,0 1,1 -1z"/>
+    <path android:strokeColor="#F2EFE8" android:strokeWidth="2" android:pathData="M24,15.5v3.8M24,28.7v3.8"/>
+    <path android:strokeColor="#F2EFE8" android:strokeWidth="2" android:fillColor="#00000000"
+        android:pathData="M24,19.3a4.7,4.7 0,1 1,0 9.4a4.7,4.7 0,1 1,0 -9.4z"/>
+    <path android:fillColor="#C8F43A" android:pathData="M24,22.1a1.9,1.9 0,1 1,0 3.8a1.9,1.9 0,1 1,0 -3.8z"/>
 </vector>

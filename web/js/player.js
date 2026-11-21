@@ -1,5 +1,5 @@
-import { mountChrome, esc, $, t, errMsg, fmtDate, statusPill } from "./ui.js";
-import { publicPlayer } from "./api.js";
+import { mountChrome, esc, $, t, errMsg, fmtDate, statusPill, toast } from "./ui.js";
+import { publicPlayer, getUser, reportPlayer } from "./api.js";
 
 await mountChrome("nav.players");
 const root = $("#p-root");
@@ -26,7 +26,14 @@ async function load() {
         <div><b>${c.titles ?? 0}</b><span>${esc(t("pl.titles"))}</span></div><div><b>${c.played ?? 0}</b><span>${esc(t("pl.played"))}</span></div>
         <div><b>${c.won ?? 0}</b><span>${esc(t("me.won"))}</span></div><div><b>${rate}</b><span>${esc(t("me.winrate"))}</span></div>
         <div><b>${c.goals_for ?? 0}</b><span>${esc(t("me.goals"))}</span></div></div>
-      <p class="mute small">${esc(t("p.since"))} ${esc(new Date(p.since).toLocaleDateString())}</p>
+      <p class="mute small">${esc(t("p.since"))} ${esc(new Date(p.since).toLocaleDateString())} · <button class="link-btn" type="button" id="rep-open">${esc(t("rep.link"))}</button></p>
+      <form id="rep-form" class="panel form report-form" hidden>
+        <h4 class="form-title">${esc(t("rep.title"))}</h4>
+        <div class="field"><label for="r-reason">${esc(t("rep.reason"))}</label><select id="r-reason">
+          ${["cheating", "abuse", "impersonation", "no_show", "other"].map((k) => `<option value="${k}">${esc(t("rep." + k))}</option>`).join("")}</select></div>
+        <div class="field"><label for="r-details">${esc(t("rep.details"))}</label><textarea id="r-details" rows="3" maxlength="1000"></textarea></div>
+        <button class="btn sm" type="submit">${esc(t("rep.send"))}</button>
+      </form>
     </div></section>
     <div class="wrap p-cols">
       <section><h3>${esc(t("p.recent"))}</h3>${p.recent.length ? p.recent.map((r) => `<div class="res">
@@ -39,4 +46,18 @@ async function load() {
           <span>${statusPill(x.status)}</span><span class="arrow">→</span></a>`).join("")}</div>` : `<div class="empty">—</div>`}</section>
     </div>`;
 }
-load();
+await load();
+
+const me = await getUser().catch(() => null);
+$("#rep-open")?.addEventListener("click", () => {
+  if (!me) { location.href = `/auth.html?next=${encodeURIComponent(location.pathname)}`; return; }
+  const f = $("#rep-form"); f.hidden = !f.hidden; if (!f.hidden) $("#r-reason").focus();
+});
+$("#rep-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const r = await reportPlayer(username, $("#r-reason").value, $("#r-details").value);
+    if (!r.ok) throw new Error(t("r." + r.reason) === "r." + r.reason ? r.reason : t("r." + r.reason));
+    toast(t("rep.sent")); e.target.reset(); e.target.hidden = true;
+  } catch (err) { toast(errMsg(err), "err"); }
+});

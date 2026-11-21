@@ -1,5 +1,5 @@
 import { mountChrome, esc, $, $$, fmtDate, statusPill, toast, errMsg, t, applyI18n, chooseCountryAndSave } from "./ui.js";
-import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, playerStats, leaders } from "./api.js";
+import { LIVE, getUser, getTournament, getTournamentData, subscribe, register, withdraw, myEntryIds, playerStats, leaders, sponsorsFor } from "./api.js";
 import { renderBracket, renderTable, renderFixtures, renderPlayers, renderGroups, phaseZones, renderRace, renderLeaders } from "./bracket.js";
 import { nameOf } from "./ui.js";
 
@@ -9,7 +9,7 @@ const root = $("#t-root");
 const params = new URLSearchParams(location.search);
 const slug = decodeURIComponent((location.pathname.match(/^\/t\/([^/]+)/) || [])[1] || params.get("s") || "");
 
-let tour = null, data = null, user = null, joined = false, tab = null;
+let tour = null, data = null, user = null, joined = false, tab = null, sponsors = [];
 
 async function boot() {
   if (!slug) return notFound();
@@ -18,6 +18,7 @@ async function boot() {
   document.title = `${tour.name} — WIN ZONE`;
   user = await getUser().catch(() => null);
   if (user && LIVE) joined = (await myEntryIds(user.id).catch(() => new Set())).has(tour.id);
+  sponsors = await sponsorsFor(tour.id).catch(() => []);
   await refresh(true);
   subscribe(tour.id, debounced).catch(() => {});
   setInterval(() => refresh(false), 30000);
@@ -58,12 +59,18 @@ function render() {
   const players = tour.entries?.[0]?.count ?? data.entries.length;
   const champ = tour.champion_id ? nameOf(data.profiles, tour.champion_id) : null;
   const full = players >= tour.size;
-  const canRegister = tour.status === "open";
+  const canRegister = tour.status === "open" && !tour.is_demo;
+  const title = sponsors.find((x) => x.placement_type === "title");
+  const others = sponsors.filter((x) => x.placement_type !== "title");
+  const sp = (x) => { const s = x.sponsor; const inner = s.logo_url ? `<img src="${esc(s.logo_url)}" alt="${esc(s.name)}" loading="lazy">` : `<span>${esc(s.name)}</span>`;
+    return s.website ? `<a class="sp-logo" href="${esc(s.website)}" target="_blank" rel="noopener sponsored">${inner}</a>` : `<span class="sp-logo">${inner}</span>`; };
 
   root.innerHTML = `
     <section class="t-head"><div class="wrap">
-      ${statusPill(tour.status)}
+      ${statusPill(tour.status)}${tour.is_demo ? ` <span class="pill demo">${esc(t("t.demo"))}</span>` : ""}
       <h1 style="margin-top:16px">${esc(tour.name)}</h1>
+      ${title ? `<div class="presented"><span>${esc(t("sp.presented"))}</span>${sp(title)}</div>` : ""}
+      ${tour.is_demo ? `<p class="mute small demo-note">${esc(t("t.demonote"))}</p>` : ""}
       <dl class="facts">
         <div class="fact"><dt>${t("t.format")}</dt><dd>${esc(t("fm." + tour.format))}</dd></div>
         <div class="fact"><dt>${t("t.size")}</dt><dd class="num">${players} / ${tour.size}</dd></div>
@@ -72,6 +79,7 @@ function render() {
         ${tour.starts_at ? `<div class="fact"><dt>${t("t.starts")}</dt><dd>${esc(fmtDate(tour.starts_at))}</dd></div>` : ""}
       </dl>
       <div class="t-actions" id="actions"></div>
+      ${others.length ? `<div class="sp-strip"><span class="k">${esc(t("sp.partners"))}</span>${others.map(sp).join("")}</div>` : ""}
       ${champ ? `<div class="champion"><div><div class="k">${t("t.champion")}</div><div class="v">${esc(champ)}</div></div></div>` : ""}
     </div></section>
     <div class="wrap">
@@ -99,7 +107,7 @@ function render() {
         r = await register(tour.id);
       }
       if (r.ok) { joined = true; toast(t("t.registered")); await refresh(); }
-      else { toast(({ tournament_full: "This tournament is full.", registration_closed: "Registration is closed.", country_required: "Choose your country to register." })[r.reason] || r.reason, "err"); e.target.disabled = false; }
+      else { toast(t("r." + r.reason) === "r." + r.reason ? r.reason : t("r." + r.reason), "err"); e.target.disabled = false; }
     } catch (err) { toast(errMsg(err), "err"); e.target.disabled = false; }
   });
   $("#wd")?.addEventListener("click", async () => { try { await withdraw(tour.id); joined = false; await refresh(); } catch (err) { toast(errMsg(err), "err"); } });

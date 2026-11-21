@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /me.html
+Disallow: /matchroom.html
+Disallow: /reset.html
+Sitemap: https://win-zone.pages.dev/sitemap.xml

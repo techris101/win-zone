@@ -1,5 +1,6 @@
 import { mountChrome, esc, $, fmtDate, statusPill, errMsg, t, applyI18n, chooseCountryAndSave, toast } from "./ui.js";
-import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, setMyTeamName, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush } from "./api.js";
+import { getUser, myEntries, myFixtures, getProfiles, myProfile, LIVE, careerStats, setMyTeamName, playerStats, myNotifications, myFollows, markAllRead, setFollow, savePush, deletePush,
+         changePassword, takeBreak, setPlayLimit, deleteMyAccount, signOut } from "./api.js";
 import { CONFIG } from "./config.js";
 import { statusText } from "./bracket.js";
 
@@ -16,22 +17,28 @@ else {
     $("#chg-country").addEventListener("click", async (e) => { e.preventDefault(); try { if (await chooseCountryAndSave()) location.reload(); } catch (err) { errMsg(err); } });
   }
   showTz();
-  $("#app-link").innerHTML = CONFIG.APK_URL ? `<a class="btn sm" href="${esc(CONFIG.APK_URL)}">${t("me.getapp")}</a>` : "";
+  $("#app-link").innerHTML = CONFIG.APK_URL ? `<a class="btn sm" href="${esc(CONFIG.APK_URL)}" rel="noopener">${esc(t("me.getapp"))}</a>` : "";
   try {
     const [fx, en] = await Promise.all([myFixtures(user.id), myEntries(user.id)]);
     const profiles = await getProfiles(fx.flatMap((f) => [f.player_a_id, f.player_b_id]));
     $("#me-fx").innerHTML = fx.length ? fx.map((f) => {
       const opp = f.player_a_id === user.id ? f.player_b_id : f.player_a_id;
       const o = profiles[opp];
-      return `<a class="t-row" href="/matchroom.html?f=${encodeURIComponent(f.id)}">
+      return `<div class="fx-item"><a class="t-row" href="/matchroom.html?f=${encodeURIComponent(f.id)}">
         <span class="name">vs ${esc(o ? o.display_name || o.username : "…")}</span>
         <span class="meta">${esc(f.tournament?.name || "")}</span>
         <span class="meta">${esc(fmtDate(f.scheduled_at))}</span>
-        <span>${statusPill(f.status === "active" ? "active" : "scheduled")}</span><span class="arrow">→</span></a>`;
+        <span>${statusPill(f.status === "active" ? "active" : "scheduled")}</span><span class="arrow">→</span></a>
+        ${f.scheduled_at ? `<button class="link-btn fx-cal" type="button" data-ics="${esc(f.id)}">${esc(t("cal.add"))}</button>` : ""}</div>`;
     }).join("") : `<div class="empty">${esc(t("me.none"))}</div>`;
     $("#me-ent").innerHTML = en.length ? en.map((e) => `<a class="t-row" href="/t/${encodeURIComponent(e.tournament.slug)}">
         <span class="name">${esc(e.tournament.name)}</span><span class="meta">${esc(fmtDate(e.tournament.starts_at))}</span>
         <span class="meta"></span><span>${statusPill(e.tournament.status)}</span><span class="arrow">→</span></a>`).join("") : `<div class="empty">${esc(t("me.none"))}</div>`;
+    $("#me-fx").querySelectorAll("[data-ics]").forEach((b) => b.addEventListener("click", (e) => {
+      const f = fx.find((x) => x.id === b.dataset.ics);
+      const opp = profiles[f.player_a_id === user.id ? f.player_b_id : f.player_a_id];
+      downloadIcs(f, opp ? opp.display_name || opp.username : "Opponent");
+    }));
   } catch (e) { $("#me-fx").innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; }
   applyI18n(document);
 }
@@ -153,5 +160,73 @@ if (user) {
       if (!r.ok) throw new Error(r.reason === "bad_name" ? "Use 2 to 30 characters." : r.reason);
       $("#team-name").value = r.team_name; toast(t("me.teamsaved"));
     } catch (err) { toast(errMsg(err), "err"); }
+  });
+}
+
+// ---------------------------------------------------------------- calendar file for one match (opens in any calendar app)
+function downloadIcs(f, oppName) {
+  const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const start = new Date(f.scheduled_at), end = new Date(start.getTime() + 30 * 60000);
+  const clean = (x) => String(x || "").replace(/[\\,;]/g, (m) => "\\" + m).replace(/\n/g, " ");
+  const url = `${location.origin}/matchroom.html?f=${f.id}`;
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//WIN ZONE//Match//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+    `UID:${f.id}@win-zone`, `DTSTAMP:${stamp(Date.now())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
+    `SUMMARY:${clean(`WIN ZONE: vs ${oppName}`)}`, `DESCRIPTION:${clean(`${f.tournament?.name || ""} - open the match room: ${url}`)}`, `URL:${url}`,
+    "BEGIN:VALARM", "TRIGGER:-PT15M", "ACTION:DISPLAY", "DESCRIPTION:WIN ZONE match in 15 minutes", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  a.download = "win-zone-match.ics"; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+// ---------------------------------------------------------------- account and safety
+const say = (el, text, kind = "err") => { el.innerHTML = text ? `<div class="msg ${kind}"></div>` : ""; if (text) el.firstChild.textContent = text; };
+const reasonText = (r) => t("r." + r) === "r." + r ? r : t("r." + r);
+const longDate = (d) => new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+async function renderAccount() {
+  const p = await myProfile().catch(() => ({}));
+  const banner = $("#acct-banner");
+  const notes = [];
+  if (p.banned_until) {
+    const perm = new Date(p.banned_until).getFullYear() > 9000 || !isFinite(new Date(p.banned_until));
+    notes.push(`<div class="msg err">${esc(perm ? t("ban.perm") : `${t("ban.until")} ${longDate(p.banned_until)}.`)} ${esc(t("ban.contact"))}</div>`);
+  }
+  if (p.break_until) notes.push(`<div class="msg ok">${esc(t("rp.onbreak"))} ${esc(longDate(p.break_until))}.</div>`);
+  banner.innerHTML = notes.join("");
+  $("#rp-limit").value = p.max_active_tournaments ? String(p.max_active_tournaments) : "";
+}
+
+if (user) {
+  renderAccount();
+  $("#pw-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#pw-msg"); say(msg, "");
+    const cur = $("#pw-cur").value, a = $("#pw-new").value, b = $("#pw-rep").value;
+    if (a.length < 8) return say(msg, t("acc.pwshort"));
+    if (a !== b) return say(msg, t("acc.pwsame"));
+    try { await changePassword(user.email, cur, a); e.target.reset(); say(msg, t("acc.pwdone"), "ok"); }
+    catch (err) { say(msg, err.message === "wrong_current_password" ? t("acc.pwwrong") : errMsg(err)); }
+  });
+  $("#rp-limit").addEventListener("change", async (e) => {
+    try { const r = await setPlayLimit(e.target.value ? Number(e.target.value) : null); if (!r.ok) throw new Error(r.reason); toast(t("rp.limitsaved")); }
+    catch (err) { toast(errMsg(err), "err"); }
+  });
+  $("#rp-break").addEventListener("click", async () => {
+    if (!confirm(t("rp.confirm"))) return;
+    try { const r = await takeBreak(Number($("#rp-days").value)); if (!r.ok) throw new Error(r.reason); await renderAccount(); }
+    catch (err) { toast(errMsg(err), "err"); }
+  });
+  $("#del-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#del-msg"); say(msg, "");
+    try {
+      const r = await deleteMyAccount($("#del-user").value);
+      if (!r.ok) return say(msg, reasonText(r.reason));
+      await signOut().catch(() => {});
+      alert(t("del.done"));
+      location.href = "/";
+    } catch (err) { say(msg, errMsg(err)); }
   });
 }

@@ -185,7 +185,7 @@ class CaptureService : Service() {
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
         val n = b.setContentTitle("WIN ZONE — capture active").setContentText(text)
-            .setSmallIcon(R.drawable.ic_launcher).setOngoing(true).setContentIntent(open).build()
+            .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setContentIntent(open).build()
         if (Build.VERSION.SDK_INT >= 29) startForeground(NOTE_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         else startForeground(NOTE_ID, n)
     }

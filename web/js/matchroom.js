@@ -1,5 +1,6 @@
-import { mountChrome, esc, $, fmtDate, toast, errMsg, applyI18n } from "./ui.js";
-import { getUser, joinFixture, submitRoomCode, reportHostBlocked, openDispute, createHandoff, LIVE } from "./api.js";
+import { mountChrome, esc, $, fmtDate, toast, errMsg, applyI18n, t } from "./ui.js";
+import { getUser, joinFixture, submitRoomCode, reportHostBlocked, openDispute, createHandoff, LIVE, fixtureBasics, getProfiles,
+         uploadEvidence, myEvidence, evidenceUrl, reportPlayer } from "./api.js";
 import { CONFIG } from "./config.js";
 
 await mountChrome();
@@ -71,16 +72,11 @@ async function load() {
         <li>In the game, open the <b>private match</b> screen, paste the code and press <b>Search</b>. ${esc(r.opponent || "Your opponent")} does the same, and the game connects you.</li>
         <li>Play. The app reads the result and the bracket updates by itself.</li>
       </ol>
-      <details style="margin-top:28px"><summary class="mute" style="cursor:pointer">Something wrong with this match?</summary>
-        <form id="dispute" class="form" style="margin-top:16px"><div class="field"><label for="d-note">Tell us what happened</label><textarea id="d-note" rows="3" maxlength="1000"></textarea></div>
-        <button class="btn ghost sm" type="submit">Send to review</button></form></details>`);
+      <div id="problem"></div>`);
 
     $("#copy-code").addEventListener("click", () => copyCode(r.room_code));
     $("#play-btn").addEventListener("click", (e) => playGame(e.currentTarget));
-    $("#dispute").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try { await openDispute(fid, $("#d-note").value); toast("Sent. An admin will review it."); } catch (err) { toast(errMsg(err), "err"); }
-    });
+    if (!problemOpen) renderProblem();
     return;
   }
 
@@ -107,10 +103,72 @@ async function load() {
           <p class="mute">Deadline: ${esc(fmtDate(r.checkin_deadline))}</p>`);
       }
       break;
-    case "fixture_closed": show(`<h1>Match closed</h1><p class="lede">This match is finished or has been closed.</p><a class="btn" href="/me.html">My matches</a>`); break;
+    case "fixture_closed": show(`<h1>Match closed</h1><p class="lede">This match is finished or has been closed.</p><a class="btn" href="/me.html">My matches</a><div id="problem"></div>`); renderProblem(); break;
     case "not_scheduled": show(`<h1>Not scheduled yet</h1><p class="lede">The organizer has not set a time for this match.</p>`); break;
     default: show(`<h1>Matchroom</h1><p class="lede">You are not part of this match.</p><a class="btn" href="/me.html">My matches</a>`);
   }
+}
+
+// ---------------------------------------------------------------- problem with the match: note, screenshots, report the opponent
+let problemOpen = false, probCache = null;
+const reasonText = (r) => (t("r." + r) === "r." + r ? r : t("r." + r));
+async function renderProblem(force = false) {
+  const host = $("#problem");
+  if (!host || !user) return;
+  if (force || !probCache) {
+    try {
+      const f = await fixtureBasics(fid);
+      if (!f || ![f.player_a_id, f.player_b_id].includes(user.id)) return;
+      const oppId = f.player_a_id === user.id ? f.player_b_id : f.player_a_id;
+      const opp = (await getProfiles([oppId]))[oppId] || null;
+      const mine = await myEvidence(fid).catch(() => []);
+      const urls = await Promise.all(mine.map((m) => evidenceUrl(m.path).catch(() => null)));
+      probCache = { f, opp, mine: urls.filter(Boolean) };
+    } catch (_) { return; }
+  }
+  const { f, opp, mine } = probCache;
+  const recent = !f.completed_at || Date.now() - new Date(f.completed_at).getTime() < 3 * 86400000;
+  host.innerHTML = `<details class="problem" id="prob-d"><summary>${esc(t("ev.title"))}</summary>
+    ${recent ? `<form id="dispute" class="form" style="margin-top:16px">
+      <p class="mute small">${esc(t("ev.lede"))}</p>
+      <div class="field"><label for="d-note">${esc(t("ev.note"))}</label><textarea id="d-note" rows="3" maxlength="1000"></textarea></div>
+      <div class="field"><label for="d-files">${esc(t("ev.files"))}</label><input id="d-files" type="file" accept="image/png,image/jpeg,image/webp" multiple></div>
+      <div id="d-msg" role="alert"></div>
+      <button class="btn ghost sm" type="submit">${esc(t("ev.send"))}</button></form>` : ""}
+    ${mine.length ? `<div class="ev-list"><div class="code-label">${esc(t("ev.yours"))}</div><div class="ev-thumbs" id="ev-thumbs"></div></div>` : ""}
+    ${opp && opp.username ? `<form id="report" class="form report-form" style="margin-top:22px">
+      <h4 class="form-title">${esc(t("rep.title"))}: ${esc(opp.display_name || opp.username)}</h4>
+      <div class="field"><label for="r-reason">${esc(t("rep.reason"))}</label><select id="r-reason">
+        ${["cheating", "abuse", "no_show", "impersonation", "other"].map((k) => `<option value="${k}">${esc(t("rep." + k))}</option>`).join("")}</select></div>
+      <div class="field"><label for="r-details">${esc(t("rep.details"))}</label><textarea id="r-details" rows="2" maxlength="1000"></textarea></div>
+      <button class="btn ghost sm" type="submit">${esc(t("rep.send"))}</button></form>` : ""}
+  </details>`;
+  $("#prob-d").addEventListener("toggle", (e) => { problemOpen = e.target.open; });
+  if (mine.length) $("#ev-thumbs").innerHTML = mine.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Screenshot" loading="lazy"></a>`).join("");
+  $("#dispute")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#d-msg"), btn = e.submitter; msg.innerHTML = "";
+    const files = [...$("#d-files").files].slice(0, 5);
+    if (btn) btn.disabled = true;
+    try {
+      if ($("#d-note").value.trim() || !files.length) await openDispute(fid, $("#d-note").value);
+      for (const file of files) {
+        msg.innerHTML = `<div class="msg ok">${esc(t("ev.uploading"))} ${esc(file.name)}</div>`;
+        const r = await uploadEvidence(fid, user.id, file, $("#d-note").value.trim().slice(0, 300));
+        if (!r.ok) throw new Error(reasonText(r.reason));
+      }
+      toast(t("ev.sent")); problemOpen = false; renderProblem(true);
+    } catch (err) { msg.innerHTML = `<div class="msg err">${esc(errMsg(err))}</div>`; }
+    finally { if (btn) btn.disabled = false; }
+  });
+  $("#report")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const r = await reportPlayer(opp.username, $("#r-reason").value, $("#r-details").value, fid);
+      if (!r.ok) throw new Error(reasonText(r.reason));
+      toast(t("rep.sent")); e.target.reset();
+    } catch (err) { toast(errMsg(err), "err"); }
+  });
 }
 
 const user = await getUser().catch(() => null);
