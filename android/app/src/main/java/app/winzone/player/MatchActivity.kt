@@ -210,8 +210,12 @@ class MatchActivity : Activity() {
         }
     }
 
+    private var askedNotify = false
+
     private fun start() {
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        // ask for notifications once (they show what is being read); recording starts whatever the answer
+        if (Build.VERSION.SDK_INT >= 33 && !askedNotify && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            askedNotify = true
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY); return
         }
         val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -226,8 +230,9 @@ class MatchActivity : Activity() {
     override fun onRequestPermissionsResult(code: Int, perms: Array<out String>, res: IntArray) {
         super.onRequestPermissionsResult(code, perms, res)
         if (code == REQ_NOTIFY) {
-            if (res.isNotEmpty() && res[0] == PackageManager.PERMISSION_GRANTED) start()
-            else Toast.makeText(this, "Allow notifications: Android shows one while the app watches the match.", Toast.LENGTH_LONG).show()
+            if (res.isEmpty() || res[0] != PackageManager.PERMISSION_GRANTED)
+                Toast.makeText(this, "Recording works without notifications, but you will not see what the app reads.", Toast.LENGTH_LONG).show()
+            start()
         }
     }
 

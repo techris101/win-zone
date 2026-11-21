@@ -90,12 +90,26 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
             lines.any { l -> fullTimeKeys.any { l.text.uppercase().contains(it) } && abs(l.cx - clockLine.cx) < 0.25f && abs(l.cy - clockLine.cy) < 0.12f }
 
         // the score banner: digits left and right of the clock, penalties in brackets, team names on top
+        var midXOverride: Float? = null
         val midX = clockLine?.cx ?: 0.5f
         val head = lines.filter { it.cy in header.first..header.second }
         // scores sit on the clock's row, either side of it
         val row = tokens.filter { it.cy in header.first..header.second && (clockLine == null || abs(it.cy - clockLine.cy) < 0.06f) }
-        val leftScore = row.filter { it.cx < midX && digitish(it.text) != null }.maxByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
-        val rightScore = row.filter { it.cx > midX && digitish(it.text) != null }.minByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
+        var leftScore = row.filter { it.cx < midX && digitish(it.text) != null }.maxByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
+        var rightScore = row.filter { it.cx > midX && digitish(it.text) != null }.minByOrNull { it.cx }?.let { digitish(it.text)!!.toInt() }
+        // during play the score is often one word like 0-0 or 1–2 (or inside a short line such as "NAN 1-0 SUP")
+        if (leftScore == null || rightScore == null) {
+            val joined = Regex("(?<![0-9:])([0-9OoIl]{1,2})\\s*[-–—]\\s*([0-9OoIl]{1,2})(?![0-9:])")
+            val hit = (row + lines.filter { it.cy in header.first..header.second && it.text.length <= 24 })
+                .firstNotNullOfOrNull { l -> joined.find(l.text)?.let { m -> l to m } }
+            if (hit != null) {
+                val a = digitish(hit.second.groupValues[1]); val b = digitish(hit.second.groupValues[2])
+                if (a != null && b != null) {
+                    leftScore = a.toInt(); rightScore = b.toInt()
+                    midXOverride = hit.first.cx   // the joined score splits the two team names
+                }
+            }
+        }
         val leftPen = row.filter { it.cx < midX && penOf(it.text) != null }.maxByOrNull { it.cx }?.let { penOf(it.text) }
         val rightPen = row.filter { it.cx > midX && penOf(it.text) != null }.minByOrNull { it.cx }?.let { penOf(it.text) }
         val names = head.filter { isName(it.text) }
@@ -104,8 +118,9 @@ class ScreenParser(private val rules: JSONObject, private val myTeamName: String
         // during play the game often shows short team names (for example NAN for NANGANI UNITED) beside the score
         if (layout == "in_play" && clockLine != null && (leftTeam == null || rightTeam == null)) {
             val shorts = tokens.filter { abs(it.cy - clockLine.cy) < 0.06f && Regex("^[A-Z]{2,4}$").matches(it.text.trim()) }
-            val l = shorts.filter { it.cx < midX }.maxByOrNull { it.cx }?.text?.trim()
-            val r = shorts.filter { it.cx > midX }.minByOrNull { it.cx }?.text?.trim()
+            val split = midXOverride ?: midX
+            val l = shorts.filter { it.cx < split }.maxByOrNull { it.cx }?.text?.trim()
+            val r = shorts.filter { it.cx > split }.minByOrNull { it.cx }?.text?.trim()
             if (leftTeam == null) leftTeam = l
             if (rightTeam == null) rightTeam = r
         }

@@ -87,4 +87,14 @@ class ScreenParserTest {
         val f = ScreenParser(rules, "NANGANI UNITED", null).parse(lines, listOf(t("17:15", 30, 2, 80, 14)), setOf("17:15"))
         assertEquals("unknown", f.layout)
     }
+
+    @Test fun joinedScoreDuringPlay() {
+        // top-left bar: "NAN 1-0 SUP" with the clock beside it
+        val lines = listOf(t("NAN 1-0 SUP", 20, 10, 200, 34), t("23:12", 210, 12, 260, 32))
+        val words = listOf(t("NAN", 20, 10, 60, 34), t("1-0", 90, 10, 130, 34), t("SUP", 160, 10, 200, 34), t("23:12", 210, 12, 260, 32))
+        val f = ScreenParser(rules, "NANGANI UNITED", null).parse(lines, words)
+        assertEquals("in_play", f.layout); assertEquals(1, f.scoreMe); assertEquals(0, f.scoreOpp)
+        val k = ScreenParser(rules, null, null).parse(lines, listOf(t("NAN", 20, 10, 60, 34), t("0-0", 90, 10, 130, 34), t("SUP", 160, 10, 200, 34), t("00:01", 210, 12, 260, 32)))
+        assertEquals(0, k.scoreMe); assertEquals(0, k.scoreOpp); assertEquals(1, k.clock)
+    }
 }

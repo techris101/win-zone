@@ -54,6 +54,8 @@ class CaptureService : Service() {
     private var sawInPlay = false
     private var startedAt = 0L
     private var lastUnknownAt = 0L
+    private var lastPlaySampleAt = 0L
+    private var playSamples = 0
     private var lastFrameAt = 0L
     private var lastBlankReportAt = 0L
     private var busySince = 0L
@@ -212,6 +214,11 @@ class CaptureService : Service() {
         if (!dup || (isEnd && terminalCount == confirmFrames)) {
             val raw = JSONObject().put("app", Config.VERSION)
             if (isEnd) raw.put("lines", JSONArray(lines.take(60).map { it.text }))
+            else if (f.layout == "in_play" && (playSamples < 3 || now - lastPlaySampleAt > 20_000)) {
+                playSamples++; lastPlaySampleAt = now
+                raw.put("lines", JSONArray(lines.take(40).map { l ->
+                    JSONArray().put(l.text).put((l.x0 * 100).toInt()).put((l.y0 * 100).toInt()).put((l.x1 * 100).toInt()).put((l.y1 * 100).toInt()) }))
+            }
             val body = JSONObject().put("p_pass", store.pass).put("p_layout", f.layout)
                 .put("p_score_me", f.scoreMe ?: JSONObject.NULL).put("p_score_opp", f.scoreOpp ?: JSONObject.NULL)
                 .put("p_pen_me", f.penMe ?: JSONObject.NULL).put("p_pen_opp", f.penOpp ?: JSONObject.NULL)
