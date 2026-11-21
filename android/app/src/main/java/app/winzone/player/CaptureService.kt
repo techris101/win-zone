@@ -24,6 +24,9 @@ import java.util.concurrent.Executors
 class CaptureService : Service() {
     companion object {
         const val EXTRA_CODE = "code"; const val EXTRA_DATA = "data"
+        const val ACTION_STOP = "app.winzone.player.STOP"
+        const val DONE_ID = 8
+        const val MAX_MINUTES = 150L          // safety: never record longer than this
         const val CHANNEL = "capture"; const val NOTE_ID = 7
         @Volatile var lastStatus: String = ""
         @Volatile var running = false
@@ -48,10 +51,17 @@ class CaptureService : Service() {
     private var terminalCount = 0
     private var reported = false
     private var finished = false
+    private var sawInPlay = false
+    private var menuStreak = 0
+    private var startedAt = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP) {          // "Stop recording" button in the notification
+            if (running) endCapture("Recording stopped.") else stopSelf()
+            return START_NOT_STICKY
+        }
         store = Store(this)
         val profile = store.profile ?: JSONObject()
         interval = profile.optLong("sample_interval_ms", 2000L).coerceIn(1000L, 5000L)
@@ -66,7 +76,7 @@ class CaptureService : Service() {
         if (data == null || store.pass == null) { stopSelf(); return START_NOT_STICKY }
         val mpm = getSystemService(MediaProjectionManager::class.java)
         projection = mpm.getMediaProjection(code, data)
-        projection?.registerCallback(object : MediaProjection.Callback() { override fun onStop() { stopAll() } }, main)
+        projection?.registerCallback(object : MediaProjection.Callback() { override fun onStop() { if (running) stopAll() } }, main)
 
         val dm = resources.displayMetrics
         val scale = minOf(1f, 1280f / maxOf(dm.widthPixels, dm.heightPixels))
@@ -75,6 +85,7 @@ class CaptureService : Service() {
         display = projection?.createVirtualDisplay("winzone", w, h, dm.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader!!.surface, null, main)
         wake = (getSystemService(Context.POWER_SERVICE) as PowerManager).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "winzone:capture").apply { acquire(3 * 60 * 60 * 1000L) }
         running = true
+        startedAt = SystemClock.elapsedRealtime()
         main.postDelayed(tick, interval)
         return START_NOT_STICKY
     }
@@ -82,6 +93,7 @@ class CaptureService : Service() {
     private val tick = object : Runnable {
         override fun run() {
             if (!running) return
+            if (SystemClock.elapsedRealtime() - startedAt > MAX_MINUTES * 60_000) { endCapture("Recording stopped after ${MAX_MINUTES / 60} hours."); return }
             if (!busy) grab()
             main.postDelayed(this, interval)
         }
@@ -124,6 +136,12 @@ class CaptureService : Service() {
             if (terminalCount < confirmFrames) return
         }
         if (f.layout == "unknown") return
+        if (f.layout == "in_play") { sawInPlay = true; menuStreak = 0 }
+        // back in the game's menus after playing: the match is over even if the result screen was missed
+        if (f.layout == "menu" && sawInPlay) {
+            menuStreak++
+            if (menuStreak >= 3) { flushQueue(); main.post { endCapture("Match ended. Recording stopped.") }; return }
+        }
         val dup = f.sameAs(lastSent) && now - lastSentAt < 15000
         if (!dup || (isEnd && terminalCount == confirmFrames)) {
             val raw = JSONObject().put("app", Config.VERSION)
@@ -141,8 +159,13 @@ class CaptureService : Service() {
                 if (send("submit_match_report_pass", JSONObject().put("p_pass", store.pass).put("p_report", r))) reported = true
             }
             send("finalize_fixture_pass", JSONObject().put("p_pass", store.pass))
+            reported = true
+            finished = true
+            // the end screen is confirmed and sent: stop recording now, the server settles the result
+            main.post { endCapture("Match ended. Result sent, recording stopped.") }
+            return
         }
-        if (isEnd || now - lastStatusAt > 10000) { lastStatusAt = now; checkStatus() }
+        if (now - lastStatusAt > 10000) { lastStatusAt = now; checkStatus() }
     }
 
     // sends now; if the network fails, keeps it in a queue and tries again with the next frame
@@ -152,15 +175,7 @@ class CaptureService : Service() {
         catch (e: Exception) { store.enqueue(rpc, body); false }
     }
 
-    private fun flushQueue() {
-        val q = store.takeQueue()
-        for (i in 0 until q.length()) {
-            val item = q.getJSONObject(i)
-            try { Api.rpc(item.getString("rpc"), item.getJSONObject("body")) }
-            catch (e: Api.HttpError) { /* refused by the server: drop it */ }
-            catch (e: Exception) { for (j in i until q.length()) store.enqueue(q.getJSONObject(j).getString("rpc"), q.getJSONObject(j).getJSONObject("body")); return }
-        }
-    }
+    private fun flushQueue() = Api.flush(store)
 
     private fun checkStatus() {
         try {
@@ -174,7 +189,7 @@ class CaptureService : Service() {
                     s.optBoolean("winner_is_me") -> "Result confirmed: you won ${s.opt("score_me")}–${s.opt("score_opp")}"
                     else -> "Result confirmed: ${s.opt("score_me")}–${s.opt("score_opp")}"
                 }
-                main.post { startInForeground(msg); main.postDelayed({ stopAll() }, 4000) }
+                main.post { endCapture(msg) }
             }
         } catch (_: Exception) {}
     }
@@ -184,10 +199,26 @@ class CaptureService : Service() {
         if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "Match capture", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
-        val n = b.setContentTitle("WIN ZONE — capture active").setContentText(text)
-            .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setContentIntent(open).build()
+        val stop = PendingIntent.getService(this, 1, Intent(this, CaptureService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
+        @Suppress("DEPRECATION")
+        val n = b.setContentTitle("WIN ZONE — recording your match").setContentText(text)
+            .setSmallIcon(R.drawable.ic_notify).setOngoing(true).setContentIntent(open)
+            .addAction(Notification.Action.Builder(null, "Stop recording", stop).build()).build()
         if (Build.VERSION.SDK_INT >= 29) startForeground(NOTE_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         else startForeground(NOTE_ID, n)
+    }
+
+    // stops the screen recording, removes the "recording" notification and leaves a short one that can be swiped away
+    private fun endCapture(message: String) {
+        if (!running && projection == null) { stopSelf(); return }
+        stopAll()
+        try {
+            val nm = getSystemService(NotificationManager::class.java)
+            val open = PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+            val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else @Suppress("DEPRECATION") Notification.Builder(this)
+            nm.notify(DONE_ID, b.setContentTitle("WIN ZONE").setContentText(message).setSmallIcon(R.drawable.ic_notify)
+                .setAutoCancel(true).setContentIntent(open).build())
+        } catch (_: Exception) {}
     }
 
     private fun stopAll() {
@@ -196,8 +227,9 @@ class CaptureService : Service() {
         try { display?.release() } catch (_: Exception) {}
         try { reader?.close() } catch (_: Exception) {}
         try { projection?.stop() } catch (_: Exception) {}
+        projection = null
         try { if (wake?.isHeld == true) wake?.release() } catch (_: Exception) {}
-        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
+        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true)
         stopSelf()
     }
 

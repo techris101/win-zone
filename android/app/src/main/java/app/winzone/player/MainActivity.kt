@@ -38,6 +38,13 @@ class MainActivity : Activity() {
         handle(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // results saved while offline are sent as soon as the app is open again
+        if (store.pass != null) thread { try { Api.flush(store) } catch (_: Exception) {} }
+        if (!CaptureService.running && store.match != null && ::root.isInitialized && intent?.data == null) render()
+    }
+
     override fun onNewIntent(i: Intent) { super.onNewIntent(i); setIntent(i); handle(i) }
 
     private fun handle(i: Intent?) {
@@ -112,7 +119,13 @@ class MainActivity : Activity() {
         label("STATUS")
         val status = text(if (CaptureService.running) "Watching your match. Play normally; the result is sent by itself." else "Ready. Press Start, allow screen capture, then open the game.", BONE, 16f)
         if (!CaptureService.running) addButton("Start", primary = true) { start() }
-        else addButton("Back to the game") { launchGame() }
+        else {
+            addButton("Back to the game") { launchGame() }
+            addButton("Stop recording") {
+                startService(Intent(this, CaptureService::class.java).setAction(CaptureService.ACTION_STOP))
+                ui.postDelayed({ render() }, 500)
+            }
+        }
         text("The app reads only the score, clock and result screen on this phone. No video is saved or sent.", 0xFF9A9A94.toInt(), 13f)
         pollStatus(status)
     }

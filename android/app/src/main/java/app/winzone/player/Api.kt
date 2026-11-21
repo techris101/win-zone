@@ -27,4 +27,18 @@ object Api {
             conn.disconnect()
         }
     }
+
+    // sends what was saved while offline; stops at the first network failure and keeps the rest
+    fun flush(store: Store) {
+        val q = store.takeQueue()
+        for (i in 0 until q.length()) {
+            val item = q.getJSONObject(i)
+            try { rpc(item.getString("rpc"), item.getJSONObject("body")) }
+            catch (e: HttpError) { /* refused by the server: drop it */ }
+            catch (e: Exception) {
+                for (j in i until q.length()) store.enqueue(q.getJSONObject(j).getString("rpc"), q.getJSONObject(j).getJSONObject("body"))
+                return
+            }
+        }
+    }
 }
